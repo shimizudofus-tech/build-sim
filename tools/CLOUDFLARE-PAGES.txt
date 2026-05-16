@@ -1,0 +1,33 @@
+BUILDER — Cloudflare Pages setup
+================================
+
+Recommended free hosting for updates:
+GitHub repo -> Cloudflare Pages -> automatic deploy on every push to main.
+
+Pages settings
+--------------
+Framework preset: None
+Build command: npm install
+Build output directory: .
+Root directory: leave empty
+Functions directory: functions
+
+Global visit counter + Community builds
+---------------------------------------
+Create a KV namespace in Cloudflare:
+Workers & Pages -> KV -> Create namespace
+Name: builder-global-data
+
+Then bind it to the Pages project:
+Pages project -> Settings -> Functions -> KV namespace bindings
+Variable name: BUILDER_KV
+KV namespace: builder-global-data
+
+After deploy, test:
+https://YOUR-CLOUDFLARE-DOMAIN/api/community-builds
+
+Expected response:
+{"builds":[]}
+
+If you see "Missing Cloudflare KV binding: BUILDER_KV", the Function is deployed
+but the KV binding is not configured yet.
