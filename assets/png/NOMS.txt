@@ -1,0 +1,20 @@
+Icônes du jeu — 57 fichiers PNG (tools/ORDER.txt)
+=================================================
+
+Passifs (01–09)
+  passive-damage.png … passive-size.png
+
+Sorts (10–25)
+  skill-bat.png … skill-fire-field.png
+  skill-binding_chain.png (#14)
+
+EVO (26–41)
+  evo-bat-purple.png … evo-fire-field-mauve.png
+
+Mythiques (42–57)
+  mythic-bat-red.png … mythic-boom-frog-razor-red.png
+  mythic-blood_swarm.png, chronos_blue, buldak-red, prism_shell (#54–57)
+
+Import :
+  assets/icone/  → tools\importer-icones-nommees.bat
+  assets/import/ 01–57 → tools\copier-icones.bat

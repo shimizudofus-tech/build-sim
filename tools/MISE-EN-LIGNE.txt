@@ -1,0 +1,32 @@
+BUILDER — mise en ligne (2 minutes)
+====================================
+
+IMPORTANT — compteur global + Community builds
+----------------------------------------------
+Le compteur global et les builds partagés fonctionnent sur Netlify avec :
+
+  netlify/functions/api.mjs
+  netlify.toml
+  @netlify/blobs
+
+Pour que Netlify installe la dépendance et active les Functions, utilise un déploiement
+connecté à GitHub ou Netlify CLI. Un simple drag-and-drop statique peut afficher le site,
+mais il risque de ne pas activer les Functions.
+
+OPTION A — Netlify Drop (le plus simple, sans compte)
+----------------------------------------------------
+1. Ouvre : https://app.netlify.com/drop
+2. Glisse-dépose le dossier build-sim entier sur la page
+3. Copie l’URL affichée (ex. https://quelque-chose.netlify.app)
+
+OPTION B — GitHub Pages (lien permanent)
+---------------------------------------
+1. Installe https://cli.github.com/ puis : gh auth login
+2. Double-clic sur tools\publier-en-ligne.bat
+3. Ton lien : https://TON_PSEUDO.github.io/build-sim/
+
+OPTION C — Lien temporaire (PC allumé)
+--------------------------------------
+1. Lance tools\lancer-site.bat
+2. Dans un autre terminal : npx localtunnel --port 8765
+3. Partage l’URL https://....loca.lt affichée

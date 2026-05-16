@@ -1,0 +1,70 @@
+Numérote tes fichiers dans assets/import/ dans cet ordre exact, puis lance :
+  python assign_by_number.py
+
+Indices 1–57 : copie vers assets/png/ (noms officiels).
+Noms de fichier source acceptés par numéro : 7.png, 07.png ou 007.png (idem .jpg).
+
+01–09  Passifs
+10–25  Sorts de base
+26–41  EVO
+42–57  Mythiques
+
+Liste des noms finaux (un par ligne, même ordre) :
+
+passive-damage.png
+passive-crit.png
+passive-multishot.png
+passive-movespeed.png
+passive-duration.png
+passive-hp.png
+passive-regen.png
+passive-haste.png
+passive-size.png
+skill-bat.png
+skill-thunderbolt.png
+skill-cutting-blades.png
+skill-lightning-whip.png
+skill-binding_chain.png
+skill-familiar.png
+skill-tempest.png
+skill-tentacle.png
+skill-buldak.png
+skill-orb.png
+skill-razor.png
+skill-frost-field.png
+skill-boom-frog.png
+skill-shuriken.png
+skill-blue-shell.png
+skill-fire-field.png
+evo-bat-purple.png
+evo-thunderbolt-purple.png
+evo-cutting-blades-purple.png
+evo-lightning-whip-purple.png
+evo-binding-chain-purple.png
+evo-familiar-purple.png
+evo-tempest-purple.png
+evo-tentacle-purple.png
+evo-buldak-purple.png
+evo-orb-purple.png
+evo-razor-purple.png
+evo-frost-field-purple.png
+evo-boom-frog-pruple.png
+evo-shuriken-purple.png
+evo-carapace-mauve.png
+evo-fire-field-mauve.png
+mythic-bat-red.png
+mythic-fire-field-red.png
+mythic-shuriken-red.png
+mythic-tentacle-red.png
+mythic-lightning-whip-red.png
+mythic-binding-chain-red.png
+mythic-buldak-frost-red.png
+mythic-fire-thunder-red.png
+mythic-tempest-carapace-red.png
+mythic-familiar-tempest-red.png
+mythic-blue-shell-crit-red.png
+mythic-boom-frog-razor-red.png
+mythic-blood_swarm.png
+mythic-chronos_blue.png
+mythic-buldak-red.png
+mythic-prism_shell.png

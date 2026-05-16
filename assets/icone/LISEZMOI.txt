@@ -1,0 +1,14 @@
+Dépose ici tes 57 PNG avec les VRAIS NOMS du jeu.
+
+Exemples :
+  passive-sword.png
+  skill-binding_chain.png
+  evo-green_eye.png
+  mythic-prism_shell.png
+
+Liste complète : tools/ORDER.txt
+
+Ensuite double-clic : tools\importer-icones-nommees.bat
+(ou tools\placer-icones.bat)
+
+Le script copie tout vers assets/png/ pour le simulateur BUILDER.

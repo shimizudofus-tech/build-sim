@@ -1,0 +1,66 @@
+Inventaire icônes — généré par import_named_icons.py
+
+Dossier scanné : C:\Users\yop\build-sim\assets\icone
+  Fichiers image : 54
+    bat-purple.png
+    bat-red.png
+    bat.png
+    binding-chain-purple.png
+    binding-chain-red.png
+    binding-chain.png
+    blue-shell-crit-red.png
+    blue-shell.png
+    boom-frog-pruple.png
+    boom-frog-razor-red.png
+    boom-frog.png
+    buldak-frost-red.png
+    buldak-purple.png
+    buldak.png
+    carapace-mauve.png
+    crit.png
+    cutting-blades-purple.png
+    cutting-blades.png
+    damage.png
+    duration.png
+    familiar-purple.png
+    familiar-tempest-red.png
+    familiar.png
+    fire-field-mauve.png
+    fire-field-purple.png
+    fire-field-red.png
+    fire-field.png
+    fire-thunder-red.png
+    frost-field-purple.png
+    frost-field.png
+    haste.png
+    hp.png
+    lightning-whip-purple.png
+    lightning-whip-red.png
+    lightning-whip.png
+    movespeed.png
+    multishot.png
+    orb-purple.png
+    orb.png
+    razor-purple.png
+    razor.png
+    regen.png
+    shuriken-purple.png
+    shuriken-red.png
+    shuriken.png
+    size.png
+    tempest-carapace-red.png
+    tempest-purple.png
+    tempest.png
+    tentacle-purple.png
+    tentacle-red.png
+    tentacle.png
+    thunderbolt-purple.png
+    thunderbolt.png
+
+Placés dans assets/png/ : 53/57
+
+Manquants (nom attendu → numéro import) :
+  #54  mythic-blood_swarm.png
+  #55  mythic-chronos_blue.png
+  #56  mythic-buldak-red.png
+  #57  mythic-prism_shell.png

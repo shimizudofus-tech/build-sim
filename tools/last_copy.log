@@ -1,0 +1,70 @@
+Dossiers : C:\Users\yop\build-sim\assets\icone
+Fichiers reconnus : 53
+  damage.png  ->  assets/png/passive-damage.png
+  crit.png  ->  assets/png/passive-crit.png
+  multishot.png  ->  assets/png/passive-multishot.png
+  movespeed.png  ->  assets/png/passive-movespeed.png
+  duration.png  ->  assets/png/passive-duration.png
+  hp.png  ->  assets/png/passive-hp.png
+  regen.png  ->  assets/png/passive-regen.png
+  haste.png  ->  assets/png/passive-haste.png
+  size.png  ->  assets/png/passive-size.png
+  bat.png  ->  assets/png/skill-bat.png
+  thunderbolt.png  ->  assets/png/skill-thunderbolt.png
+  cutting-blades.png  ->  assets/png/skill-cutting-blades.png
+  lightning-whip.png  ->  assets/png/skill-lightning-whip.png
+  binding-chain.png  ->  assets/png/skill-binding_chain.png
+  familiar.png  ->  assets/png/skill-familiar.png
+  tempest.png  ->  assets/png/skill-tempest.png
+  tentacle.png  ->  assets/png/skill-tentacle.png
+  buldak.png  ->  assets/png/skill-buldak.png
+  orb.png  ->  assets/png/skill-orb.png
+  razor.png  ->  assets/png/skill-razor.png
+  frost-field.png  ->  assets/png/skill-frost-field.png
+  boom-frog.png  ->  assets/png/skill-boom-frog.png
+  shuriken.png  ->  assets/png/skill-shuriken.png
+  blue-shell.png  ->  assets/png/skill-blue-shell.png
+  fire-field.png  ->  assets/png/skill-fire-field.png
+  bat-purple.png  ->  assets/png/evo-bat-purple.png
+  thunderbolt-purple.png  ->  assets/png/evo-thunderbolt-purple.png
+  cutting-blades-purple.png  ->  assets/png/evo-cutting-blades-purple.png
+  lightning-whip-purple.png  ->  assets/png/evo-lightning-whip-purple.png
+  binding-chain-purple.png  ->  assets/png/evo-binding-chain-purple.png
+  familiar-purple.png  ->  assets/png/evo-familiar-purple.png
+  tempest-purple.png  ->  assets/png/evo-tempest-purple.png
+  tentacle-purple.png  ->  assets/png/evo-tentacle-purple.png
+  buldak-purple.png  ->  assets/png/evo-buldak-purple.png
+  orb-purple.png  ->  assets/png/evo-orb-purple.png
+  razor-purple.png  ->  assets/png/evo-razor-purple.png
+  frost-field-purple.png  ->  assets/png/evo-frost-field-purple.png
+  boom-frog-pruple.png  ->  assets/png/evo-boom-frog-pruple.png
+  shuriken-purple.png  ->  assets/png/evo-shuriken-purple.png
+  carapace-mauve.png  ->  assets/png/evo-carapace-mauve.png
+  fire-field-purple.png  ->  assets/png/evo-fire-field-mauve.png
+  bat-red.png  ->  assets/png/mythic-bat-red.png
+  fire-field-red.png  ->  assets/png/mythic-fire-field-red.png
+  shuriken-red.png  ->  assets/png/mythic-shuriken-red.png
+  tentacle-red.png  ->  assets/png/mythic-tentacle-red.png
+  lightning-whip-red.png  ->  assets/png/mythic-lightning-whip-red.png
+  binding-chain-red.png  ->  assets/png/mythic-binding-chain-red.png
+  buldak-frost-red.png  ->  assets/png/mythic-buldak-frost-red.png
+  fire-thunder-red.png  ->  assets/png/mythic-fire-thunder-red.png
+  tempest-carapace-red.png  ->  assets/png/mythic-tempest-carapace-red.png
+  familiar-tempest-red.png  ->  assets/png/mythic-familiar-tempest-red.png
+  blue-shell-crit-red.png  ->  assets/png/mythic-blue-shell-crit-red.png
+  boom-frog-razor-red.png  ->  assets/png/mythic-boom-frog-razor-red.png
+
+Manquants dans icone/ (4) — complément import/ :
+  #54  mythic-blood_swarm.png
+  #55  mythic-chronos_blue.png
+  #56  mythic-buldak-red.png
+  #57  mythic-prism_shell.png
+  54.png  ->  assets/png/mythic-blood_swarm.png (import #54, icone manquant)
+  55.png  ->  assets/png/mythic-chronos_blue.png (import #55, icone manquant)
+  56.png  ->  assets/png/mythic-buldak-red.png (import #56, icone manquant)
+  57.png  ->  assets/png/mythic-prism_shell.png (import #57, icone manquant)
+
+57/57 icônes dans assets/png/
+Inventaire : tools/inventaire-icones.txt
+Version cache : icon-version.txt
+OK — icone/ + import/ (anciennes images pour les manquants). Recharge BUILDER (Ctrl+F5).

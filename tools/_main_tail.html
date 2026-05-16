@@ -1,0 +1,34 @@
+    <div id="errors"></motion>
+    <p id="assetBanner" class="hidden" role="status"></p>
+    <div class="grid" id="slots" aria-live="polite"></div>
+
+    <section>
+      <h2>EVO actives</h2>
+      <p class="hint">Une ligne par slot valide avec recette EVO. Les numéros (#) servent à consommer la bonne instance lors d'une fusion.</p>
+      <div id="evos" class="list"></motion>
+    </section>
+
+    <section>
+      <h2>Mythiques obtenus</h2>
+      <div id="mythics" class="list"></motion>
+    </section>
+
+    <section>
+      <h2>Fusions mythiques possibles</h2>
+      <p class="hint">Clique « Fusionner » pour appliquer une recette (tu peux aussi ne rien faire et garder les deux EVO).</p>
+      <div id="fusions" class="list"></motion>
+    </section>
+
+    <section aria-labelledby="ref-evo-h">
+      <h2 id="ref-evo-h">Référence — recettes EVO</h2>
+      <p class="hint">Les 16 couples sort + passif qui produisent une évolution (même logique que les slots en tête de page).</p>
+      <div id="evoRecipesRef" class="ref-grid"></motion>
+    </section>
+
+    <section aria-labelledby="ref-myth-h">
+      <h2 id="ref-myth-h">Référence — recettes mythiques</h2>
+      <p class="hint">Les 16 fusions : deux EVO actives différentes (deux lignes « EVO actives » avec des # distincts) → mythique ; l’ordre des deux EVO est indifférent.</p>
+      <motion id="mythicRecipesRef" class="ref-grid"></motion>
+    </section>
+  </main>
+  <footer>

@@ -1,0 +1,3159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BUILDER — EVO & Mythics</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0c0f14;
+      --panel: #151a24;
+      --elev: #1b2230;
+      --border: #2a3347;
+      --text: #e9edf5;
+      --muted: #94a0b8;
+      --accent: #6ea8fe;
+      --good: #3ecf8e;
+      --hint-warn: #f0c14d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #1a2234, var(--bg));
+      color: var(--text);
+      line-height: 1.45;
+      min-height: 100vh;
+    }
+    .support-banner {
+      text-align: center;
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid rgba(180, 130, 70, 0.25);
+      background: linear-gradient(
+        180deg,
+        rgba(80, 52, 28, 0.22),
+        rgba(12, 15, 20, 0.4)
+      );
+    }
+    .support-banner p {
+      margin: 0;
+      font-size: 0.84rem;
+      color: #e8d4b8;
+      line-height: 1.45;
+    }
+    .support-banner .support-heart {
+      color: #ff9eb8;
+    }
+    .support-wallet-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem 0.55rem;
+      margin-top: 0.4rem;
+    }
+    .support-wallet-row label,
+    .support-telegram > label,
+    .support-discord > label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .support-wallet-row code {
+      font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+      font-size: 0.72rem;
+      padding: 0.28rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(0, 0, 0, 0.28);
+      color: #f5e6d0;
+      word-break: break-all;
+      max-width: min(100%, 28rem);
+    }
+    .support-copy {
+      padding: 0.28rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid rgba(180, 130, 70, 0.45);
+      background: rgba(120, 80, 40, 0.25);
+      color: #ffe8c8;
+      cursor: pointer;
+    }
+    .support-copy:hover {
+      filter: brightness(1.08);
+      border-color: #c9a06a;
+    }
+    .support-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem 1.25rem;
+      margin-top: 0.55rem;
+    }
+    .support-block {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem 0.55rem;
+    }
+    .support-telegram {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .support-telegram a.support-tg-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(56, 168, 255, 0.45);
+      background: linear-gradient(135deg, rgba(56, 168, 255, 0.2), rgba(180, 80, 220, 0.2));
+      color: #b8e4ff;
+      font-size: 0.82rem;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    .support-telegram a.support-tg-link:hover {
+      filter: brightness(1.1);
+      border-color: #6ecbff;
+    }
+    .support-telegram img {
+      width: 88px;
+      height: 88px;
+      border-radius: 10px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      object-fit: cover;
+    }
+    .support-discord {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .support-discord .support-discord-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.7rem;
+      border-radius: 8px;
+      border: 1px solid rgba(88, 101, 242, 0.55);
+      background: rgba(88, 101, 242, 0.22);
+      color: #e0e4ff;
+      font-size: 0.82rem;
+      font-weight: 650;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .support-discord .support-discord-link:hover {
+      filter: brightness(1.1);
+      border-color: #7289da;
+    }
+    header {
+      padding: 1.25rem 1.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(22, 28, 42, 0.9), transparent);
+    }
+    h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem 1rem;
+    }
+    .visit-counter {
+      padding: 0.32rem 0.65rem;
+      border: 1px solid rgba(110, 168, 254, 0.35);
+      border-radius: 999px;
+      background: rgba(110, 168, 254, 0.12);
+      color: #cfe0ff;
+      font-size: 0.82rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+    .app-nav {
+      display: flex;
+      gap: 0.4rem;
+    }
+    .app-nav button {
+      padding: 0.4rem 0.85rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      background: var(--panel);
+      border-color: var(--border);
+    }
+    .app-nav button.is-active {
+      background: linear-gradient(180deg, #2a3f63, #22324d);
+      border-color: #3d5a8a;
+      color: var(--text);
+    }
+    main { padding: 1.25rem 1.5rem 2rem; max-width: 1120px; margin: 0 auto; }
+    .book-section h2 {
+      margin: 0 0 0.75rem;
+      font-size: 1.05rem;
+      font-weight: 650;
+    }
+    .book-section + .book-section { margin-top: 1.35rem; }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 0.65rem;
+    }
+    .toolbar-grow {
+      flex: 1 1 220px;
+      min-width: 0;
+    }
+    .builder-publish {
+      justify-content: flex-end;
+      margin: 0 0 0.25rem;
+      gap: 0.35rem;
+    }
+    .builder-publish input {
+      flex: 0 1 9.5rem;
+      min-width: 7.5rem;
+      padding: 0.42rem 0.55rem;
+    }
+    .builder-publish button {
+      white-space: nowrap;
+    }
+    .build-level-counter {
+      padding: 0.45rem 0.7rem;
+      border: 1px solid rgba(255, 224, 138, 0.4);
+      border-radius: 10px;
+      background: rgba(255, 224, 138, 0.12);
+      color: #ffe7a8;
+      font-size: 0.86rem;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    #passiveHint {
+      font-size: 0.86rem;
+      color: var(--hint-warn);
+      margin: 0;
+      min-height: 1.35em;
+    }
+    label { font-size: 0.78rem; color: var(--muted); display: block; margin-bottom: 0.25rem; }
+    select, button {
+      background: var(--elev);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.92rem;
+    }
+    select:focus, button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    button {
+      cursor: pointer;
+      background: linear-gradient(180deg, #2a3f63, #22324d);
+      border-color: #3d5a8a;
+      font-weight: 600;
+    }
+    button.secondary {
+      background: var(--panel);
+      border-color: var(--border);
+      font-weight: 500;
+    }
+    button:hover:not(:disabled) { filter: brightness(1.06); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .build-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+      margin-bottom: 0.85rem;
+    }
+    @media (max-width: 560px) {
+      .build-layout { grid-template-columns: 1fr; }
+    }
+    .build-column {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.6rem 0.55rem;
+      background: var(--panel);
+    }
+    .build-column.is-target {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(110, 168, 254, 0.35);
+    }
+    .build-column--skills { border-top: 3px solid #6ea8fe; }
+    .build-column--passives { border-top: 3px solid #3ecf8e; }
+    .build-slots {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .build-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.35rem 0.4rem;
+      border-radius: 10px;
+      border: 1px dashed var(--border);
+      background: rgba(0, 0, 0, 0.12);
+      min-height: 60px;
+    }
+    .build-cell.is-active {
+      border-color: rgba(110, 168, 254, 0.55);
+      background: rgba(110, 168, 254, 0.06);
+    }
+    .build-cell.is-focus {
+      border-style: solid;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.35);
+    }
+    .build-cell-evo {
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .build-cell-evo .icon-box {
+      width: 44px;
+      height: 44px;
+      pointer-events: none;
+    }
+    .icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
+      background: var(--elev);
+      border: 2px solid var(--border);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: border-color 0.12s, transform 0.12s;
+    }
+    .icon-box:hover:not(:disabled) {
+      border-color: var(--accent);
+      transform: scale(1.04);
+    }
+    .icon-box.empty { opacity: 0.4; }
+    .icon-box.is-focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.45);
+    }
+    .icon-box:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    .ico { display: block; }
+    .ico-wrap {
+      display: inline-grid;
+      place-items: center;
+      vertical-align: middle;
+      flex-shrink: 0;
+      line-height: 0;
+      position: relative;
+    }
+    .ico-wrap--empty .ico {
+      opacity: 0.9;
+    }
+    .ico-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .ico-img.is-hidden { display: none; }
+    .ico-sprite { position: relative; z-index: 0; }
+    .ico-wrap.has-png .ico-sprite { opacity: 0; }
+    #assetBanner {
+      margin: 0 0 0.75rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      border: 1px solid #6a4a2a;
+      background: rgba(240, 193, 77, 0.1);
+      color: #ffd79a;
+      font-size: 0.88rem;
+    }
+    #assetBanner code { font-size: 0.85em; }
+    #assetBanner.hidden { display: none; }
+    .icon-box .ico-wrap {
+      width: 100%;
+      height: 100%;
+      max-width: 40px;
+      max-height: 40px;
+    }
+    .slot-arrow { color: var(--muted); font-size: 0.85rem; font-weight: 700; padding: 0 0.1rem; user-select: none; }
+    .picker-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+    @media (max-width: 640px) {
+      .picker-layout { grid-template-columns: 1fr; }
+    }
+    .picker-panel {
+      padding: 0.75rem 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+    }
+    .picker-panel.is-target {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(110, 168, 254, 0.35);
+    }
+    .picker-panel--skills { border-top: 3px solid #6ea8fe; }
+    .picker-panel--passives { border-top: 3px solid #3ecf8e; }
+    .icon-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      justify-content: center;
+    }
+    .icon-pick {
+      width: 56px;
+      height: 56px;
+      padding: 3px;
+      border: 2px solid var(--border);
+      border-radius: 11px;
+      background: var(--panel);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: border-color 0.12s, opacity 0.12s, transform 0.12s;
+    }
+    .icon-pick:hover:not(:disabled) {
+      border-color: var(--accent);
+      transform: scale(1.05);
+    }
+    .icon-pick.is-used {
+      opacity: 0.28;
+      cursor: not-allowed;
+    }
+    .icon-pick:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+    }
+    .icon-pick .ico-wrap {
+      width: 48px;
+      height: 48px;
+      pointer-events: none;
+    }
+    .icon-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .mythics-top {
+      display: none;
+      margin-bottom: 0.85rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 12px;
+      border: 1px solid #8a3a5a;
+      background: linear-gradient(180deg, rgba(180, 60, 100, 0.14), rgba(0, 0, 0, 0.12));
+      box-shadow: 0 0 0 1px rgba(255, 120, 160, 0.12);
+    }
+    .mythics-top.has-mythic { display: block; }
+    .mythics-top h2 {
+      margin: 0 0 0.45rem;
+      font-size: 0.82rem;
+      font-weight: 650;
+      color: #ffb3cc;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .mythic-offers-top {
+      display: none;
+      margin-bottom: 0.85rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 12px;
+      border: 1px solid #6a4a8a;
+      background: linear-gradient(180deg, rgba(120, 70, 160, 0.18), rgba(0, 0, 0, 0.1));
+      box-shadow: 0 0 0 1px rgba(180, 120, 255, 0.15);
+    }
+    .mythic-offers-top.has-offers { display: block; }
+    .mythic-offers-top h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.82rem;
+      font-weight: 650;
+      color: #d4b8ff;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .mythic-offers-top .hint { margin: 0 0 0.5rem; font-size: 0.8rem; }
+    #fusionsTop {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #fusionsTop .fusion-pick {
+      border-color: #8a5a9a;
+      background: rgba(60, 30, 70, 0.35);
+    }
+    #fusionsTop .fusion-pick:hover {
+      border-color: #e8a0ff;
+      box-shadow: 0 0 0 2px rgba(232, 160, 255, 0.2);
+    }
+    .build-cell-mythic .icon-box {
+      border-color: #c45a7a;
+      box-shadow: 0 0 0 2px rgba(255, 120, 160, 0.25);
+    }
+    .fusion-pick {
+      cursor: pointer;
+    }
+    .fusion-pick:hover {
+      border-color: var(--accent);
+      filter: brightness(1.06);
+    }
+    .best-builds {
+      margin: 0.95rem 0;
+      padding: 0.75rem;
+      border: 1px solid rgba(110, 168, 254, 0.35);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(40, 70, 120, 0.16), rgba(0, 0, 0, 0.1));
+    }
+    .best-builds h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+      color: #cfe1ff;
+    }
+    .best-builds .hint {
+      margin-bottom: 0.65rem;
+    }
+    .best-build-final {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+    .best-build-slot {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      padding: 0.35rem 0.45rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    .best-build-slot .tag {
+      max-width: 9rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .best-build-passives {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      opacity: 0.92;
+    }
+    .best-build-passives .ico-wrap {
+      width: 26px !important;
+      height: 26px !important;
+    }
+    .best-build-recipes {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .best-build-recipes .fusion {
+      padding: 0.42rem 0.5rem;
+    }
+    .best-build-apply {
+      margin: 0 0 0.7rem;
+      padding: 0.48rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid rgba(110, 168, 254, 0.55);
+      background: linear-gradient(180deg, #2a3f63, #22324d);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .best-build-apply:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.2);
+    }
+    .community-builds {
+      margin: 0.95rem 0;
+      padding: 0.75rem;
+      border: 1px solid rgba(62, 207, 142, 0.32);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(32, 100, 70, 0.14), rgba(0, 0, 0, 0.1));
+    }
+    .community-builds h2 {
+      margin: 0 0 0.35rem;
+      font-size: 0.95rem;
+      color: #bdf6d5;
+    }
+    .community-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-end;
+      margin: 0.65rem 0 0.75rem;
+    }
+    .community-form input {
+      min-width: 10rem;
+      flex: 1 1 12rem;
+      padding: 0.48rem 0.6rem;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+    }
+    .community-form button,
+    .community-build-card button {
+      padding: 0.44rem 0.7rem;
+      border-radius: 9px;
+      border: 1px solid rgba(62, 207, 142, 0.45);
+      background: rgba(32, 120, 78, 0.24);
+      color: #d8ffe8;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .community-build-card button.community-delete {
+      border-color: rgba(255, 107, 107, 0.55);
+      background: rgba(160, 45, 45, 0.24);
+      color: #ffd6d6;
+    }
+    .community-form button:hover,
+    .community-build-card button:hover {
+      filter: brightness(1.08);
+      border-color: var(--good);
+    }
+    .community-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .community-empty {
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin: 0;
+    }
+    .community-build-card {
+      padding: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: rgba(0, 0, 0, 0.16);
+    }
+    .community-build-head {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.45rem;
+    }
+    .community-build-title {
+      font-weight: 750;
+      color: var(--text);
+    }
+    .community-build-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    .community-build-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .community-build-preview .best-build-slot {
+      padding: 0.3rem 0.4rem;
+    }
+    .community-build-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+    }
+    .community-score {
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+      border: 1px solid rgba(62, 207, 142, 0.35);
+      color: #d8ffe8;
+      font-size: 0.82rem;
+      font-weight: 750;
+      background: rgba(62, 207, 142, 0.1);
+    }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .pill {
+      display: inline-block;
+      margin-top: 0.35rem;
+      padding: 0.22rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .pill.evo { border-color: #35507a; color: #d6e6ff; background: rgba(46, 99, 200, 0.08); }
+    .pill.warn { border-color: #6a4a2a; color: #ffd79a; }
+    .build-cell-main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+    .star-bar {
+      display: flex;
+      gap: 1px;
+      line-height: 1;
+      user-select: none;
+    }
+    .star-bar button {
+      padding: 0;
+      border: none;
+      background: none;
+      font-size: 0.72rem;
+      line-height: 1;
+      color: #3a4458;
+      cursor: pointer;
+      border-radius: 2px;
+    }
+    .star-bar button.is-on { color: #f0c14d; text-shadow: 0 0 6px rgba(240, 193, 77, 0.45); }
+    .star-bar button:hover:not(:disabled) { transform: scale(1.15); }
+    .star-bar button:disabled { cursor: default; opacity: 0.85; }
+    .build-cell.is-evo-ready .build-cell-evo { opacity: 1; }
+    .evo-pick {
+      flex-shrink: 0;
+      border: 2px dashed #4a6a9a;
+      border-radius: 10px;
+      padding: 3px;
+      background: rgba(46, 99, 200, 0.12);
+      cursor: pointer;
+      line-height: 0;
+    }
+    .evo-pick:hover { border-color: var(--accent); filter: brightness(1.08); }
+    .evo-pick.is-taken {
+      border-style: solid;
+      border-color: var(--good);
+      box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.3);
+    }
+    .evo-pick-label {
+      font-size: 0.62rem;
+      color: var(--muted);
+      display: block;
+      text-align: center;
+      margin-top: 2px;
+      max-width: 52px;
+      line-height: 1.15;
+    }
+    .char-badge {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-left: 0.25rem;
+    }
+    .icon-pick.is-locked {
+      opacity: 0.22;
+      cursor: not-allowed;
+      position: relative;
+    }
+    .icon-pick .pick-lock {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 1.1rem;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    section {
+      margin-top: 1.15rem;
+      padding: 1rem 1.05rem;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(18, 22, 32, 0.85);
+    }
+    section h2 {
+      margin: 0 0 0.55rem;
+      font-size: 1.02rem;
+      font-weight: 650;
+    }
+    .hint { color: var(--muted); font-size: 0.86rem; margin: 0 0 0.65rem; }
+    .err { color: #ff9b9b; font-size: 0.86rem; margin-top: 0.35rem; }
+    .list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .fusion {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      align-items: center;
+      padding: 0.55rem 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+    .fusion.myth { border-color: #355e3a; background: rgba(40, 86, 52, 0.12); }
+    .tag {
+      font-size: 0.8rem;
+      padding: 0.18rem 0.45rem;
+      border-radius: 7px;
+      background: #1e2636;
+      border: 1px solid var(--border);
+      color: #dbe4f5;
+    }
+    .mono { font-variant-numeric: tabular-nums; }
+    .row-icon { display: flex; align-items: center; gap: 0.45rem; }
+    .ref-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 0.5rem;
+    }
+    .ref-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.55rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      font-size: 0.88rem;
+    }
+    .ref-row .slot-arrow { flex-shrink: 0; }
+    section h3 {
+      margin: 1.1rem 0 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    section h3:first-of-type { margin-top: 0; }
+    footer {
+      margin-top: 2rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sprite inline : obligatoire pour file:// (un SVG externe + &lt;use&gt; est bloqué par le navigateur) -->
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+    <defs>
+      <linearGradient id="g-purple" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#b388ff"/><stop offset="1" stop-color="#5c2d91"/></linearGradient>
+      <linearGradient id="g-blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7ecbff"/><stop offset="1" stop-color="#1e5aa8"/></linearGradient>
+      <linearGradient id="g-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe08a"/><stop offset="1" stop-color="#c78b00"/></linearGradient>
+      <linearGradient id="g-green" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7dffb3"/><stop offset="1" stop-color="#1e7a4a"/></linearGradient>
+      <linearGradient id="g-red" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a8a"/><stop offset="1" stop-color="#a61e1e"/></linearGradient>
+      <linearGradient id="g-teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fffd4"/><stop offset="1" stop-color="#0d6e6e"/></linearGradient>
+    </defs>
+    <symbol id="passive-sword" viewBox="0 0 32 32"><path fill="#c8d4e8" d="M8 22l14-14 2 2-14 14-4 2 2-4z"/><path fill="#8a9bb5" d="M20 8l4 4-2 2-4-4z"/></symbol>
+    <symbol id="passive-red_claw" viewBox="0 0 32 32"><path fill="none" stroke="#e85555" stroke-width="2.5" stroke-linecap="round" d="M6 22l8-14M12 24l6-16M18 24l4-12"/></symbol>
+    <symbol id="passive-yellow_bolt" viewBox="0 0 32 32"><path fill="#ffe566" d="M18 4L8 18h6l-2 10 12-16h-7l3-8z"/></symbol>
+    <symbol id="passive-winged_boot" viewBox="0 0 32 32"><path fill="#9b7bd6" d="M8 20h12v6H8z"/><path fill="#c4a8ff" d="M6 14c4-4 10-4 14 0l-2 6H8l-2-6z"/><path fill="#e8ddff" d="M20 12l8-4-2 8-6-2z"/></symbol>
+    <symbol id="passive-clock" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="#dfe6ef" stroke="#8a9bb5" stroke-width="2"/><path stroke="#4a5a70" stroke-width="2" stroke-linecap="round" d="M16 10v7l5 3"/></symbol>
+    <symbol id="passive-silver_armor" viewBox="0 0 32 32"><path fill="#d0d8e4" d="M10 8h12l2 6-2 14H10L8 14l2-6z"/><path fill="#9aa8bc" d="M12 12h8v6h-8z"/></symbol>
+    <symbol id="passive-pink_heart" viewBox="0 0 32 32"><path fill="#ff7eb3" d="M16 26S6 18 6 12a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 6-10 14-10 14z"/></symbol>
+    <symbol id="passive-hourglass" viewBox="0 0 32 32"><path fill="#eef3f8" stroke="#9aa8bc" stroke-width="1.5" d="M9 6h14v4l-7 6 7 6v4H9v-4l7-6-7-6V6z"/></symbol>
+    <symbol id="passive-green_arrow" viewBox="0 0 32 32"><path fill="#5ddf7a" d="M16 4l10 10h-6v14H12V14H6L16 4z"/></symbol>
+    <symbol id="skill-purple_bat" viewBox="0 0 32 32"><ellipse cx="16" cy="18" rx="10" ry="7" fill="url(#g-purple)"/><path fill="#2a1845" d="M8 14c-4-2-4-6 0-6 2 0 3 2 3 4"/><circle cx="20" cy="16" r="2" fill="#fff"/></symbol>
+    <symbol id="skill-blue_lightning" viewBox="0 0 32 32"><path fill="url(#g-blue)" d="M20 2L10 16h6l-4 14 14-16h-8l2-12z"/></symbol>
+    <symbol id="skill-gold_crown" viewBox="0 0 32 32"><path fill="url(#g-gold)" d="M6 22l4-12 4 8 4-10 4 8 4-8 4 12H6z"/></symbol>
+    <symbol id="skill-blue_swirl" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="url(#g-blue)" stroke-width="3"/><circle cx="12" cy="14" r="4" fill="none" stroke="#7ecbff" stroke-width="2"/></symbol>
+    <symbol id="skill-binding_chain" viewBox="0 0 32 32"><path fill="#c9a227" d="M2 2h28v28H2z"/><path stroke="#b24cf0" stroke-width="2.5" fill="none" d="M8 22c6-8 10-8 16 0"/><path stroke="#b24cf0" stroke-width="2.5" fill="none" d="M10 20c4-6 8-6 12 0"/><path fill="#4a4a55" d="M20 6l6 4-3 5-5-3z"/><circle cx="12" cy="14" r="2" fill="#f0a0d0"/><circle cx="18" cy="18" r="2" fill="#f0a0d0"/></symbol>
+    <symbol id="skill-purple_ghost" viewBox="0 0 32 32"><path fill="url(#g-purple)" d="M10 8c6-4 12 0 12 8v10l-3-2-3 2-3-2-3 2V16c0-4-2-6-3-8z"/></symbol>
+    <symbol id="skill-silver_shield" viewBox="0 0 32 32"><path fill="#c8d4e8" stroke="#8a9bb5" stroke-width="1.5" d="M16 4l10 4v10c0 8-10 12-10 12S6 26 6 18V8l10-4z"/></symbol>
+    <symbol id="skill-pink_fire" viewBox="0 0 32 32"><path fill="#ff7eb3" d="M16 4c4 6 2 10-2 14 4-2 8 2 4 10-6-4-8-10-2-24z"/></symbol>
+    <symbol id="skill-black_bomb" viewBox="0 0 32 32"><circle cx="16" cy="18" r="9" fill="#222"/><path fill="#444" d="M14 6h4v6h-4z"/><path fill="#ffcc00" d="M16 4l2 4h-4z"/></symbol>
+    <symbol id="skill-pink_orb" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#ff9ed1"/><circle cx="12" cy="14" r="3" fill="#fff" opacity=".5"/></symbol>
+    <symbol id="skill-purple_shard" viewBox="0 0 32 32"><path fill="url(#g-purple)" d="M16 4l10 22H6L16 4z"/><path fill="#fff" opacity=".25" d="M16 8l4 14h-8z"/></symbol>
+    <symbol id="skill-water_drop" viewBox="0 0 32 32"><path fill="url(#g-blue)" d="M16 4c6 8 10 12 10 16a10 10 0 1 1-20 0c0-4 4-8 10-16z"/></symbol>
+    <symbol id="skill-yellow_sun" viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="url(#g-gold)"/><path fill="#ffe566" d="M16 2v4M16 26v4M2 16h4M26 16h4M5 5l3 3M24 24l3 3M27 5l-3 3M8 24l-3 3" stroke="#c78b00" stroke-width="2"/></symbol>
+    <symbol id="skill-silver_star" viewBox="0 0 32 32"><path fill="#e0e8f2" d="M16 4l3 8 8 1-6 5 2 8-7-4-7 4 2-8-6-5 8-1z"/></symbol>
+    <symbol id="skill-blue_bubble" viewBox="0 0 32 32"><circle cx="14" cy="16" r="7" fill="#9fd6ff"/><circle cx="20" cy="18" r="5" fill="#6ebfff"/></symbol>
+    <symbol id="skill-orange_fire" viewBox="0 0 32 32"><path fill="#ff9a3c" d="M16 4c6 8 8 12 4 18 4-2 6 4 2 10-8-2-10-14-6-28z"/></symbol>
+    <symbol id="evo-red_bat" viewBox="0 0 32 32"><ellipse cx="16" cy="18" rx="10" ry="7" fill="url(#g-red)"/><circle cx="20" cy="16" r="2" fill="#fff"/></symbol>
+    <symbol id="evo-heavy_yellow_bolt" viewBox="0 0 32 32"><path fill="#ffe566" stroke="#c78b00" stroke-width="1" d="M22 2L10 18h7l-5 12 14-18h-9l5-10z"/></symbol>
+    <symbol id="evo-spiked_gold_crown" viewBox="0 0 32 32"><path fill="url(#g-gold)" d="M6 22l4-12 4 8 4-10 4 8 4-8 4 12H6z"/><path fill="#e85555" d="M10 10h2v4h-2zm6-2h2v6h-2zm6 0h2v5h-2z"/></symbol>
+    <symbol id="evo-yellow_swirl" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="#ffe566" stroke-width="3"/><circle cx="18" cy="14" r="4" fill="none" stroke="#c78b00" stroke-width="2"/></symbol>
+    <symbol id="evo-green_eye" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="12" ry="8" fill="url(#g-green)"/><ellipse cx="16" cy="16" rx="5" ry="5" fill="#0d3d28"/><circle cx="17" cy="15" r="1.5" fill="#fff"/></symbol>
+    <symbol id="evo-teal_ghost" viewBox="0 0 32 32"><path fill="url(#g-teal)" d="M10 8c6-4 12 0 12 8v10l-3-2-3 2-3-2-3 2V16c0-4-2-6-3-8z"/></symbol>
+    <symbol id="evo-winged_purple_armor" viewBox="0 0 32 32"><path fill="#9b7bd6" d="M10 8h12l2 8-2 12H10L8 16l2-8z"/><path fill="#c4a8ff" d="M6 12l4 4-2 6-4-4zM26 12l-4 4 2 6 4-4z"/></symbol>
+    <symbol id="evo-blue_fire" viewBox="0 0 32 32"><path fill="url(#g-blue)" d="M16 4c4 6 2 10-2 14 4-2 8 2 4 10-6-4-8-10-2-24z"/></symbol>
+    <symbol id="evo-pink_bomb" viewBox="0 0 32 32"><circle cx="16" cy="18" r="9" fill="#ff7eb3"/><path fill="#444" d="M14 6h4v6h-4z"/></symbol>
+    <symbol id="evo-red_orb" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="#ff5555"/><circle cx="12" cy="14" r="3" fill="#fff" opacity=".4"/></symbol>
+    <symbol id="evo-blue_shard" viewBox="0 0 32 32"><path fill="url(#g-blue)" d="M16 4l10 22H6L16 4z"/></symbol>
+    <symbol id="evo-teal_drop" viewBox="0 0 32 32"><path fill="url(#g-teal)" d="M16 4c6 8 10 12 10 16a10 10 0 1 1-20 0c0-4 4-8 10-16z"/></symbol>
+    <symbol id="evo-orange_sun" viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="#ff9a3c"/><path fill="#c75a00" d="M16 2v4M16 26v4M2 16h4M26 16h4" stroke="#c75a00" stroke-width="2"/></symbol>
+    <symbol id="evo-blue_shuriken" viewBox="0 0 32 32"><path fill="#7ecbff" d="M16 4l3 10 10 2-10 2-3 10-3-10-10-2 10-2z"/></symbol>
+    <symbol id="evo-ice_crystal" viewBox="0 0 32 32"><path fill="#dff6ff" stroke="#7ecbff" stroke-width="1" d="M16 4l3 10h10l-8 6 3 10-8-6-8 6 3-10-8-6h10z"/></symbol>
+    <symbol id="evo-time_orb" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="url(#g-blue)"/><circle cx="16" cy="16" r="7" fill="#123"/><path stroke="#dff6ff" stroke-width="1.5" stroke-linecap="round" d="M16 12v5l4 2"/></symbol>
+    <symbol id="mythic-purple_crystal_cluster" viewBox="0 0 32 32"><path fill="#b388ff" d="M10 22l6-16 6 16H10z"/><path fill="#dff6ff" d="M6 18h8l-2 8H6zM18 18h8l-2 8h-6z"/></symbol>
+    <symbol id="mythic-teal_trident" viewBox="0 0 32 32"><path fill="url(#g-teal)" d="M16 4v22M10 8h12M8 8l-2-4M16 8l0-4M24 8l2-4"/></symbol>
+    <symbol id="mythic-green_smiling_face" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12" fill="url(#g-green)"/><circle cx="12" cy="13" r="2" fill="#0d3d28"/><circle cx="20" cy="13" r="2" fill="#0d3d28"/><path fill="none" stroke="#0d3d28" stroke-width="2" stroke-linecap="round" d="M11 20c2 3 8 3 10 0"/></symbol>
+    <symbol id="mythic-blue_energy_pillar" viewBox="0 0 32 32"><rect x="12" y="4" width="8" height="24" rx="2" fill="url(#g-blue)"/><rect x="10" y="8" width="12" height="4" fill="#dff6ff" opacity=".5"/></symbol>
+    <symbol id="mythic-gold_plasma_core" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="url(#g-gold)"/><path fill="none" stroke="#c78b00" stroke-width="2" d="M16 8v16M8 16h16"/></symbol>
+    <symbol id="mythic-spirit_bind" viewBox="0 0 32 32"><path fill="none" stroke="url(#g-teal)" stroke-width="2" d="M8 16c4-8 12-8 16 0M8 16c4 8 12 8 16 0"/><circle cx="16" cy="16" r="4" fill="url(#g-green)"/></symbol>
+    <symbol id="mythic-rose_inferno" viewBox="0 0 32 32"><path fill="#ff7eb3" d="M16 4c4 6 2 10-2 14 4-2 8 2 4 10-6-4-8-10-2-24z"/><path fill="url(#g-blue)" d="M16 10c2 4 0 8-4 10 6-2 8 4 4 8-4-6-6-12 0-18z"/></symbol>
+    <symbol id="mythic-orb_blade_swarm" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="url(#g-red)"/><path fill="#7ecbff" d="M16 4l2 8 8 1-6 4 2 7-6-3-6 3 2-7-6-4 8-1z"/></symbol>
+    <symbol id="mythic-frost_gaze" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="10" ry="7" fill="url(#g-green)"/><path fill="#dff6ff" d="M10 20l6-14 6 14H10z"/></symbol>
+    <symbol id="mythic-wraith_dawn" viewBox="0 0 32 32"><path fill="url(#g-teal)" d="M12 22V10h8v12l-4-3-4 3z"/><circle cx="16" cy="8" r="5" fill="#ff9a3c"/></symbol>
+    <symbol id="mythic-storm_shuriken" viewBox="0 0 32 32"><path fill="#ffe566" d="M16 4l3 10 10 2-10 2-3 10-3-10-10-2 10-2z"/><path fill="url(#g-blue)" d="M16 10l2 6 6 1-6 1-2 6-2-6-6-1 6-1z"/></symbol>
+    <symbol id="mythic-drip_coronet" viewBox="0 0 32 32"><path fill="url(#g-gold)" d="M8 18l4-10 4 6 4-8 4 6 4-10 4 18H8z"/><path fill="url(#g-teal)" d="M14 22h4v6h-4zM18 20h4v8h-4z"/></symbol>
+    <symbol id="mythic-blood_swarm" viewBox="0 0 32 32"><circle cx="12" cy="14" r="5" fill="url(#g-red)"/><circle cx="20" cy="18" r="6" fill="#ff7eb3"/></symbol>
+    <symbol id="mythic-chronos_blue" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-blue)"/><path fill="url(#g-blue)" d="M16 4c4 6 2 10-2 14 4-2 6 2 2 8-4-4-6-10 0-22z"/></symbol>
+    <symbol id="mythic-buldak-red" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="#ffe566" stroke-width="2"/><path fill="#9b7bd6" d="M10 10h12v12H10z" opacity=".7"/></symbol>
+    <symbol id="mythic-prism_shell" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-red)"/><path fill="#dff6ff" stroke="#7ecbff" d="M16 8l4 8h8l-6 5 2 9-8-5-8 5 2-9-6-5h8z"/></symbol>
+  </svg>
+  <aside class="support-banner" aria-label="Support">
+    <p>
+      If this builder helps you a little, feel free to send a small coffee
+      <span class="support-heart" aria-hidden="true"> &lt;3</span>
+    </p>
+    <div class="support-links">
+      <div class="support-block support-wallet-row">
+        <label for="supportWallet">TON blockchain</label>
+        <code id="supportWallet">UQAFP8TcTabu-C0X-eDxVwebi6aKcbAyXJhe0FT4ciOPjpM9</code>
+        <button type="button" class="support-copy" id="supportCopy" title="Copy address">
+          Copy
+        </button>
+      </div>
+      <div class="support-telegram">
+        <label>Telegram</label>
+        <a
+          class="support-tg-link"
+          href="https://t.me/YOPKILLER"
+          target="_blank"
+          rel="noopener noreferrer"
+          >@YOPKILLER</a
+        >
+        <a href="https://t.me/YOPKILLER" target="_blank" rel="noopener noreferrer" title="@YOPKILLER on Telegram">
+          <img src="assets/telegram-yopkiller.png" alt="Telegram QR @YOPKILLER" width="88" height="88" />
+        </a>
+      </div>
+      <div class="support-discord">
+        <label>Discord</label>
+        <span class="support-discord-link" id="supportDiscord" title="Click to copy">YopKiller</span>
+        <button type="button" class="support-copy" id="supportDiscordCopy" title="Copy username">
+          Copy
+        </button>
+      </div>
+    </div>
+  </aside>
+  <header>
+    <div class="header-row">
+      <h1>BUILDER</h1>
+      <div id="visitCounter" class="visit-counter" aria-label="Site visit counter">Visits: 0</div>
+      <nav class="app-nav" aria-label="Navigation">
+        <button type="button" class="is-active" data-app-tab="build" aria-current="page">Build</button>
+        <button type="button" data-app-tab="community">Community</button>
+        <button type="button" data-app-tab="book">Book</button>
+      </nav>
+    </div>
+  </header>
+  <main id="panelBuild">
+    <div class="toolbar">
+      <div>
+        <label for="character">Character</label>
+        <select id="character" aria-label="Character">
+          <option value="nox">Nox</option>
+          <option value="vel">Vel</option>
+          <option value="zen">Zen</option>
+          <option value="shu">Shu</option>
+        </select>
+      </div>
+      <div>
+        <label for="mode">Game mode</label>
+        <select id="mode" aria-label="Game mode">
+          <option value="stage">Stage (5 slots)</option>
+          <option value="abyss">Abyss (6 slots)</option>
+        </select>
+      </div>
+      <button type="button" class="secondary" id="reset">Reset build</button>
+      <button type="button" class="secondary" id="undo" disabled>Undo last fusion</button>
+      <div id="buildLevelCounter" class="build-level-counter" aria-label="Current build level">Build level: 0</div>
+      <div class="toolbar-grow">
+        <div class="community-form builder-publish" aria-label="Publish build">
+          <input id="builderCommunityBuildName" type="text" maxlength="48" placeholder="Build name" />
+          <input id="builderCommunityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
+          <button type="button" id="builderSaveCommunityBuild">Publish current build</button>
+        </div>
+        <p id="passiveHint" class="hint" aria-live="polite" style="margin:0"></p>
+      </div>
+    </div>
+    <div id="errors"></div>
+    <p id="assetBanner" class="hidden" role="status"></p>
+    <section id="mythicOffersTop" class="mythic-offers-top" aria-label="Available mythics">
+      <h2>Mythic available</h2>
+      <p class="hint">Click to fuse (2 EVO → mythic in an upper slot).</p>
+      <div id="fusionsTop"></div>
+    </section>
+    <div class="build-layout" aria-live="polite">
+      <section id="buildSkillsCol" class="build-column build-column--skills" aria-label="Build skills">
+        <div id="slotSkills" class="build-slots"></div>
+      </section>
+      <section id="buildPassivesCol" class="build-column build-column--passives" aria-label="Build passives">
+        <div id="slotPassives" class="build-slots"></div>
+      </section>
+    </div>
+
+    <div class="picker-layout">
+      <section id="pickerSkillsPanel" class="picker-panel picker-panel--skills" aria-label="Skills">
+        <div id="pickerSkills" class="icon-palette"></div>
+      </section>
+      <section id="pickerPassivesPanel" class="picker-panel picker-panel--passives" aria-label="Passives">
+        <div id="pickerPassives" class="icon-palette"></div>
+      </section>
+    </div>
+
+    <section class="best-builds" aria-label="Best theoretical build">
+      <h2 id="bestBuildTitle">Best theoretical build</h2>
+      <div id="bestBuildShuAbyss"></div>
+    </section>
+
+    <section>
+      <h2 class="visually-hidden">EVO in the build</h2>
+      <div id="evos" class="icon-strip"></div>
+    </section>
+
+    <section>
+      <h2 class="visually-hidden">Available fusions</h2>
+      <div id="fusions" class="list"></div>
+    </section>
+
+  </main>
+
+  <main id="panelCommunity" class="app-panel" hidden>
+    <section class="community-builds" aria-label="Community builds">
+      <h2>Community builds</h2>
+      <p class="hint">
+        Create your build in the Build tab, publish it here, then vote. The highest score moves to the top for the selected character and mode.
+      </p>
+      <p id="communityHint" class="hint" aria-live="polite"></p>
+      <div class="community-form">
+        <input id="communityBuildName" type="text" maxlength="48" placeholder="Build name" />
+        <input id="communityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
+        <button type="button" id="saveCommunityBuild">Publish current build</button>
+      </div>
+      <div id="communityBuilds" class="community-list"></div>
+    </section>
+  </main>
+
+  <main id="panelBook" class="app-panel" hidden>
+    <section class="book-section">
+      <h2>EVO — skill + passive</h2>
+      <div id="evoRecipesRef" class="ref-grid"></div>
+    </section>
+    <section class="book-section">
+      <h2>Mythics — EVO pairs</h2>
+      <div id="mythicRecipesRef" class="ref-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const SPRITE = "assets/icons.svg";
+    const ICONE_DIR = "assets/icone";
+    const PNG_DIR = "assets/png";
+    const IMPORT_DIR = "assets/import";
+    /** Incrémenté par tools/import_named_icons.py à chaque copie. */
+    let iconCacheVer = String(Date.now());
+
+    /** Même ordre que tools/ORDER.txt : 01.png … 57.png dans import/ */
+    const ICON_FILES_ORDERED = [
+      "passive-damage.png", "passive-crit.png", "passive-multishot.png",
+      "passive-movespeed.png", "passive-duration.png", "passive-hp.png",
+      "passive-regen.png", "passive-haste.png", "passive-size.png",
+      "skill-bat.png", "skill-thunderbolt.png", "skill-cutting-blades.png",
+      "skill-lightning-whip.png", "skill-binding_chain.png", "skill-familiar.png",
+      "skill-tempest.png", "skill-tentacle.png", "skill-buldak.png",
+      "skill-orb.png", "skill-razor.png", "skill-frost-field.png",
+      "skill-boom-frog.png", "skill-shuriken.png", "skill-blue-shell.png",
+      "skill-fire-field.png",
+      "evo-bat-purple.png", "evo-thunderbolt-purple.png", "evo-cutting-blades-purple.png",
+      "evo-lightning-whip-purple.png", "evo-binding-chain-purple.png", "evo-familiar-purple.png",
+      "evo-tempest-purple.png", "evo-tentacle-purple.png", "evo-buldak-purple.png",
+      "evo-orb-purple.png", "evo-razor-purple.png", "evo-frost-field-purple.png",
+      "evo-boom-frog-pruple.png", "evo-shuriken-purple.png", "evo-carapace-mauve.png",
+      "evo-fire-field-mauve.png",
+      "mythic-bat-red.png", "mythic-fire-field-red.png", "mythic-shuriken-red.png",
+      "mythic-tentacle-red.png", "mythic-lightning-whip-red.png", "mythic-binding-chain-red.png",
+      "mythic-buldak-frost-red.png", "mythic-fire-thunder-red.png",
+      "mythic-tempest-carapace-red.png", "mythic-familiar-tempest-red.png",
+      "mythic-blue-shell-crit-red.png", "mythic-boom-frog-razor-red.png",
+      "mythic-blood_swarm.png", "mythic-chronos_blue.png", "mythic-buldak-red.png",
+      "mythic-prism_shell.png",
+    ];
+    const PNG_KEY_TO_IMPORT = new Map(
+      ICON_FILES_ORDERED.map((name, i) => [name, i + 1])
+    );
+
+    function assetUrl(relativePath) {
+      try {
+        return new URL(relativePath, document.baseURI || window.location.href).href;
+      } catch {
+        return relativePath;
+      }
+    }
+
+    function iconeBareFile(id) {
+      return `${String(id).replace(/_/g, "-")}.png`;
+    }
+
+    function withIconCache(url) {
+      const sep = url.includes("?") ? "&" : "?";
+      return `${url}${sep}ic=${encodeURIComponent(iconCacheVer)}`;
+    }
+
+    async function loadIconCacheVer() {
+      try {
+        const r = await fetch(
+          assetUrl("assets/icon-version.txt") + "?t=" + Date.now()
+        );
+        if (r.ok) {
+          const t = (await r.text()).trim();
+          if (t) iconCacheVer = t;
+        }
+      } catch {
+        /* file:// ou hors serveur : Date.now() suffit */
+      }
+    }
+
+    /** Anciens ids / fichiers (builds sauvegardés ou import numéroté). */
+    const PNG_ID_LEGACY = {
+      binding_chain: ["binding-chain", "purple_eye"],
+      "fire-field-mauve": ["fire-field-purple", "fire-field-mauve"],
+    };
+
+    /** icone/ (source) → png/ → import/ (4 mythiques anciennes). */
+    function pngUrlCandidates(type, id) {
+      const legacy = PNG_ID_LEGACY[id] || [];
+      const urls = [];
+      const seen = new Set();
+      const push = (u) => {
+        if (!u) return;
+        const cached = withIconCache(u);
+        if (!seen.has(cached)) {
+          seen.add(cached);
+          urls.push(cached);
+        }
+      };
+
+      push(assetUrl(`${ICONE_DIR}/${iconeBareFile(id)}`));
+
+      const primaryFile = `${type}-${id}.png`;
+      push(assetUrl(`${PNG_DIR}/${primaryFile}`));
+
+      const num = PNG_KEY_TO_IMPORT.get(primaryFile);
+      if (num != null) {
+        push(assetUrl(`${IMPORT_DIR}/${String(num).padStart(2, "0")}.png`));
+        push(assetUrl(`${IMPORT_DIR}/${num}.png`));
+        push(assetUrl(`${IMPORT_DIR}/${String(num).padStart(2, "0")}.jpg`));
+        push(assetUrl(`${IMPORT_DIR}/${num}.jpg`));
+      }
+
+      for (const iid of legacy) {
+        push(assetUrl(`${ICONE_DIR}/${iconeBareFile(iid)}`));
+        push(assetUrl(`${PNG_DIR}/${type}-${iid}.png`));
+      }
+      return urls;
+    }
+
+    function iconImgError(img) {
+      let rest = [];
+      try {
+        rest = JSON.parse(img.dataset.fallbacks || "[]");
+      } catch {
+        rest = [];
+      }
+      if (rest.length) {
+        img.src = rest.shift();
+        img.dataset.fallbacks = JSON.stringify(rest);
+        return;
+      }
+      img.classList.add("is-hidden");
+    }
+
+    function iconImgLoad(img) {
+      img.classList.remove("is-hidden");
+      const wrap = img.parentElement;
+      if (wrap) wrap.classList.add("has-png");
+    }
+
+    const PASSIVES = [
+      { id: "damage", label: "Damage" },
+      { id: "crit", label: "Crit" },
+      { id: "multishot", label: "Multishot" },
+      { id: "movespeed", label: "Move speed" },
+      { id: "duration", label: "Duration" },
+      { id: "hp", label: "HP" },
+      { id: "regen", label: "Regen" },
+      { id: "haste", label: "Haste" },
+      { id: "size", label: "Size" },
+    ];
+
+    const SKILL_STAR_MAX = 3;
+    const PASSIVE_STAR_MAX = 3;
+    const PASSIVE_STAR_EVO_MIN = 1;
+    const SKILL_STAR_EVO_MIN = 3;
+
+    const CHARACTERS = [
+      { id: "nox", label: "Nox", exclusiveSkill: "bat" },
+      { id: "vel", label: "Vel", exclusiveSkill: "orb" },
+      { id: "zen", label: "Zen", exclusiveSkill: "shuriken" },
+      { id: "shu", label: "Shu", exclusiveSkill: "tentacle" },
+    ];
+    const EXCLUSIVE_SKILL_OWNER = new Map(
+      CHARACTERS.map((c) => [c.exclusiveSkill, c.id])
+    );
+
+    const SKILLS = [
+      { id: "bat", label: "Bat" },
+      { id: "thunderbolt", label: "Thunderbolt" },
+      { id: "cutting-blades", label: "Cutting blades" },
+      { id: "lightning-whip", label: "Lightning whip" },
+      { id: "binding_chain", label: "Binding chain" },
+      { id: "familiar", label: "Familiar" },
+      { id: "tempest", label: "Tempest" },
+      { id: "tentacle", label: "Tentacle" },
+      { id: "buldak", label: "Buldak" },
+      { id: "orb", label: "Orb" },
+      { id: "razor", label: "Razor" },
+      { id: "frost-field", label: "Frost field" },
+      { id: "boom-frog", label: "Boom frog" },
+      { id: "shuriken", label: "Shuriken" },
+      { id: "blue-shell", label: "Blue shell" },
+      { id: "fire-field", label: "Fire field" },
+    ];
+
+    /** [skillId, passiveId, evoId, evoLabel] */
+    const EVO_RECIPES = [
+      ["bat", "damage", "bat-purple", "Bat purple"],
+      ["thunderbolt", "damage", "thunderbolt-purple", "Thunderbolt purple"],
+      ["cutting-blades", "crit", "cutting-blades-purple", "Cutting blades purple"],
+      ["lightning-whip", "crit", "lightning-whip-purple", "Lightning whip purple"],
+      ["binding_chain", "multishot", "binding-chain-purple", "Binding chain purple"],
+      ["familiar", "multishot", "familiar-purple", "Familiar purple"],
+      ["tempest", "hp", "tempest-purple", "Tempest purple"],
+      ["tentacle", "regen", "tentacle-purple", "Tentacle purple"],
+      ["buldak", "regen", "buldak-purple", "Buldak purple"],
+      ["orb", "haste", "orb-purple", "Orb purple"],
+      ["razor", "haste", "razor-purple", "Razor purple"],
+      ["frost-field", "size", "frost-field-purple", "Frost field purple"],
+      ["boom-frog", "size", "boom-frog-pruple", "Boom frog purple"],
+      ["shuriken", "movespeed", "shuriken-purple", "Shuriken purple"],
+      ["blue-shell", "movespeed", "carapace-mauve", "Carapace mauve"],
+      ["fire-field", "duration", "fire-field-mauve", "Fire field mauve"],
+    ];
+
+    /** [evoAId, evoBId, mythicId, mythicLabel] — import EVO 26–41, mythique 42–57 */
+    const MYTHIC_RECIPES = [
+      ["bat-purple", "cutting-blades-purple", "bat-red", "Bat red"],
+      ["orb-purple", "familiar-purple", "fire-field-red", "Fire field red"],
+      ["shuriken-purple", "thunderbolt-purple", "shuriken-red", "Shuriken red"],
+      ["tentacle-purple", "razor-purple", "tentacle-red", "Tentacle red"],
+      ["lightning-whip-purple", "binding-chain-purple", "lightning-whip-red", "Lightning whip red"],
+      ["lightning-whip-purple", "binding-chain-purple", "binding-chain-red", "Binding chain red"],
+      ["frost-field-purple", "buldak-purple", "buldak-frost-red", "Buldak frost red"],
+      ["fire-field-mauve", "thunderbolt-purple", "fire-thunder-red", "Fire thunder red"],
+      ["tempest-purple", "carapace-mauve", "tempest-carapace-red", "Tempest carapace red"],
+      ["familiar-purple", "tempest-purple", "familiar-tempest-red", "Familiar tempest red"],
+      ["carapace-mauve", "cutting-blades-purple", "blue-shell-crit-red", "Blue shell crit red"],
+      ["boom-frog-pruple", "razor-purple", "boom-frog-razor-red", "Boom frog razor red"],
+      ["boom-frog-pruple", "razor-purple", "blood_swarm", "Blood swarm"],
+      ["cutting-blades-purple", "razor-purple", "chronos_blue", "Chronos blue"],
+      ["buldak-purple", "fire-field-mauve", "buldak-red", "Buldak red"],
+      ["thunderbolt-purple", "frost-field-purple", "prism_shell", "Prism shell"],
+    ];
+
+    const EVO_MAP = new Map();
+    /** @type {Map<string, string>} */
+    const SKILL_TO_PASSIVE = new Map();
+    for (const [s, p, eid, elabel] of EVO_RECIPES) {
+      EVO_MAP.set(`${s}|${p}`, { id: eid, label: elabel });
+      SKILL_TO_PASSIVE.set(s, p);
+    }
+
+    /** @type {Map<string, string>} */
+    const EVO_ID_TO_LABEL = new Map();
+    for (const [, , eid, elabel] of EVO_RECIPES) {
+      EVO_ID_TO_LABEL.set(eid, elabel);
+    }
+
+    function evoLabelById(id) {
+      return EVO_ID_TO_LABEL.get(id) ?? id;
+    }
+
+    function skillLabel(id) {
+      return SKILLS.find((s) => s.id === id)?.label ?? id;
+    }
+
+    const pickerSkillsEl = document.getElementById("pickerSkills");
+    const pickerPassivesEl = document.getElementById("pickerPassives");
+    const panelBuild = document.getElementById("panelBuild");
+    const panelCommunity = document.getElementById("panelCommunity");
+    const panelBook = document.getElementById("panelBook");
+    let bookRendered = false;
+
+    function renderBook() {
+      const evoRefEl = document.getElementById("evoRecipesRef");
+      const mythRefEl = document.getElementById("mythicRecipesRef");
+      if (!evoRefEl || !mythRefEl) return;
+
+      evoRefEl.innerHTML = EVO_RECIPES.map(([sid, pid, eid, elab]) => {
+        const sl = skillLabel(sid);
+        const pl = passiveLabel(pid);
+        const is = iconMarkup("skill", sid, 36, sl);
+        const ip = iconMarkup("passive", pid, 36, pl);
+        const ie = iconMarkup("evo", eid, 36, elab);
+        return `<div class="ref-row row-icon">${is}<span class="slot-arrow">+</span>${ip}<span class="slot-arrow">→</span>${ie}<span class="tag">${escapeHtml(elab)}</span></div>`;
+      }).join("");
+
+      mythRefEl.innerHTML = MYTHIC_RECIPES.map(([eidA, eidB, mid, mlab]) => {
+        const la = evoLabelById(eidA);
+        const lb = evoLabelById(eidB);
+        const ia = iconMarkup("evo", eidA, 36, la);
+        const ib = iconMarkup("evo", eidB, 36, lb);
+        const im = iconMarkup("mythic", mid, 36, mlab);
+        return `<div class="ref-row row-icon fusion myth">${ia}<span class="slot-arrow">+</span>${ib}<span class="slot-arrow">→</span>${im}<span class="tag">${escapeHtml(mlab)}</span></div>`;
+      }).join("");
+      bookRendered = true;
+    }
+
+    function setAppTab(tab) {
+      const isBuild = tab === "build";
+      const isCommunity = tab === "community";
+      const isBook = tab === "book";
+      if (panelBuild) panelBuild.hidden = !isBuild;
+      if (panelCommunity) panelCommunity.hidden = !isCommunity;
+      if (panelBook) panelBook.hidden = !isBook;
+      document.querySelectorAll("[data-app-tab]").forEach((btn) => {
+        const active = btn.dataset.appTab === tab;
+        btn.classList.toggle("is-active", active);
+        btn.setAttribute("aria-current", active ? "page" : "false");
+      });
+      if (isBook && !bookRendered) renderBook();
+      if (isCommunity) refreshCommunityBuildsFromServer();
+    }
+
+    function bindAppTabs() {
+      document.querySelectorAll("[data-app-tab]").forEach((btn) => {
+        btn.addEventListener("click", () => setAppTab(btn.dataset.appTab));
+      });
+    }
+
+    async function copySupportText(text, okMsg, failMsg) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showPassiveHint(okMsg);
+      } catch {
+        showPassiveHint(failMsg);
+      }
+    }
+
+    function bindSupportCopy() {
+      const walletBtn = document.getElementById("supportCopy");
+      const walletCode = document.getElementById("supportWallet");
+      if (walletBtn && walletCode) {
+        walletBtn.addEventListener("click", () =>
+          copySupportText(
+            walletCode.textContent.trim(),
+            "TON address copied — thanks for the coffee <3",
+            "Copy manually: select the wallet address above."
+          )
+        );
+      }
+      const discordBtn = document.getElementById("supportDiscordCopy");
+      const discordName = document.getElementById("supportDiscord");
+      if (discordBtn && discordName) {
+        const name = discordName.textContent.trim();
+        discordBtn.addEventListener("click", () =>
+          copySupportText(
+            name,
+            "Discord copied: " + name,
+            "Copy manually: YopKiller"
+          )
+        );
+        discordName.addEventListener("click", () =>
+          copySupportText(name, "Discord copied: " + name, "Copy manually: YopKiller")
+        );
+      }
+    }
+
+    /* __DELETE_START__
+    function renderItemCatalog() {
+      const passEl = document.getElementById("catalogPassives");
+      const skillEl = document.getElementById("catalogSkills");
+      const evoEl = document.getElementById("catalogEvos");
+      const mythEl = document.getElementById("catalogMythics");
+      if (!passEl || !skillEl || !evoEl || !mythEl) return;
+
+      passEl.innerHTML = PASSIVES.map((p) => catalogCard("passive", p.id, p.label)).join("");
+      skillEl.innerHTML = SKILLS.map((s) => catalogCard("skill", s.id, s.label)).join("");
+      evoEl.innerHTML = EVO_RECIPES.map(([, , eid, elab]) => catalogCard("evo", eid, elab)).join("");
+      mythEl.innerHTML = MYTHIC_RECIPES.map(([, , mid, mlab]) =>
+        catalogCard("mythic", mid, mlab)
+      ).join("");
+    }
+
+    function renderStaticRecipeCatalog() {
+      const evoRefEl = document.getElementById("evoRecipesRef");
+      const mythRefEl = document.getElementById("mythicRecipesRef");
+      if (!evoRefEl || !mythRefEl) return;
+
+      evoRefEl.innerHTML = EVO_RECIPES.map(([sid, pid, eid, elab]) => {
+        const sl = skillLabel(sid);
+        const pl = passiveLabel(pid);
+        const is = iconMarkup("skill", sid, 32, sl);
+        const ip = iconMarkup("passive", pid, 32, pl);
+        const ie = iconMarkup("evo", eid, 32, elab);
+        return `<div class="ref-row row-icon">${is}<span class="slot-arrow">+</span>${ip}<span class="slot-arrow">→</span>${ie}<span class="tag">${escapeHtml(elab)}</span><span class="tag mono">${escapeHtml(eid)}</span></div>`;
+      }).join("");
+
+      mythRefEl.innerHTML = MYTHIC_RECIPES.map(([eidA, eidB, mid, mlab]) => {
+        const la = evoLabelById(eidA);
+        const lb = evoLabelById(eidB);
+        const ia = iconMarkup("evo", eidA, 32, la);
+        const ib = iconMarkup("evo", eidB, 32, lb);
+        const im = iconMarkup("mythic", mid, 32, mlab);
+        return `<div class="ref-row row-icon fusion myth">${ia}<span class="slot-arrow">+</span>${ib}<span class="slot-arrow">→</span>${im}<span class="tag">${escapeHtml(mlab)}</span><span class="tag mono">${escapeHtml(mid)}</span></div>`;
+      }).join("");
+    }
+    __DELETE_END__ */
+
+    const modeEl = document.getElementById("mode");
+    const characterEl = document.getElementById("character");
+    const slotSkillsEl = document.getElementById("slotSkills");
+    const slotPassivesEl = document.getElementById("slotPassives");
+    const buildSkillsCol = document.getElementById("buildSkillsCol");
+    const buildPassivesCol = document.getElementById("buildPassivesCol");
+    const errorsEl = document.getElementById("errors");
+    const evosEl = document.getElementById("evos");
+    const fusionsEl = document.getElementById("fusions");
+    const fusionsTopEl = document.getElementById("fusionsTop");
+    const mythicOffersTopEl = document.getElementById("mythicOffersTop");
+    const bestBuildTitleEl = document.getElementById("bestBuildTitle");
+    const bestBuildShuAbyssEl = document.getElementById("bestBuildShuAbyss");
+    const builderCommunityBuildNameEl = document.getElementById("builderCommunityBuildName");
+    const builderCommunityBuildAuthorEl = document.getElementById("builderCommunityBuildAuthor");
+    const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
+    const communityBuildNameEl = document.getElementById("communityBuildName");
+    const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
+    const saveCommunityBuildEl = document.getElementById("saveCommunityBuild");
+    const communityBuildsEl = document.getElementById("communityBuilds");
+    const communityHintEl = document.getElementById("communityHint");
+    const visitCounterEl = document.getElementById("visitCounter");
+    const buildLevelCounterEl = document.getElementById("buildLevelCounter");
+    const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
+    const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
+    const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
+    const VISIT_COUNT_KEY = "builderVisitCount:v1";
+    const undoEl = document.getElementById("undo");
+    const passiveHintEl = document.getElementById("passiveHint");
+    const API_ENABLED = location.protocol === "http:" || location.protocol === "https:";
+
+    let nextInstance = 1;
+    /** @type {Slot[]} */
+    let slots = [];
+    /** @type {{ instanceId: number, evoId: string, label: string, skillId: string, passiveId: string, skillSlotIndex: number, passiveSlotIndex: number }[]} */
+    let evoPool = [];
+    /** @type {Set<number>} */
+    let consumedEvo = new Set();
+    /** @type {{ mythicId: string, label: string, leftId: number, rightId: number, skillSlotIndex: number }[]} */
+    let mythics = [];
+    /** @type {{ mythicId: string, label: string, leftId: number, rightId: number, skillSlotIndex: number }[]} */
+    let mythicStack = [];
+
+    let passiveHintTimer = 0;
+    /** Curseurs indépendants : passifs L1, sorts L2 (sort exclusif protégé en L1). */
+    let focusSkillSlot = 1;
+    let focusPassiveSlot = 0;
+    let focusField = "passive";
+    let communityBuildCache = null;
+    let communityFetchInFlight = null;
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function passiveLabel(id) {
+      return PASSIVES.find((p) => p.id === id)?.label ?? id;
+    }
+
+    function clearPassiveHint() {
+      if (passiveHintTimer) window.clearTimeout(passiveHintTimer);
+      passiveHintTimer = 0;
+      passiveHintEl.textContent = "";
+      if (communityHintEl) communityHintEl.textContent = "";
+    }
+
+    function showPassiveHint(message) {
+      if (passiveHintTimer) window.clearTimeout(passiveHintTimer);
+      passiveHintEl.textContent = message;
+      if (communityHintEl) communityHintEl.textContent = message;
+      passiveHintTimer = window.setTimeout(() => {
+        passiveHintEl.textContent = "";
+        if (communityHintEl) communityHintEl.textContent = "";
+        passiveHintTimer = 0;
+      }, 8000);
+    }
+
+    async function apiRequest(path, options = {}) {
+      if (!API_ENABLED) throw new Error("API disabled");
+      const res = await fetch(path, {
+        headers: { "content-type": "application/json", ...(options.headers || {}) },
+        ...options,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
+      return data;
+    }
+
+    async function updateVisitCounter() {
+      if (!visitCounterEl) return;
+      let count = 1;
+      if (API_ENABLED) {
+        try {
+          const data = await apiRequest("/api/visits", { method: "POST", body: "{}" });
+          visitCounterEl.textContent = `Visits: ${Number(data.visits || 0).toLocaleString("en-US")}`;
+          return;
+        } catch {
+          // Keep the local counter working when the backend is unavailable.
+        }
+      }
+      try {
+        count = Number(localStorage.getItem(VISIT_COUNT_KEY) || "0") + 1;
+        localStorage.setItem(VISIT_COUNT_KEY, String(count));
+      } catch {
+        count = 1;
+      }
+      visitCounterEl.textContent = `Visits: ${count.toLocaleString("en-US")}`;
+    }
+
+    function iconPlaceholderSvg(size) {
+      return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true"><rect x="6" y="6" width="20" height="20" rx="4" fill="#2a3347"/></svg>`;
+    }
+
+    /**
+     * @param {"skill"|"passive"|"evo"|"mythic"} type
+     * @param {string} id
+     * @param {number} size
+     * @param {string} label
+     */
+    function iconSpriteSvg(type, id, size, label) {
+      const t = escapeHtml(label || id);
+      const href = `#${type}-${id}`;
+      return `<svg class="ico ico-sprite" width="${size}" height="${size}" viewBox="0 0 32 32" xmlns:xlink="http://www.w3.org/1999/xlink" role="img" aria-label="${t}"><title>${t}</title><use href="${href}" xlink:href="${href}"></use></svg>`;
+    }
+
+    /**
+     * Sprite SVG inline (toujours visible) ; PNG du jeu par-dessus si le fichier existe.
+     * @param {"skill"|"passive"|"evo"|"mythic"|""} type
+     */
+    function iconMarkup(type, id, size, label) {
+      if (!type || !id) {
+        return `<span class="ico-wrap ico-wrap--empty" style="width:${size}px;height:${size}px">${iconPlaceholderSvg(size)}</span>`;
+      }
+      const t = escapeHtml(label || id);
+      const urls = pngUrlCandidates(type, id);
+      const src = urls[0] || "";
+      const fallbacks = escapeHtml(JSON.stringify(urls.slice(1)));
+      const sprite = iconSpriteSvg(type, id, size, label);
+      return `<span class="ico-wrap" style="width:${size}px;height:${size}px">
+        ${sprite}
+        <img class="ico-img is-hidden" src="${escapeHtml(src)}" data-fallbacks="${fallbacks}" alt="${t}" width="${size}" height="${size}" decoding="async"
+          onload="iconImgLoad(this)" onerror="iconImgError(this)" />
+      </span>`;
+    }
+
+    function probeImage(url) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`;
+      });
+    }
+
+    async function checkGamePngAssets() {
+      const banner = document.getElementById("assetBanner");
+      if (!banner) return;
+      await loadIconCacheVer();
+      const candidates = pngUrlCandidates("skill", "bat");
+      let ok = false;
+      let used = "";
+      for (const url of candidates) {
+        if (await probeImage(url)) {
+          ok = true;
+          used = url;
+          break;
+        }
+      }
+      if (ok) {
+        banner.classList.add("hidden");
+        return;
+      }
+      banner.classList.remove("hidden");
+      banner.innerHTML =
+        "Images not found. Open <code>index.html</code> from the <code>build-sim</code> folder " +
+        "(or run <code>tools\\lancer-site.bat</code>). " +
+        "Check <code>assets/png/</code> or <code>assets/import/01.png</code>…<code>57.png</code>. " +
+        `Page: <code>${escapeHtml(location.href)}</code>`;
+    }
+
+    function slotCount() {
+      return modeEl.value === "stage" ? 5 : 6;
+    }
+
+    function emptySlot() {
+      return { skill: "", passive: "", skillStars: 0, passiveStars: 0 };
+    }
+
+    function isSkillRemovable(skillId) {
+      return skillId !== currentCharacter().exclusiveSkill;
+    }
+
+    function currentCharacter() {
+      return CHARACTERS.find((c) => c.id === characterEl?.value) || CHARACTERS[0];
+    }
+
+    function exclusiveSkillForCharacter(charId) {
+      return CHARACTERS.find((c) => c.id === charId)?.exclusiveSkill ?? "";
+    }
+
+    function skillOwnedByCharacter(skillId, charId) {
+      const owner = EXCLUSIVE_SKILL_OWNER.get(skillId);
+      if (!owner) return true;
+      return owner === charId;
+    }
+
+    function isStarterSkillSlot(slotIndex) {
+      return slotIndex === 0;
+    }
+
+    function starsHtml(count, max, slotIndex, part) {
+      const n = Math.max(0, Math.min(max, count || 0));
+      let html = `<div class="star-bar" role="group" aria-label="Stars">`;
+      for (let s = 1; s <= max; s++) {
+        const on = s <= n ? " is-on" : "";
+        html += `<button type="button" class="star-btn${on}" data-star-slot="${slotIndex}" data-star-part="${part}" data-star-value="${s}" aria-label="${s} star${s > 1 ? "s" : ""}">★</button>`;
+      }
+      html += "</div>";
+      return html;
+    }
+
+    function applyCharacterStarterSlot() {
+      const ch = currentCharacter();
+      ensureSlots();
+      if (mythicEmbodyingExclusive(ch) || exclusiveEvoOnSlot0(ch) || mythicOnSlot(0)) return;
+      slots[0].skill = ch.exclusiveSkill;
+      if (!slots[0].skillStars) slots[0].skillStars = 1;
+    }
+
+    function evoInstance(id) {
+      return evoPool.find((e) => e.instanceId === id);
+    }
+
+    /** Mythique dont la fusion inclut le sort exclusif du héros (dans le mélange). */
+    function mythicEmbodyingExclusive(ch) {
+      const ex = ch.exclusiveSkill;
+      return (
+        mythics.find((m) => {
+          const left = evoInstance(m.leftId);
+          const right = evoInstance(m.rightId);
+          return left?.skillId === ex || right?.skillId === ex;
+        }) ?? null
+      );
+    }
+
+    function exclusiveEvoOnSlot0(ch) {
+      return evoPool.find(
+        (e) =>
+          !consumedEvo.has(e.instanceId) &&
+          e.skillSlotIndex === 0 &&
+          e.skillId === ch.exclusiveSkill
+      );
+    }
+
+    function slot0SatisfiesCharacter(ch) {
+      const s0 = slots[0];
+      if (!s0) return false;
+      if (s0.skill === ch.exclusiveSkill) return true;
+      if (mythicEmbodyingExclusive(ch)) return true;
+      const evoSlot0 = exclusiveEvoOnSlot0(ch);
+      return Boolean(evoSlot0 && !s0.skill);
+    }
+
+    function evoOnSlot(skillSlotIndex) {
+      return evoPool.find(
+        (e) => !consumedEvo.has(e.instanceId) && e.skillSlotIndex === skillSlotIndex
+      );
+    }
+
+    function mythicOnSlot(skillSlotIndex) {
+      return mythics.find((m) => m.skillSlotIndex === skillSlotIndex) ?? null;
+    }
+
+    function swapSkillBetweenSlots(a, b) {
+      const sa = slots[a];
+      const sb = slots[b];
+      [sa.skill, sb.skill] = [sb.skill, sa.skill];
+      [sa.skillStars, sb.skillStars] = [sb.skillStars, sa.skillStars];
+    }
+
+    function slotBlockedForIncomingSkill(slotIndex) {
+      return Boolean(mythicOnSlot(slotIndex) || evoOnSlot(slotIndex));
+    }
+
+    /** Déplace le sort vers le bas pour libérer un slot mythique (haut du build). */
+    function pushSkillDownFrom(slotIndex) {
+      const n = slotCount();
+      const sk = slots[slotIndex]?.skill;
+      if (!sk) return;
+      const stars = slots[slotIndex].skillStars || 0;
+
+      for (let j = n - 1; j > slotIndex; j--) {
+        if (slotBlockedForIncomingSkill(j)) continue;
+        if (!slots[j].skill) {
+          slots[j].skill = sk;
+          slots[j].skillStars = stars;
+          slots[slotIndex].skill = "";
+          slots[slotIndex].skillStars = 0;
+          return;
+        }
+      }
+      for (let j = slotIndex + 1; j < n; j++) {
+        if (slotBlockedForIncomingSkill(j)) continue;
+        swapSkillBetweenSlots(slotIndex, j);
+        return;
+      }
+    }
+
+    /** Mythiques = slots 0, 1, 2… dans l’ordre des fusions ; les sorts descendent si besoin. */
+    function relayoutMythicsToTop() {
+      const n = slotCount();
+      mythics.forEach((m, order) => {
+        m.skillSlotIndex = order;
+      });
+      for (let i = 0; i < mythics.length && i < n; i++) {
+        if (!slots[i]?.skill) continue;
+        if (i === 0 && !isSkillRemovable(slots[0].skill)) {
+          if (mythicOnSlot(0)) {
+            slots[0].skill = "";
+            slots[0].skillStars = 0;
+          }
+          continue;
+        }
+        pushSkillDownFrom(i);
+      }
+    }
+
+    function stripIllegalExclusiveSkills() {
+      const ch = currentCharacter();
+      for (let i = 1; i < slots.length; i++) {
+        const sk = slots[i].skill;
+        if (sk && EXCLUSIVE_SKILL_OWNER.has(sk) && sk !== ch.exclusiveSkill) {
+          slots[i].skill = "";
+          slots[i].skillStars = 0;
+        }
+      }
+    }
+
+    function setSlotStars(slotIndex, part, value) {
+      const slot = slots[slotIndex];
+      if (!slot) return;
+      const max = part === "skill" ? SKILL_STAR_MAX : PASSIVE_STAR_MAX;
+      if (part === "skill" && !slot.skill) return;
+      if (part === "passive" && !slot.passive) return;
+      const v = Math.max(1, Math.min(max, value));
+      if (part === "skill") slot.skillStars = v;
+      else slot.passiveStars = v;
+      renderSlots();
+      onUpdate();
+    }
+
+    function cycleSlotStars(slotIndex, part) {
+      const slot = slots[slotIndex];
+      if (!slot) return;
+      const max = part === "skill" ? SKILL_STAR_MAX : PASSIVE_STAR_MAX;
+      const cur = part === "skill" ? slot.skillStars || 0 : slot.passiveStars || 0;
+      if (!cur) return;
+      const next = cur >= max ? 1 : cur + 1;
+      setSlotStars(slotIndex, part, next);
+    }
+
+    function ensureSlots() {
+      const n = slotCount();
+      while (slots.length < n) slots.push(emptySlot());
+      if (slots.length > n) slots.length = n;
+    }
+
+    function passiveUsedElsewhere(slotIndex, passiveId) {
+      return slots.some((sl, j) => j !== slotIndex && sl.passive === passiveId);
+    }
+
+    function resetFusionState() {
+      mythicStack = [];
+      mythics = [];
+      consumedEvo = new Set();
+    }
+
+    function resetEvoAndFusions() {
+      evoPool = [];
+      resetFusionState();
+    }
+
+    function validate() {
+      const errs = [];
+      const n = slotCount();
+      const ch = currentCharacter();
+      const passives = slots.map((s) => s.passive).filter(Boolean);
+      if (passives.length !== new Set(passives).size) {
+        errs.push("Each passive must be unique (1 per slot, no duplicates).");
+      }
+      if (modeEl.value === "stage") {
+        const fromSlots = slots.map((s) => s.skill).filter(Boolean);
+        const fromEvos = evoPool.map((e) => e.skillId).filter(Boolean);
+        const all = [...fromSlots, ...fromEvos];
+        if (all.length !== new Set(all).size) {
+          errs.push("Stage: each base skill can only be used once (slot, EVO, or mythic).");
+        }
+      }
+      if (!slot0SatisfiesCharacter(ch)) {
+        errs.push(
+          `${ch.label} must keep ${skillLabel(ch.exclusiveSkill)} in slot 1 (skill, EVO, or mythic containing that skill).`
+        );
+      }
+      for (let i = 0; i < n; i++) {
+        const sk = slots[i].skill;
+        if (sk && !skillOwnedByCharacter(sk, ch.id)) {
+          errs.push(`${skillLabel(sk)} is reserved for another character.`);
+        }
+      }
+      return errs;
+    }
+
+    function skillCountsInBuild() {
+      /** @type {Map<string, number>} */
+      const counts = new Map();
+      slots.forEach((s) => {
+        if (!s.skill) return;
+        counts.set(s.skill, (counts.get(s.skill) || 0) + 1);
+      });
+      return counts;
+    }
+
+    function findPassiveSlotForRecipe(skillId, passiveId) {
+      return slots.findIndex(
+        (s) =>
+          s.passive === passiveId &&
+          (s.passiveStars || 0) >= PASSIVE_STAR_EVO_MIN &&
+          EVO_RECIPES.some(([sid, pid]) => sid === skillId && pid === passiveId)
+      );
+    }
+
+    /** Prêt à évoluer : sort ★3 + passif recette ★1+ (même ligne ou ailleurs). */
+    function evoReadyAtSlot(slotIndex) {
+      const s = slots[slotIndex];
+      if (!s.skill || (s.skillStars || 0) < SKILL_STAR_EVO_MIN) return null;
+
+      for (const [sid, pid, eid, elab] of EVO_RECIPES) {
+        if (sid !== s.skill) continue;
+        if (s.passive === pid && (s.passiveStars || 0) >= PASSIVE_STAR_EVO_MIN) {
+          return { eid, elab, passiveSlot: slotIndex, skillSlot: slotIndex };
+        }
+        const pj = findPassiveSlotForRecipe(sid, pid);
+        if (pj >= 0) {
+          return { eid, elab, passiveSlot: pj, skillSlot: slotIndex };
+        }
+      }
+      return null;
+    }
+
+    function evoPreviewForSkill(skillId, slotIndex) {
+      if (!skillId) return null;
+      const ready = evoReadyAtSlot(slotIndex);
+      if (!ready || slots[slotIndex].skill !== skillId) return null;
+      return { id: ready.eid, label: ready.elab };
+    }
+
+    function findEvoInPool(ready, skillSlotIndex) {
+      return evoPool.find(
+        (e) =>
+          !consumedEvo.has(e.instanceId) &&
+          e.skillSlotIndex === skillSlotIndex &&
+          e.evoId === ready.eid
+      );
+    }
+
+    function toggleEvoAtSlot(skillSlotIndex) {
+      const existing = evoOnSlot(skillSlotIndex);
+      if (existing) {
+        const slot = slots[skillSlotIndex];
+        slot.skill = existing.skillId;
+        slot.skillStars = existing.skillStars || SKILL_STAR_EVO_MIN;
+        evoPool = evoPool.filter((e) => e.instanceId !== existing.instanceId);
+        showPassiveHint(`EVO removed — skill restored: ${skillLabel(existing.skillId)}`);
+      } else {
+        const ready = evoReadyAtSlot(skillSlotIndex);
+        if (!ready) return;
+        const slot = slots[skillSlotIndex];
+        const recipe = EVO_RECIPES.find(
+          ([sid, , eid]) => sid === slot.skill && eid === ready.eid
+        );
+        evoPool.push({
+          instanceId: nextInstance++,
+          evoId: ready.eid,
+          label: ready.elab,
+          skillId: slot.skill,
+          skillStars: slot.skillStars || SKILL_STAR_EVO_MIN,
+          passiveId: recipe ? recipe[1] : "",
+          skillSlotIndex,
+          passiveSlotIndex: ready.passiveSlot,
+        });
+        slot.skill = "";
+        slot.skillStars = 0;
+        showPassiveHint(`EVO taken: ${ready.elab} — skill removed from the board (passives unchanged).`);
+      }
+      syncEvosAfterSlotChange();
+      renderSlots();
+      onUpdate();
+    }
+
+    function activeEvos() {
+      return evoPool.filter((e) => !consumedEvo.has(e.instanceId));
+    }
+
+    function currentBuildLevel() {
+      const visibleStarLevel = slots.reduce(
+        (total, slot) => total + (Number(slot.skillStars) || 0) + (Number(slot.passiveStars) || 0),
+        0
+      );
+      const evoLevel = evoPool.reduce(
+        (total, evo) => total + (Number(evo.skillStars) || SKILL_STAR_EVO_MIN) + 1,
+        0
+      );
+      return visibleStarLevel + evoLevel + mythics.length;
+    }
+
+    function renderBuildLevel() {
+      if (!buildLevelCounterEl) return;
+      buildLevelCounterEl.textContent = `Build level: ${currentBuildLevel()}`;
+    }
+
+    function pruneInvalidEvos() {
+      evoPool = evoPool.filter((e) => {
+        if (consumedEvo.has(e.instanceId)) return true;
+        const slot = slots[e.skillSlotIndex];
+        if (!slot?.skill) {
+          return evoOnSlot(e.skillSlotIndex)?.instanceId === e.instanceId;
+        }
+        const ready = evoReadyAtSlot(e.skillSlotIndex);
+        return ready && ready.eid === e.evoId;
+      });
+    }
+
+    /** Mise à jour EVO actives sans effacer mythiques déjà fusionnées. */
+    function syncEvosAfterSlotChange() {
+      pruneInvalidEvos();
+    }
+
+    function pairMatchesRecipe(ei, ej, a, b) {
+      return (
+        (ei.evoId === a && ej.evoId === b) ||
+        (ei.evoId === b && ej.evoId === a)
+      );
+    }
+
+    function possibleFusions() {
+      const act = activeEvos();
+      const out = [];
+      const seen = new Set();
+      for (const [a, b, mid, mlabel] of MYTHIC_RECIPES) {
+        for (let i = 0; i < act.length; i++) {
+          for (let j = i + 1; j < act.length; j++) {
+            const ei = act[i];
+            const ej = act[j];
+            if (!pairMatchesRecipe(ei, ej, a, b)) continue;
+            if (fusionAlreadyDone(ei.instanceId, ej.instanceId)) continue;
+            const key = `${mid}|${ei.instanceId}|${ej.instanceId}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push({
+              mythicId: mid,
+              mythicLabel: mlabel,
+              left: ei,
+              right: ej,
+              key,
+            });
+          }
+        }
+      }
+      return out;
+    }
+
+    function applyMythicFusion(o) {
+      consumedEvo.add(o.left.instanceId);
+      consumedEvo.add(o.right.instanceId);
+      const entry = {
+        mythicId: o.mythicId,
+        label: o.mythicLabel,
+        leftId: o.left.instanceId,
+        rightId: o.right.instanceId,
+        skillSlotIndex: mythics.length,
+      };
+      mythics.push(entry);
+      mythicStack.push(entry);
+      relayoutMythicsToTop();
+      const slotNum = entry.skillSlotIndex + 1;
+      showPassiveHint(
+        `Mythic: ${o.mythicLabel} — slot ${slotNum} (top, fusion order). Passives unchanged.`
+      );
+    }
+
+    function renderErrors(errs) {
+      errorsEl.innerHTML = errs.length ? `<div class="err">${errs.map((e) => `• ${e}`).join("<br/>")}</div>` : "";
+    }
+
+    function skillUsedElsewhere(slotIndex, skillId) {
+      return slots.some((sl, j) => j !== slotIndex && sl.skill === skillId);
+    }
+
+    /** Stage : sort de base déjà sur le board, en EVO ou dans une fusion mythique. */
+    function skillBaseUsedInBuild(skillId, exceptSlotIndex = -1) {
+      if (slots.some((sl, j) => j !== exceptSlotIndex && sl.skill === skillId)) return true;
+      return evoPool.some((e) => e.skillId === skillId);
+    }
+
+    function skillHiddenInStagePicker(skillId, focusSlot) {
+      if (modeEl.value !== "stage") return false;
+      return skillBaseUsedInBuild(skillId, focusSlot);
+    }
+
+    function skillBlockedInSlot(slotIndex, skillId) {
+      if (EXCLUSIVE_SKILL_OWNER.has(skillId)) {
+        return slots.some((sl, j) => j !== slotIndex && sl.skill === skillId);
+      }
+      if (modeEl.value === "stage") return skillBaseUsedInBuild(skillId, slotIndex);
+      return false;
+    }
+
+    function fusionAlreadyDone(leftId, rightId) {
+      return mythics.some(
+        (m) =>
+          (m.leftId === leftId && m.rightId === rightId) ||
+          (m.leftId === rightId && m.rightId === leftId)
+      );
+    }
+    function pickButton(type, id, label, disabled, locked) {
+      const ic = iconMarkup(type, id, 48, label);
+      const dis = disabled || locked ? " disabled" : "";
+      const cls =
+        "icon-pick" +
+        (disabled ? " is-used" : "") +
+        (locked ? " is-locked" : "");
+      const lock = locked ? '<span class="pick-lock" aria-hidden="true">🔒</span>' : "";
+      return `<button type="button" class="${cls}" data-pick-type="${type}" data-pick-id="${id}"${dis} aria-label="${escapeHtml(label)}">${ic}${lock}</button>`;
+    }
+    function updatePickerPanels() {
+      const sp = document.getElementById("pickerSkillsPanel");
+      const pp = document.getElementById("pickerPassivesPanel");
+      if (sp) sp.classList.toggle("is-target", focusField === "skill");
+      if (pp) pp.classList.toggle("is-target", focusField === "passive");
+      if (buildSkillsCol) buildSkillsCol.classList.toggle("is-target", focusField === "skill");
+      if (buildPassivesCol) buildPassivesCol.classList.toggle("is-target", focusField === "passive");
+    }
+
+    function renderPickers() {
+      if (!pickerSkillsEl || !pickerPassivesEl) return;
+      const ch = currentCharacter();
+      pickerSkillsEl.innerHTML = SKILLS.filter(
+        (s) => !skillHiddenInStagePicker(s.id, focusSkillSlot)
+      )
+        .map((s) => {
+          const locked = !skillOwnedByCharacter(s.id, ch.id);
+          const disabled =
+            locked ||
+            (modeEl.value !== "stage" &&
+              EXCLUSIVE_SKILL_OWNER.has(s.id) &&
+              skillUsedElsewhere(focusSkillSlot, s.id));
+          return pickButton("skill", s.id, s.label, disabled, locked);
+        })
+        .join("");
+      pickerPassivesEl.innerHTML = PASSIVES.map((p) => {
+        const disabled = slots.some((sl, j) => j !== focusPassiveSlot && sl.passive === p.id);
+        return pickButton("passive", p.id, p.label, disabled, false);
+      }).join("");
+      updatePickerPanels();
+    }
+    function bindPickerClicks() {
+      if (!pickerSkillsEl || !pickerPassivesEl) return;
+      pickerSkillsEl.onclick = (ev) => {
+        const btn = ev.target.closest("[data-pick-type='skill']");
+        if (!btn || btn.disabled) return;
+        applySkill(btn.dataset.pickId);
+      };
+      pickerPassivesEl.onclick = (ev) => {
+        const btn = ev.target.closest("[data-pick-type='passive']");
+        if (!btn || btn.disabled) return;
+        applyPassive(btn.dataset.pickId);
+      };
+    }
+    /** Après un clic palette : rester sur la même colonne, ligne suivante. */
+    function advanceFocusSameColumn(field) {
+      focusField = field;
+      const n = slotCount();
+      if (field === "skill") {
+        if (focusSkillSlot < n - 1) focusSkillSlot += 1;
+      } else if (focusPassiveSlot < n - 1) focusPassiveSlot += 1;
+    }
+
+    function applySkill(skillId) {
+      const i = focusSkillSlot;
+      if (mythicOnSlot(i)) {
+        showPassiveHint(`Slot ${i + 1}: mythic in place — undo the fusion to change it.`);
+        return;
+      }
+      const ch = currentCharacter();
+      if (!skillOwnedByCharacter(skillId, ch.id)) {
+        const owner = CHARACTERS.find((c) => c.exclusiveSkill === skillId);
+        showPassiveHint(`${skillLabel(skillId)} is exclusive to ${owner?.label ?? "another hero"}.`);
+        return;
+      }
+      if (slots[i].skill === skillId) {
+        if (!isSkillRemovable(skillId)) {
+          showPassiveHint(`${skillLabel(skillId)} is ${ch.label}'s exclusive skill — it cannot be removed.`);
+          return;
+        }
+        clearSlotPart(i, "skill");
+        return;
+      }
+      if (skillBlockedInSlot(i, skillId)) {
+        showPassiveHint(
+          EXCLUSIVE_SKILL_OWNER.has(skillId)
+            ? "This exclusive skill is already in the build."
+            : "This skill is already used (Stage mode)."
+        );
+        return;
+      }
+      slots[i].skill = skillId;
+      slots[i].skillStars = 1;
+      advanceFocusSameColumn("skill");
+      clearPassiveHint();
+      syncEvosAfterSlotChange();
+      renderSlots();
+      onUpdate();
+    }
+    function applyPassive(passiveId) {
+      const i = focusPassiveSlot;
+      if (slots[i].passive === passiveId) {
+        clearSlotPart(i, "passive");
+        return;
+      }
+      if (passiveUsedElsewhere(i, passiveId)) {
+        showPassiveHint("This passive is already used.");
+        return;
+      }
+      slots[i].passive = passiveId;
+      slots[i].passiveStars = 1;
+      advanceFocusSameColumn("passive");
+      clearPassiveHint();
+      syncEvosAfterSlotChange();
+      renderSlots();
+      onUpdate();
+    }
+    function clearSlotPart(i, part) {
+      if (part === "skill") {
+        const sk = slots[i].skill;
+        if (sk && !isSkillRemovable(sk)) return;
+        slots[i].skill = "";
+        slots[i].skillStars = 0;
+      } else {
+        slots[i].passive = "";
+        slots[i].passiveStars = 0;
+      }
+      syncEvosAfterSlotChange();
+      renderSlots();
+      onUpdate();
+    }
+
+    function renderSlots() {
+      if (!slotSkillsEl || !slotPassivesEl) return;
+      ensureSlots();
+      const n = slotCount();
+      slotSkillsEl.innerHTML = "";
+      slotPassivesEl.innerHTML = "";
+      for (let i = 0; i < n; i++) {
+        const { skill, passive, skillStars, passiveStars } = slots[i];
+        const evoActive = evoOnSlot(i);
+        const evoReady = !evoActive && evoPreviewForSkill(skill, i);
+        const skillActive = i === focusSkillSlot;
+        const passActive = i === focusPassiveSlot;
+        const skLab = skillLabel(skill);
+        const skillCell = document.createElement("div");
+        skillCell.className =
+          "build-cell" +
+          (skillActive ? " is-active" : "") +
+          (skillActive ? " is-focus" : "") +
+          (evoReady || evoActive ? " is-evo-ready" : "");
+        const skillMain = document.createElement("div");
+        skillMain.className = "build-cell-main";
+
+        const mythicHere = !evoActive && !skill ? mythicOnSlot(i) : null;
+
+        if (evoActive) {
+          const evoPick = document.createElement("button");
+          evoPick.type = "button";
+          evoPick.className = "evo-pick build-cell-evo is-taken";
+          evoPick.innerHTML = iconMarkup("evo", evoActive.evoId, 48, evoActive.label);
+          evoPick.title = "Undo the EVO and restore the skill";
+          evoPick.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            toggleEvoAtSlot(i);
+          });
+          skillMain.appendChild(evoPick);
+          const lbl = document.createElement("span");
+          lbl.className = "evo-pick-label";
+          lbl.textContent = "EVO ✓";
+          skillMain.appendChild(lbl);
+          skillCell.appendChild(skillMain);
+          slotSkillsEl.appendChild(skillCell);
+        } else if (mythicHere) {
+          skillCell.classList.add("build-cell-mythic");
+          const mythBox = document.createElement("div");
+          mythBox.className = "icon-box";
+          mythBox.innerHTML = iconMarkup("mythic", mythicHere.mythicId, 48, mythicHere.label);
+          mythBox.title = `${mythicHere.label} — mythic (slot ${i + 1}), passives kept`;
+          skillMain.appendChild(mythBox);
+          const lbl = document.createElement("span");
+          lbl.className = "evo-pick-label";
+          lbl.textContent = "Mythic ✓";
+          skillMain.appendChild(lbl);
+          skillCell.appendChild(skillMain);
+          slotSkillsEl.appendChild(skillCell);
+        } else {
+        const skillBtn = document.createElement("button");
+        skillBtn.type = "button";
+        skillBtn.className = "icon-box" + (skill ? "" : " empty");
+        skillBtn.innerHTML = iconMarkup("skill", skill, 48, skLab);
+        skillBtn.setAttribute(
+          "aria-label",
+          skill ? `${skLab} — ${skillStars || 0}/${SKILL_STAR_MAX}★` : `Skill slot ${i + 1}`
+        );
+        skillBtn.addEventListener("click", () => {
+          if (mythicOnSlot(i)) return;
+          if (skill) {
+            if (!isSkillRemovable(skill)) {
+              showPassiveHint(
+                `${skillLabel(skill)} is ${currentCharacter().label}'s exclusive skill — it cannot be removed.`
+              );
+              return;
+            }
+            clearSlotPart(i, "skill");
+            return;
+          }
+          focusSkillSlot = i;
+          focusField = "skill";
+          renderSlots();
+          renderPickers();
+        });
+        skillMain.appendChild(skillBtn);
+        if (skill) {
+          skillMain.insertAdjacentHTML(
+            "beforeend",
+            starsHtml(skillStars, SKILL_STAR_MAX, i, "skill")
+          );
+        }
+        skillCell.appendChild(skillMain);
+        if (evoReady) {
+          const evoPick = document.createElement("button");
+          evoPick.type = "button";
+          evoPick.className = "evo-pick build-cell-evo";
+          evoPick.innerHTML = iconMarkup("evo", evoReady.id, 44, evoReady.label);
+          evoPick.title = "Take the EVO (removes the skill, keeps passives)";
+          const lbl = document.createElement("span");
+          lbl.className = "evo-pick-label";
+          lbl.textContent = "EVO ?";
+          const wrap = document.createElement("div");
+          wrap.style.cssText = "display:flex;flex-direction:column;align-items:center;flex-shrink:0";
+          evoPick.addEventListener("click", (ev) => {
+            ev.stopPropagation();
+            toggleEvoAtSlot(i);
+          });
+          wrap.appendChild(evoPick);
+          wrap.appendChild(lbl);
+          skillCell.appendChild(wrap);
+        }
+        slotSkillsEl.appendChild(skillCell);
+        }
+
+        const paLab = passive ? passiveLabel(passive) : "";
+        const passCell = document.createElement("div");
+        passCell.className =
+          "build-cell" +
+          (passActive ? " is-active" : "") +
+          (passActive ? " is-focus" : "");
+        const passMain = document.createElement("div");
+        passMain.className = "build-cell-main";
+        const passBtn = document.createElement("button");
+        passBtn.type = "button";
+        passBtn.className = "icon-box" + (passive ? "" : " empty");
+        passBtn.innerHTML = iconMarkup("passive", passive, 48, paLab);
+        passBtn.setAttribute(
+          "aria-label",
+          passive
+            ? `${paLab} — ${passiveStars || 0}/${PASSIVE_STAR_MAX}★ (EVO from ★1)`
+            : `Passive slot ${i + 1}`
+        );
+        passBtn.addEventListener("click", () => {
+          if (passive) {
+            clearSlotPart(i, "passive");
+            return;
+          }
+          focusPassiveSlot = i;
+          focusField = "passive";
+          renderSlots();
+          renderPickers();
+        });
+        passMain.appendChild(passBtn);
+        if (passive) {
+          passMain.insertAdjacentHTML(
+            "beforeend",
+            starsHtml(passiveStars, PASSIVE_STAR_MAX, i, "passive")
+          );
+        }
+        passCell.appendChild(passMain);
+        slotPassivesEl.appendChild(passCell);
+      }
+    }
+
+    function bindStarClicks() {
+      const onStarClick = (ev) => {
+        const btn = ev.target.closest(".star-btn");
+        if (!btn) return;
+        ev.stopPropagation();
+        setSlotStars(
+          Number(btn.dataset.starSlot),
+          btn.dataset.starPart,
+          Number(btn.dataset.starValue)
+        );
+      };
+      if (slotSkillsEl && !slotSkillsEl.dataset.starsBound) {
+        slotSkillsEl.dataset.starsBound = "1";
+        slotSkillsEl.addEventListener("click", onStarClick);
+      }
+      if (slotPassivesEl && !slotPassivesEl.dataset.starsBound) {
+        slotPassivesEl.dataset.starsBound = "1";
+        slotPassivesEl.addEventListener("click", onStarClick);
+      }
+    }
+
+    function renderEvos() {
+      const act = activeEvos();
+      evosEl.innerHTML = act.length
+        ? act.map((e) => iconMarkup("evo", e.evoId, 44, e.label)).join("")
+        : "";
+    }
+
+    function passiveSlotIndexFor(passiveId) {
+      const idx = slots.findIndex((s) => s.passive === passiveId);
+      return idx >= 0 ? idx : 0;
+    }
+
+    function bestBuildPassiveOrder(finalSlots) {
+      const out = [];
+      const seen = new Set();
+      const add = (id) => {
+        if (!id || seen.has(id)) return;
+        seen.add(id);
+        out.push(id);
+      };
+      for (const slot of finalSlots) {
+        if (slot.type === "evo") add(slot.passive);
+        else slot.components.forEach((c) => add(c.passive));
+      }
+      return out;
+    }
+
+    function applyBestBuild(finalSlots) {
+      const n = slotCount();
+      slots = Array.from({ length: n }, () => emptySlot());
+      evoPool = [];
+      mythics = [];
+      mythicStack = [];
+      consumedEvo = new Set();
+
+      bestBuildPassiveOrder(finalSlots)
+        .slice(0, n)
+        .forEach((passiveId, i) => {
+          slots[i].passive = passiveId;
+          slots[i].passiveStars = 1;
+        });
+
+      finalSlots.slice(0, n).forEach((slot, skillSlotIndex) => {
+        if (slot.type === "evo") {
+          evoPool.push({
+            instanceId: nextInstance++,
+            evoId: slot.id,
+            label: slot.label,
+            skillId: slot.skill,
+            skillStars: SKILL_STAR_EVO_MIN,
+            passiveId: slot.passive,
+            skillSlotIndex,
+            passiveSlotIndex: passiveSlotIndexFor(slot.passive),
+          });
+          return;
+        }
+
+        const ids = slot.components.map((c) => {
+          const instanceId = nextInstance++;
+          evoPool.push({
+            instanceId,
+            evoId: c.evo,
+            label: evoLabelById(c.evo),
+            skillId: c.skill,
+            skillStars: SKILL_STAR_EVO_MIN,
+            passiveId: c.passive,
+            skillSlotIndex,
+            passiveSlotIndex: passiveSlotIndexFor(c.passive),
+          });
+          consumedEvo.add(instanceId);
+          return instanceId;
+        });
+        const entry = {
+          mythicId: slot.id,
+          label: slot.label,
+          leftId: ids[0],
+          rightId: ids[1],
+          skillSlotIndex,
+        };
+        mythics.push(entry);
+        mythicStack.push(entry);
+      });
+
+      focusSkillSlot = Math.min(mythics.length, n - 1);
+      focusPassiveSlot = 0;
+      focusField = "passive";
+      clearPassiveHint();
+      showPassiveHint("Best theoretical build applied.");
+      onUpdate();
+    }
+
+    function loadCommunityBuilds() {
+      if (communityBuildCache) return communityBuildCache;
+      try {
+        const raw = localStorage.getItem(COMMUNITY_BUILDS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    async function refreshCommunityBuildsFromServer() {
+      if (!API_ENABLED) return loadCommunityBuilds();
+      if (communityFetchInFlight) return communityFetchInFlight;
+      communityFetchInFlight = apiRequest("/api/community-builds")
+        .then((data) => {
+          communityBuildCache = Array.isArray(data.builds) ? data.builds : [];
+          try {
+            localStorage.setItem(COMMUNITY_BUILDS_KEY, JSON.stringify(communityBuildCache));
+          } catch {}
+          renderCommunityBuilds();
+          return communityBuildCache;
+        })
+        .catch(() => loadCommunityBuilds())
+        .finally(() => {
+          communityFetchInFlight = null;
+        });
+      return communityFetchInFlight;
+    }
+
+    function saveCommunityBuilds(builds) {
+      try {
+        localStorage.setItem(COMMUNITY_BUILDS_KEY, JSON.stringify(builds));
+      } catch {
+        showPassiveHint("Unable to save builds in this browser.");
+      }
+    }
+
+    function communityOwnerKey() {
+      try {
+        let key = localStorage.getItem(COMMUNITY_OWNER_KEY);
+        if (!key) {
+          key =
+            typeof globalThis.crypto?.randomUUID === "function"
+              ? globalThis.crypto.randomUUID()
+              : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+          localStorage.setItem(COMMUNITY_OWNER_KEY, key);
+        }
+        return key;
+      } catch {
+        return "";
+      }
+    }
+
+    function ownedCommunityBuildIds() {
+      try {
+        const ids = JSON.parse(localStorage.getItem(COMMUNITY_OWNED_IDS_KEY) || "[]");
+        return new Set(Array.isArray(ids) ? ids : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function rememberOwnedCommunityBuild(id) {
+      if (!id) return;
+      try {
+        const ids = ownedCommunityBuildIds();
+        ids.add(id);
+        localStorage.setItem(COMMUNITY_OWNED_IDS_KEY, JSON.stringify(Array.from(ids)));
+      } catch {}
+    }
+
+    function forgetOwnedCommunityBuild(id) {
+      try {
+        const ids = ownedCommunityBuildIds();
+        ids.delete(id);
+        localStorage.setItem(COMMUNITY_OWNED_IDS_KEY, JSON.stringify(Array.from(ids)));
+      } catch {}
+    }
+
+    function canDeleteCommunityBuild(build) {
+      if (!build) return false;
+      return (
+        ownedCommunityBuildIds().has(build.id) ||
+        Boolean(build.ownerKey && build.ownerKey === communityOwnerKey())
+      );
+    }
+
+    function snapshotCurrentBuild() {
+      return {
+        character: currentCharacter().id,
+        mode: modeEl.value,
+        slots: slots.map((s) => ({ ...s })),
+        evoPool: evoPool.map((e) => ({ ...e })),
+        consumedEvo: Array.from(consumedEvo),
+        mythics: mythics.map((m) => ({ ...m })),
+      };
+    }
+
+    function currentBuildHasContent() {
+      return (
+        slots.some((s) => s.skill || s.passive) ||
+        evoPool.length > 0 ||
+        mythics.length > 0
+      );
+    }
+
+    function applySerializedBuild(state) {
+      if (!state) return;
+      if (characterEl && state.character) characterEl.value = state.character;
+      if (modeEl && state.mode) modeEl.value = state.mode;
+      slots = (state.slots || []).map((s) => ({ ...emptySlot(), ...s }));
+      evoPool = (state.evoPool || []).map((e) => ({ ...e }));
+      consumedEvo = new Set(state.consumedEvo || []);
+      mythics = (state.mythics || []).map((m) => ({ ...m }));
+      mythicStack = mythics.map((m) => ({ ...m }));
+      const maxInstance = evoPool.reduce(
+        (mx, e) => Math.max(mx, Number(e.instanceId) || 0),
+        0
+      );
+      nextInstance = Math.max(nextInstance, maxInstance + 1);
+      ensureSlots();
+      focusSkillSlot = Math.min(mythics.length, slotCount() - 1);
+      focusPassiveSlot = 0;
+      focusField = "passive";
+      showPassiveHint("Community build applied.");
+      onUpdate();
+    }
+
+    function communityBuildPreview(state) {
+      const n = state.mode === "abyss" ? 6 : 5;
+      const consumed = new Set(state.consumedEvo || []);
+      const html = [];
+      for (let i = 0; i < n; i++) {
+        const slot = state.slots?.[i] || emptySlot();
+        const mythic = (state.mythics || []).find((m) => m.skillSlotIndex === i);
+        const evo = (state.evoPool || []).find(
+          (e) => !consumed.has(e.instanceId) && e.skillSlotIndex === i
+        );
+        let main = iconMarkup("", "", 32, "");
+        let label = "Empty";
+        if (mythic) {
+          main = iconMarkup("mythic", mythic.mythicId, 32, mythic.label);
+          label = mythic.label;
+        } else if (evo) {
+          main = iconMarkup("evo", evo.evoId, 32, evo.label);
+          label = evo.label;
+        } else if (slot.skill) {
+          label = skillLabel(slot.skill);
+          main = iconMarkup("skill", slot.skill, 32, label);
+        }
+        const passive = slot.passive
+          ? `<span class="best-build-passives">${iconMarkup("passive", slot.passive, 22, passiveLabel(slot.passive))}</span>`
+          : "";
+        html.push(
+          `<span class="best-build-slot"><span class="tag mono">#${i + 1}</span>${main}<span class="tag">${escapeHtml(label)}</span>${passive}</span>`
+        );
+      }
+      return html.join("");
+    }
+
+    async function publishCurrentCommunityBuild(nameEl = communityBuildNameEl, authorEl = communityBuildAuthorEl) {
+      if (!currentBuildHasContent()) {
+        showPassiveHint("Create a build before publishing it.");
+        return;
+      }
+      const ch = currentCharacter();
+      const mode = modeEl.value;
+      const ownerKey = communityOwnerKey();
+      const title =
+        nameEl?.value.trim() ||
+        `${ch.label} ${mode === "abyss" ? "Abyss" : "Stage"} build`;
+      const author = authorEl?.value.trim() || "Anonymous";
+      const payload = {
+        title,
+        author,
+        ownerKey,
+        character: ch.id,
+        mode,
+        state: snapshotCurrentBuild(),
+      };
+      const builds = loadCommunityBuilds();
+      const localBuild = {
+        id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        title,
+        author,
+        ownerKey,
+        character: ch.id,
+        mode,
+        votes: 0,
+        createdAt: Date.now(),
+        state: snapshotCurrentBuild(),
+      };
+      if (API_ENABLED) {
+        try {
+          const data = await apiRequest("/api/community-builds", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          rememberOwnedCommunityBuild(data.build?.id);
+          builds.push({ ...data.build, ownerKey });
+          communityBuildCache = builds;
+          saveCommunityBuilds(builds);
+          if (nameEl) nameEl.value = "";
+          showPassiveHint("Build published online. Vote sorting updated.");
+          renderCommunityBuilds();
+          return;
+        } catch {
+          showPassiveHint("Online publish failed. Build saved locally.");
+        }
+      }
+      rememberOwnedCommunityBuild(localBuild.id);
+      builds.push(localBuild);
+      communityBuildCache = builds;
+      saveCommunityBuilds(builds);
+      if (nameEl) nameEl.value = "";
+      showPassiveHint("Build published locally. Vote sorting updated.");
+      renderCommunityBuilds();
+    }
+
+    async function voteCommunityBuild(id) {
+      const builds = loadCommunityBuilds();
+      const b = builds.find((x) => x.id === id);
+      if (!b) return;
+      if (API_ENABLED) {
+        try {
+          const data = await apiRequest(`/api/community-builds/${encodeURIComponent(id)}/vote`, {
+            method: "POST",
+            body: "{}",
+          });
+          Object.assign(b, data.build);
+          communityBuildCache = builds;
+          saveCommunityBuilds(builds);
+          renderCommunityBuilds();
+          return;
+        } catch {
+          showPassiveHint("Online vote failed. Vote saved locally.");
+        }
+      }
+      b.votes = (Number(b.votes) || 0) + 1;
+      communityBuildCache = builds;
+      saveCommunityBuilds(builds);
+      renderCommunityBuilds();
+    }
+
+    async function deleteCommunityBuild(id) {
+      const builds = loadCommunityBuilds();
+      const build = builds.find((x) => x.id === id);
+      if (!build) return;
+      if (!canDeleteCommunityBuild(build)) {
+        showPassiveHint("Only the author can delete this build.");
+        return;
+      }
+      if (API_ENABLED) {
+        try {
+          await apiRequest(`/api/community-builds/${encodeURIComponent(id)}`, {
+            method: "DELETE",
+            body: JSON.stringify({ ownerKey: communityOwnerKey() }),
+          });
+        } catch (err) {
+          showPassiveHint(err.message || "Online delete failed.");
+          return;
+        }
+      }
+      communityBuildCache = builds.filter((x) => x.id !== id);
+      forgetOwnedCommunityBuild(id);
+      saveCommunityBuilds(communityBuildCache);
+      showPassiveHint("Build deleted.");
+      renderCommunityBuilds();
+    }
+
+    function renderCommunityBuilds() {
+      if (!communityBuildsEl) return;
+      if (API_ENABLED && !communityBuildCache) {
+        communityBuildsEl.innerHTML = '<p class="community-empty">Loading online builds...</p>';
+        refreshCommunityBuildsFromServer();
+        return;
+      }
+      const ch = currentCharacter();
+      const mode = modeEl.value;
+      const builds = loadCommunityBuilds()
+        .filter((b) => b.character === ch.id && b.mode === mode)
+        .sort(
+          (a, b) =>
+            (Number(b.votes) || 0) - (Number(a.votes) || 0) ||
+            (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)
+        );
+      if (!builds.length) {
+        communityBuildsEl.innerHTML =
+          '<p class="community-empty">No builds published for this character and mode yet.</p>';
+        return;
+      }
+      communityBuildsEl.innerHTML = "";
+      for (const b of builds) {
+        const card = document.createElement("article");
+        card.className = "community-build-card";
+        const deleteButton = canDeleteCommunityBuild(b)
+          ? `<button type="button" class="community-delete" data-community-action="delete" data-build-id="${escapeHtml(b.id)}">Delete</button>`
+          : "";
+        card.innerHTML = `
+          <div class="community-build-head">
+            <div>
+              <div class="community-build-title">${escapeHtml(b.title)}</div>
+              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(currentCharacter().label)} ${mode === "abyss" ? "Abyss" : "Stage"}</div>
+            </div>
+            <span class="community-score">▲ ${Number(b.votes) || 0}</span>
+          </div>
+          <div class="community-build-preview">${communityBuildPreview(b.state)}</div>
+          <div class="community-build-actions">
+            <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}">Vote</button>
+            <button type="button" data-community-action="apply" data-build-id="${escapeHtml(b.id)}">Apply</button>
+            ${deleteButton}
+          </div>
+        `;
+        communityBuildsEl.appendChild(card);
+      }
+    }
+
+    function bindCommunityBuilds() {
+      builderSaveCommunityBuildEl?.addEventListener("click", () =>
+        publishCurrentCommunityBuild(builderCommunityBuildNameEl, builderCommunityBuildAuthorEl)
+      );
+      saveCommunityBuildEl?.addEventListener("click", () =>
+        publishCurrentCommunityBuild(communityBuildNameEl, communityBuildAuthorEl)
+      );
+      communityBuildsEl?.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-community-action]");
+        if (!btn) return;
+        const id = btn.dataset.buildId;
+        const build = loadCommunityBuilds().find((b) => b.id === id);
+        if (!build) return;
+        if (btn.dataset.communityAction === "vote") voteCommunityBuild(id);
+        if (btn.dataset.communityAction === "apply") applySerializedBuild(build.state);
+        if (btn.dataset.communityAction === "delete") deleteCommunityBuild(id);
+      });
+    }
+
+    function renderBestBuilds() {
+      if (!bestBuildShuAbyssEl) return;
+      const M = {
+        nox: {
+          id: "bat-red",
+          label: "Bat red",
+          components: [
+            { evo: "bat-purple", skill: "bat", passive: "damage" },
+            { evo: "cutting-blades-purple", skill: "cutting-blades", passive: "crit" },
+          ],
+        },
+        vel: {
+          id: "fire-field-red",
+          label: "Fire field red",
+          components: [
+            { evo: "orb-purple", skill: "orb", passive: "haste" },
+            { evo: "familiar-purple", skill: "familiar", passive: "multishot" },
+          ],
+        },
+        zen: {
+          id: "shuriken-red",
+          label: "Shuriken red",
+          components: [
+            { evo: "shuriken-purple", skill: "shuriken", passive: "movespeed" },
+            { evo: "thunderbolt-purple", skill: "thunderbolt", passive: "damage" },
+          ],
+        },
+        shu: {
+          id: "tentacle-red",
+          label: "Tentacle red",
+          components: [
+            { evo: "tentacle-purple", skill: "tentacle", passive: "regen" },
+            { evo: "razor-purple", skill: "razor", passive: "haste" },
+          ],
+        },
+        whip: {
+          id: "lightning-whip-red",
+          label: "Lightning whip red",
+          components: [
+            { evo: "lightning-whip-purple", skill: "lightning-whip", passive: "crit" },
+            { evo: "binding-chain-purple", skill: "binding_chain", passive: "multishot" },
+          ],
+        },
+        buldakFrost: {
+          id: "buldak-frost-red",
+          label: "Buldak frost red",
+          components: [
+            { evo: "frost-field-purple", skill: "frost-field", passive: "size" },
+            { evo: "buldak-purple", skill: "buldak", passive: "regen" },
+          ],
+        },
+        tempestShell: {
+          id: "tempest-carapace-red",
+          label: "Tempest carapace red",
+          components: [
+            { evo: "tempest-purple", skill: "tempest", passive: "hp" },
+            { evo: "carapace-mauve", skill: "blue-shell", passive: "movespeed" },
+          ],
+        },
+        frogRazor: {
+          id: "boom-frog-razor-red",
+          label: "Boom frog razor red",
+          components: [
+            { evo: "boom-frog-pruple", skill: "boom-frog", passive: "size" },
+            { evo: "razor-purple", skill: "razor", passive: "haste" },
+          ],
+        },
+        fireThunder: {
+          id: "fire-thunder-red",
+          label: "Fire thunder red",
+          components: [
+            { evo: "fire-field-mauve", skill: "fire-field", passive: "duration" },
+            { evo: "thunderbolt-purple", skill: "thunderbolt", passive: "damage" },
+          ],
+        },
+        familiarTempest: {
+          id: "familiar-tempest-red",
+          label: "Familiar tempest red",
+          components: [
+            { evo: "familiar-purple", skill: "familiar", passive: "multishot" },
+            { evo: "tempest-purple", skill: "tempest", passive: "hp" },
+          ],
+        },
+        blueCrit: {
+          id: "blue-shell-crit-red",
+          label: "Blue shell crit red",
+          components: [
+            { evo: "carapace-mauve", skill: "blue-shell", passive: "movespeed" },
+            { evo: "cutting-blades-purple", skill: "cutting-blades", passive: "crit" },
+          ],
+        },
+        chronos: {
+          id: "chronos_blue",
+          label: "Chronos blue",
+          components: [
+            { evo: "cutting-blades-purple", skill: "cutting-blades", passive: "crit" },
+            { evo: "razor-purple", skill: "razor", passive: "haste" },
+          ],
+        },
+        prism: {
+          id: "prism_shell",
+          label: "Prism shell",
+          components: [
+            { evo: "thunderbolt-purple", skill: "thunderbolt", passive: "damage" },
+            { evo: "frost-field-purple", skill: "frost-field", passive: "size" },
+          ],
+        },
+      };
+      const E = {
+        thunderbolt: {
+          type: "evo",
+          id: "thunderbolt-purple",
+          label: "Thunderbolt purple",
+          skill: "thunderbolt",
+          passive: "damage",
+        },
+        cutting: {
+          type: "evo",
+          id: "cutting-blades-purple",
+          label: "Cutting blades purple",
+          skill: "cutting-blades",
+          passive: "crit",
+        },
+        lightning: {
+          type: "evo",
+          id: "lightning-whip-purple",
+          label: "Lightning whip purple",
+          skill: "lightning-whip",
+          passive: "crit",
+        },
+        familiar: {
+          type: "evo",
+          id: "familiar-purple",
+          label: "Familiar purple",
+          skill: "familiar",
+          passive: "multishot",
+        },
+        frog: {
+          type: "evo",
+          id: "boom-frog-pruple",
+          label: "Boom frog purple",
+          skill: "boom-frog",
+          passive: "size",
+        },
+        fire: {
+          type: "evo",
+          id: "fire-field-mauve",
+          label: "Fire field mauve",
+          skill: "fire-field",
+          passive: "duration",
+        },
+      };
+      const buildPlans = {
+        nox: {
+          stage: [M.nox, M.whip, M.prism, M.frogRazor, E.familiar],
+          abyss: [M.nox, M.whip, M.prism, M.frogRazor, M.fireThunder, E.familiar],
+        },
+        vel: {
+          stage: [M.vel, M.whip, M.frogRazor, M.buldakFrost, E.cutting],
+          abyss: [M.vel, M.whip, M.frogRazor, M.buldakFrost, M.chronos, E.thunderbolt],
+        },
+        zen: {
+          stage: [M.zen, M.whip, M.blueCrit, M.familiarTempest],
+          abyss: [M.zen, M.whip, M.blueCrit, M.familiarTempest, M.chronos, E.lightning],
+        },
+        shu: {
+          stage: [M.shu, M.whip, M.buldakFrost, E.cutting, E.familiar],
+          abyss: [M.shu, M.whip, M.buldakFrost, M.frogRazor, M.chronos, E.familiar],
+        },
+      };
+      const ch = currentCharacter();
+      const mode = modeEl.value;
+      const plan = buildPlans[ch.id] ?? buildPlans.nox;
+      const finalSlots = plan[mode] ?? plan.stage;
+      const mythicCount = finalSlots.filter((slot) => slot.type !== "evo").length;
+      const evoCount = finalSlots.length - mythicCount;
+      const target = `${mythicCount} mythic${mythicCount > 1 ? "s" : ""}${evoCount ? ` + ${evoCount} EVO` : ""}`;
+      const maxPassives = mode === "abyss" ? 6 : 5;
+
+      if (bestBuildTitleEl) {
+        bestBuildTitleEl.textContent = `Best theoretical build — ${ch.label} ${mode === "abyss" ? "Abyss" : "Stage"}`;
+      }
+
+      const passiveIcons = (slot) => {
+        const ids =
+          slot.type === "evo"
+            ? [slot.passive]
+            : slot.components.map((c) => c.passive);
+        return `<span class="best-build-passives">${ids
+          .map((pid) => iconMarkup("passive", pid, 24, passiveLabel(pid)))
+          .join("")}</span>`;
+      };
+      const usedPassives = bestBuildPassiveOrder(finalSlots);
+      const finalHtml = finalSlots
+        .map(
+          (slot, i) =>
+            `<span class="best-build-slot"><span class="tag mono">#${i + 1}</span>${iconMarkup(slot.type || "mythic", slot.id, 42, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span>${passiveIcons(slot)}</span>`
+        )
+        .join("");
+      const recipeHtml = finalSlots
+        .map((slot) => {
+          if (slot.type === "evo") {
+            const sl = skillLabel(slot.skill);
+            const pl = passiveLabel(slot.passive);
+            return `<div class="fusion row-icon">${iconMarkup("skill", slot.skill, 34, sl)}<span class="slot-arrow">+</span>${iconMarkup("passive", slot.passive, 34, pl)}<span class="slot-arrow">→</span>${iconMarkup("evo", slot.id, 34, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span></div>`;
+          }
+          const [a, b] = slot.components;
+          const la = evoLabelById(a.evo);
+          const lb = evoLabelById(b.evo);
+          return `<div class="fusion myth row-icon">${iconMarkup("evo", a.evo, 34, la)}<span class="best-build-passives">${iconMarkup("passive", a.passive, 24, passiveLabel(a.passive))}</span><span class="slot-arrow">+</span>${iconMarkup("evo", b.evo, 34, lb)}<span class="best-build-passives">${iconMarkup("passive", b.passive, 24, passiveLabel(b.passive))}</span><span class="slot-arrow">→</span>${iconMarkup("mythic", slot.id, 34, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span></div>`;
+        })
+        .join("");
+
+      bestBuildShuAbyssEl.innerHTML = `
+        <button type="button" class="best-build-apply" id="applyBestBuild">Apply this build</button>
+        <div class="best-build-final">${finalHtml}</div>
+        <div class="best-build-recipes">${recipeHtml}</div>
+      `;
+      document
+        .getElementById("applyBestBuild")
+        ?.addEventListener("click", () => applyBestBuild(finalSlots));
+    }
+
+    function createFusionPickButton(o) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "fusion myth row-icon fusion-pick";
+      const il = iconMarkup("evo", o.left.evoId, 40, o.left.label);
+      const ir = iconMarkup("evo", o.right.evoId, 40, o.right.label);
+      const im = iconMarkup("mythic", o.mythicId, 40, o.mythicLabel);
+      row.innerHTML = `${il}<span class="slot-arrow">+</span>${ir}<span class="slot-arrow">\u2192</span>${im}`;
+      row.setAttribute("aria-label", o.mythicLabel);
+      row.addEventListener("click", () => {
+        applyMythicFusion(o);
+        onUpdate();
+      });
+      return row;
+    }
+
+    function renderFusionOffers(container, opts) {
+      if (!container) return;
+      container.innerHTML = "";
+      for (const o of opts) {
+        container.appendChild(createFusionPickButton(o));
+      }
+    }
+
+    function renderFusions() {
+      const opts = possibleFusions();
+      if (mythicOffersTopEl) {
+        mythicOffersTopEl.classList.toggle("has-offers", opts.length > 0);
+      }
+      renderFusionOffers(fusionsTopEl, opts);
+      renderFusionOffers(fusionsEl, opts);
+    }
+
+    function syncUndo() {
+      undoEl.disabled = mythicStack.length === 0;
+    }
+
+    function onUpdate() {
+      ensureSlots();
+      pruneInvalidEvos();
+      renderSlots();
+      renderErrors(validate());
+      renderEvos();
+      renderBestBuilds();
+      renderFusions();
+      renderPickers();
+      renderCommunityBuilds();
+      renderBuildLevel();
+      syncUndo();
+    }
+
+    function resetBuildSlots() {
+      slots = Array.from({ length: slotCount() }, () => emptySlot());
+      resetEvoAndFusions();
+      applyCharacterStarterSlot();
+      stripIllegalExclusiveSkills();
+    }
+
+    modeEl.addEventListener("change", () => {
+      resetEvoAndFusions();
+      clearPassiveHint();
+      focusSkillSlot = 1;
+      focusPassiveSlot = 0;
+      focusField = "passive";
+      resetBuildSlots();
+      renderSlots();
+      onUpdate();
+    });
+
+    characterEl?.addEventListener("change", () => {
+      resetEvoAndFusions();
+      clearPassiveHint();
+      focusSkillSlot = 1;
+      focusPassiveSlot = 0;
+      focusField = "passive";
+      resetBuildSlots();
+      renderSlots();
+      onUpdate();
+      const ch = currentCharacter();
+      showPassiveHint(`${ch.label} — starting skill: ${skillLabel(ch.exclusiveSkill)} (slot 1).`);
+    });
+
+    document.getElementById("reset").addEventListener("click", () => {
+      resetEvoAndFusions();
+      clearPassiveHint();
+      focusSkillSlot = 1;
+      focusPassiveSlot = 0;
+      focusField = "passive";
+      resetBuildSlots();
+      renderSlots();
+      onUpdate();
+    });
+
+    undoEl.addEventListener("click", () => {
+      const last = mythicStack.pop();
+      if (!last) return;
+      mythics = mythics.filter(
+        (m) =>
+          !(
+            m.mythicId === last.mythicId &&
+            m.leftId === last.leftId &&
+            m.rightId === last.rightId
+          )
+      );
+      consumedEvo.delete(last.leftId);
+      consumedEvo.delete(last.rightId);
+      relayoutMythicsToTop();
+      onUpdate();
+    });
+
+    if (!slotSkillsEl || !slotPassivesEl || !evosEl || !fusionsEl) {
+      const fatal = document.createElement("div");
+      fatal.className = "err";
+      fatal.style.margin = "1rem";
+      fatal.textContent =
+        "HTML structure error: build / EVO areas not found. Reload the page (Ctrl+F5).";
+      panelBuild?.prepend(fatal);
+    } else {
+      loadIconCacheVer().then(() => {
+        updateVisitCounter();
+        resetBuildSlots();
+        bindAppTabs();
+        bindSupportCopy();
+        bindCommunityBuilds();
+        bindPickerClicks();
+        bindStarClicks();
+        renderBestBuilds();
+        renderSlots();
+        onUpdate();
+        checkGamePngAssets();
+        const ch = currentCharacter();
+        showPassiveHint(
+          `${ch.label} — ${skillLabel(ch.exclusiveSkill)} required (not removable). ★3 + passive → click EVO if you want.`
+        );
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+    <div id="errors">ERROR_CLOSE
+    <p id="assetBanner" class="hidden" role="status"></p>
+    <motion class="grid" id="slots" aria-live="polite">ERROR_CLOSE2
