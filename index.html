@@ -102,6 +102,42 @@
       justify-content: center;
       gap: 0.45rem 0.55rem;
     }
+    .support-game {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 0.55rem 0.8rem;
+      border: 1px solid rgba(166, 115, 255, 0.38);
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(90, 80, 220, 0.18), rgba(220, 80, 170, 0.14));
+    }
+    .support-game-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.38rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid rgba(166, 115, 255, 0.55);
+      background: rgba(120, 70, 210, 0.22);
+      color: #eadbff;
+      font-size: 0.86rem;
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .support-game-link:hover {
+      filter: brightness(1.1);
+      border-color: #c7a6ff;
+    }
+    .support-game img {
+      width: 68px;
+      height: 68px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      object-fit: cover;
+      background: #fff;
+    }
     .support-telegram {
       display: flex;
       flex-direction: column;
@@ -987,6 +1023,19 @@
       <span class="support-heart" aria-hidden="true"> &lt;3</span>
     </p>
     <div class="support-links">
+      <div class="support-game" aria-label="Spekter Agency game">
+        <a
+          class="support-game-link"
+          href="https://t.me/SPEKTERAGENCY_BOT"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open Spekter Agency on Telegram"
+          >Play Spekter Agency</a
+        >
+        <a href="https://t.me/SPEKTERAGENCY_BOT" target="_blank" rel="noopener noreferrer" title="@SPEKTERAGENCY_BOT on Telegram">
+          <img src="assets/spekter-agency-bot.png" alt="Spekter Agency Telegram bot QR code" width="68" height="68" />
+        </a>
+      </div>
       <div class="support-block support-wallet-row">
         <label for="supportWallet">TON blockchain</label>
         <code id="supportWallet">UQAFP8TcTabu-C0X-eDxVwebi6aKcbAyXJhe0FT4ciOPjpM9</code>
