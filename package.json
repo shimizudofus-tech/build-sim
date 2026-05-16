@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "node tools/build-cloudflare.mjs",
     "start": "node server.js"
   },
   "dependencies": {

@@ -7,8 +7,8 @@ GitHub repo -> Cloudflare Pages -> automatic deploy on every push to main.
 Pages settings
 --------------
 Framework preset: None
-Build command: npm install
-Build output directory: .
+Build command: npm run build
+Build output directory: dist
 Root directory: leave empty
 Functions directory: functions
 
