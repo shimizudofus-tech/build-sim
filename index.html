@@ -814,6 +814,47 @@
     .community-filter-bar {
       display: contents;
     }
+    .community-stage-boss {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      margin: 0 0 0.75rem;
+      padding: 0.65rem;
+      border: 1px solid rgba(62, 207, 142, 0.28);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.16);
+    }
+    .community-stage-boss[hidden] {
+      display: none;
+    }
+    .community-stage-boss-media {
+      display: grid;
+      place-items: center;
+      width: 120px;
+      min-height: 78px;
+      border: 1px dashed rgba(189, 246, 213, 0.32);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.22);
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+    .community-stage-boss-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .community-stage-boss-title {
+      color: #bdf6d5;
+      font-weight: 800;
+    }
+    .community-stage-boss-note {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
     .community-form button,
     .community-build-card button {
       padding: 0.44rem 0.7rem;
@@ -1330,6 +1371,7 @@
         </div>
         <div id="communityFilters" class="community-filter-bar" aria-label="Community progression filters"></div>
       </div>
+      <div id="communityStageBoss" class="community-stage-boss" hidden aria-live="polite"></div>
       <div id="communityBuilds" class="community-list"></div>
     </section>
   </main>
@@ -1752,6 +1794,7 @@
     const communityModeEl = document.getElementById("communityMode");
     const saveCommunityBuildEl = document.getElementById("saveCommunityBuild");
     const communityFiltersEl = document.getElementById("communityFilters");
+    const communityStageBossEl = document.getElementById("communityStageBoss");
     const communityBuildsEl = document.getElementById("communityBuilds");
     const communityHintEl = document.getElementById("communityHint");
     const visitCounterEl = document.getElementById("visitCounter");
@@ -1955,10 +1998,10 @@
       }
       if (modeId === "boss") {
         return {
-          label: "Boss stage",
-          placeholder: "1-81",
+          label: "Boss damage",
+          placeholder: "Damage",
           min: 1,
-          max: 81,
+          max: "",
           step: 1,
         };
       }
@@ -1989,7 +2032,6 @@
 
     function communityFilterValues(modeId = modeEl?.value) {
       if (modeId === "stage") return Array.from({ length: 150 }, (_, i) => i + 1);
-      if (modeId === "boss") return Array.from({ length: 81 }, (_, i) => i + 1);
       if (modeId === "abyss") return Array.from({ length: 200 }, (_, i) => (i + 1) * 10);
       return [];
     }
@@ -2000,8 +2042,64 @@
 
     function communityTargetLabel(modeId, value) {
       if (modeId === "abyss") return `Cleared floor ${formatNumber(value)}`;
-      if (modeId === "boss") return `Boss stage ${formatNumber(value)}`;
+      if (modeId === "boss") return `Boss damage ${formatNumber(value)}`;
       return `Cleared level ${formatNumber(value)}`;
+    }
+
+    function communityStageBossAssetCandidates(stageLevel) {
+      const n = Number(stageLevel);
+      if (!Number.isInteger(n) || n < 1) return [];
+      const padded = String(n).padStart(3, "0");
+      return [
+        `assets/community/stage-bosses/stage-${n}.png`,
+        `assets/community/stage-bosses/stage-${padded}.png`,
+        `assets/community/stage-bosses/${n}.png`,
+        `assets/community/stage-bosses/${padded}.png`,
+        `assets/stage-bosses/stage-${n}.png`,
+        `assets/stage-bosses/stage-${padded}.png`,
+        `assets/bosses/stage-${n}.png`,
+        `assets/bosses/stage-${padded}.png`,
+        `assets/stages/stage-${n}.png`,
+        `assets/stages/stage-${padded}.png`,
+        `assets/fond_sombre_corrige/stage-${n}.png`,
+        `assets/fond_sombre_corrige/stage-${padded}.png`,
+        `assets/fond_sombre_corrige.png`,
+      ].map(assetUrl);
+    }
+
+    function communityStageBossImageError(img) {
+      const fallbacks = JSON.parse(img.dataset.fallbacks || "[]");
+      const next = fallbacks.shift();
+      if (next) {
+        img.dataset.fallbacks = JSON.stringify(fallbacks);
+        img.src = next;
+        return;
+      }
+      const media = img.closest(".community-stage-boss-media");
+      if (media) media.innerHTML = "<span>Boss image missing</span>";
+    }
+
+    function renderCommunityStageBossPreview() {
+      if (!communityStageBossEl) return;
+      const mode = communityBrowsingMode();
+      const stageLevel = mode === "stage" ? communityTargetFilter : null;
+      if (!stageLevel) {
+        communityStageBossEl.hidden = true;
+        communityStageBossEl.innerHTML = "";
+        return;
+      }
+      const candidates = communityStageBossAssetCandidates(stageLevel);
+      const [src, ...fallbacks] = candidates;
+      communityStageBossEl.hidden = false;
+      communityStageBossEl.innerHTML = `
+        <div class="community-stage-boss-media">
+          <img src="${escapeHtml(src)}" data-fallbacks="${escapeHtml(JSON.stringify(fallbacks))}" alt="Stage ${formatNumber(stageLevel)} boss" loading="lazy" decoding="async" onerror="communityStageBossImageError(this)" />
+        </div>
+        <div>
+          <div class="community-stage-boss-title">Stage ${formatNumber(stageLevel)} boss</div>
+          <div class="community-stage-boss-note">Image is shown when a matching asset exists.</div>
+        </div>
+      `;
     }
 
     function sanitizeVideoUrlInput(value) {
@@ -3269,7 +3367,7 @@
       const values = communityFilterValues(mode);
       if (!values.length) {
         communityTargetFilter = null;
-        communityFiltersEl.innerHTML = '<span class="tag">Boss builds are sorted by damage, then votes.</span>';
+        communityFiltersEl.innerHTML = '<span class="tag">Boss builds are sorted by Boss damage, then votes.</span>';
         return;
       }
       const cfg = communityTargetConfig(mode);
@@ -3317,6 +3415,7 @@
       if (!communityBuildsEl) return;
       updateCommunityPublishFields();
       renderCommunityFilters();
+      renderCommunityStageBossPreview();
       if (API_ENABLED && !communityBuildCache) {
         communityBuildsEl.innerHTML = '<p class="community-empty">Loading online builds...</p>';
         refreshCommunityBuildsFromServer();
