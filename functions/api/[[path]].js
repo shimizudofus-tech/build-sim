@@ -97,7 +97,7 @@ function mythicFloorFromAttributes(attributes) {
 
 async function getMythicFloor(collectionAddress, env) {
   const configuredFloor = asNumber(getEnvValue(env, "GETGEMS_MYTHIC_FP_TON"));
-  if (configuredFloor != null) return { floorTon: configuredFloor, source: "configured" };
+  if (configuredFloor > 0) return { floorTon: configuredFloor, source: "configured" };
 
   const authHeaders = getGetgemsAuthHeaders(env);
   if (!authHeaders) {

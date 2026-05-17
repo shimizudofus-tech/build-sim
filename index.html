@@ -1754,6 +1754,15 @@
       })} TON`;
     }
 
+    function formatMythicFloor(mythicFloor) {
+      const number = marketNumber(mythicFloor?.floorTon);
+      if (number === null || number < 0) return "Open Mythic filter";
+      if (number === 0 && mythicFloor?.source !== "attributes") {
+        return "Open Mythic filter";
+      }
+      return formatTon(number);
+    }
+
     function formatUsd(value) {
       const number = marketNumber(value);
       if (number === null) return "Unavailable";
@@ -1812,9 +1821,7 @@
         if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
         if (floorEl) floorEl.textContent = formatTon(collection.floorTon);
         if (mythicFloorEl) {
-          const mythicFloor = marketNumber(data.mythicFloor?.floorTon);
-          mythicFloorEl.textContent =
-            mythicFloor === null ? "Open Mythic filter" : formatTon(mythicFloor);
+          mythicFloorEl.textContent = formatMythicFloor(data.mythicFloor);
         }
         setMarketUpdated(updatedEl);
       } catch {
