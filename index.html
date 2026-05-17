@@ -1359,7 +1359,7 @@
 
         <section class="planner-builds" aria-label="Quick build planner">
           <h2>Quick build planner</h2>
-          <p class="hint">Pick wanted EVOs and mythics. Slot 1 keeps the character base skill unless you choose its EVO or a mythic containing it; impossible choices disappear automatically.</p>
+          <p class="hint">Pick wanted EVOs and mythics. Planner choices auto-apply and replace the current build; slot 1 keeps the character base skill unless you choose its EVO or a mythic containing it. Impossible choices disappear automatically.</p>
           <div class="planner-controls">
             <button type="button" class="secondary" id="plannerClear">Clear picks</button>
           </div>
@@ -1897,6 +1897,7 @@
     let communityModeFilter = modeEl?.value || "stage";
     const plannerSelectedChoices = new Set();
     let plannerGeneratedSlots = [];
+    let plannerLastError = "";
 
     function escapeHtml(s) {
       return String(s)
@@ -3883,28 +3884,29 @@
         .join("");
       plannerResultEl.innerHTML = `
         <div class="planner-result-actions">
-          <button type="button" id="plannerApply">Apply generated build</button>
           <span class="tag">Passives ${usedPassives.length}/${slotCount()}</span>
+          <span class="tag">Auto-applied</span>
         </div>
         <div class="best-build-final">${finalHtml}</div>
         <div class="best-build-recipes">${recipeHtml}</div>
       `;
-      document.getElementById("plannerApply")?.addEventListener("click", applyPlannerBuild);
     }
 
     function generatePlannerBuild() {
       const result = buildPlannerPlan();
       plannerGeneratedSlots = result.plans;
-      if (result.error) showPassiveHint(result.error);
+      plannerLastError = result.error || "";
+      if (plannerLastError) showPassiveHint(plannerLastError);
       renderPlannerMythics();
       renderPlannerResult();
     }
 
-    function applyPlannerBuild() {
+    function applyPlannerBuild(message = "Quick build updated.") {
       if (!plannerGeneratedSlots.length) generatePlannerBuild();
       if (!plannerGeneratedSlots.length) return;
+      const error = plannerLastError;
       applyBestBuild(plannerGeneratedSlots);
-      showPassiveHint("Quick build applied.");
+      showPassiveHint(error ? `${error} Build updated.` : message);
     }
 
     function renderPlanner() {
@@ -3917,8 +3919,7 @@
       plannerClearEl?.addEventListener("click", () => {
         plannerSelectedChoices.clear();
         generatePlannerBuild();
-        renderPlanner();
-        showPassiveHint("Planner picks cleared.");
+        applyPlannerBuild("Planner picks cleared. Base skill applied.");
       });
       plannerMythicsEl?.addEventListener("click", (ev) => {
         const btn = ev.target.closest("[data-planner-mythic]");
@@ -3927,6 +3928,7 @@
         if (plannerSelectedChoices.has(id)) plannerSelectedChoices.delete(id);
         else plannerSelectedChoices.add(id);
         generatePlannerBuild();
+        applyPlannerBuild();
       });
       renderPlanner();
     }
