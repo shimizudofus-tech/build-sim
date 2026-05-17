@@ -1955,10 +1955,10 @@
       }
       if (modeId === "boss") {
         return {
-          label: "Boss damage",
-          placeholder: "Damage",
+          label: "Boss stage",
+          placeholder: "1-81",
           min: 1,
-          max: "",
+          max: 81,
           step: 1,
         };
       }
@@ -1989,6 +1989,7 @@
 
     function communityFilterValues(modeId = modeEl?.value) {
       if (modeId === "stage") return Array.from({ length: 150 }, (_, i) => i + 1);
+      if (modeId === "boss") return Array.from({ length: 81 }, (_, i) => i + 1);
       if (modeId === "abyss") return Array.from({ length: 200 }, (_, i) => (i + 1) * 10);
       return [];
     }
@@ -1999,7 +2000,7 @@
 
     function communityTargetLabel(modeId, value) {
       if (modeId === "abyss") return `Cleared floor ${formatNumber(value)}`;
-      if (modeId === "boss") return `Boss damage ${formatNumber(value)}`;
+      if (modeId === "boss") return `Boss stage ${formatNumber(value)}`;
       return `Cleared level ${formatNumber(value)}`;
     }
 
@@ -3326,7 +3327,7 @@
       const builds = loadCommunityBuilds()
         .filter((b) => b.character === ch.id && b.mode === mode)
         .filter((b) => {
-          if (mode === "boss" || communityTargetFilter === null) return true;
+          if (communityTargetFilter === null) return true;
           return buildTargetValue(b) === communityTargetFilter;
         })
         .sort((a, b) => {
