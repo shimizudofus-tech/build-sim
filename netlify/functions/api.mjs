@@ -18,6 +18,13 @@ function sanitizeText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function sanitizeNumber(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const number = Number(value);
+  if (!Number.isFinite(number) || number < 0) return null;
+  return Math.floor(number);
+}
+
 function publicBuild(build) {
   const { ownerKey, ...safe } = build;
   return safe;
@@ -77,6 +84,9 @@ export async function handler(event) {
         ownerKey: sanitizeText(body.ownerKey, 120),
         character: sanitizeText(body.character, 24),
         mode: sanitizeText(body.mode, 24),
+        targetValue: sanitizeNumber(body.targetValue),
+        targetLabel: sanitizeText(body.targetLabel, 64),
+        power: sanitizeNumber(body.power),
         votes: 0,
         createdAt: Date.now(),
         state: body.state || {},

@@ -709,6 +709,44 @@
       background: var(--panel);
       color: var(--text);
     }
+    .community-form .community-target-field {
+      display: flex;
+      flex: 1 1 10rem;
+      flex-direction: column;
+      min-width: 10rem;
+    }
+    .community-form .community-target-field label {
+      margin-bottom: 0.2rem;
+    }
+    .community-form .community-target-field input {
+      width: 100%;
+      min-width: 0;
+    }
+    .community-form .community-power-input {
+      flex: 0 1 8rem;
+      min-width: 7rem;
+    }
+    .community-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin: 0.65rem 0 0.75rem;
+      max-height: 8.5rem;
+      overflow: auto;
+    }
+    .community-filter-bar button {
+      padding: 0.32rem 0.55rem;
+      border-radius: 999px;
+      background: var(--panel);
+      border-color: var(--border);
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .community-filter-bar button.is-active {
+      border-color: var(--good);
+      background: rgba(62, 207, 142, 0.16);
+      color: #d8ffe8;
+    }
     .community-form button,
     .community-build-card button {
       padding: 0.44rem 0.7rem;
@@ -1102,6 +1140,11 @@
         <div class="community-form builder-publish" aria-label="Publish build">
           <input id="builderCommunityBuildName" type="text" maxlength="48" placeholder="Build name" />
           <input id="builderCommunityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
+          <div class="community-target-field">
+            <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue">Cleared level</label>
+            <input id="builderCommunityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
+          </div>
+          <input id="builderCommunityPower" class="community-power-input" type="number" min="0" step="1" placeholder="Power (optional)" />
           <button type="button" id="builderSaveCommunityBuild">Publish current build</button>
         </div>
         <p id="passiveHint" class="hint" aria-live="polite" style="margin:0"></p>
@@ -1169,8 +1212,14 @@
       <div class="community-form">
         <input id="communityBuildName" type="text" maxlength="48" placeholder="Build name" />
         <input id="communityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
+        <div class="community-target-field">
+          <label id="communityTargetLabel" for="communityTargetValue">Cleared level</label>
+          <input id="communityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
+        </div>
+        <input id="communityPower" class="community-power-input" type="number" min="0" step="1" placeholder="Power (optional)" />
         <button type="button" id="saveCommunityBuild">Publish current build</button>
       </div>
+      <div id="communityFilters" class="community-filter-bar" aria-label="Community progression filters"></div>
       <div id="communityBuilds" class="community-list"></div>
     </section>
   </main>
@@ -1579,10 +1628,17 @@
     const plannerResultEl = document.getElementById("plannerResult");
     const builderCommunityBuildNameEl = document.getElementById("builderCommunityBuildName");
     const builderCommunityBuildAuthorEl = document.getElementById("builderCommunityBuildAuthor");
+    const builderCommunityTargetLabelEl = document.getElementById("builderCommunityTargetLabel");
+    const builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
+    const builderCommunityPowerEl = document.getElementById("builderCommunityPower");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
     const communityBuildNameEl = document.getElementById("communityBuildName");
     const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
+    const communityTargetLabelEl = document.getElementById("communityTargetLabel");
+    const communityTargetValueEl = document.getElementById("communityTargetValue");
+    const communityPowerEl = document.getElementById("communityPower");
     const saveCommunityBuildEl = document.getElementById("saveCommunityBuild");
+    const communityFiltersEl = document.getElementById("communityFilters");
     const communityBuildsEl = document.getElementById("communityBuilds");
     const communityHintEl = document.getElementById("communityHint");
     const visitCounterEl = document.getElementById("visitCounter");
@@ -1614,6 +1670,7 @@
     let focusField = "passive";
     let communityBuildCache = null;
     let communityFetchInFlight = null;
+    let communityTargetFilter = null;
     const plannerSelectedMythics = new Set();
     let plannerGeneratedSlots = [];
 
@@ -1770,6 +1827,66 @@
 
     function slotCount(modeId = modeEl?.value) {
       return modeConfig(modeId).slots;
+    }
+
+    function communityTargetConfig(modeId = modeEl?.value) {
+      if (modeId === "abyss") {
+        return {
+          label: "Cleared floor",
+          placeholder: "10-2000",
+          min: 10,
+          max: 2000,
+          step: 10,
+        };
+      }
+      if (modeId === "boss") {
+        return {
+          label: "Boss damage",
+          placeholder: "Damage",
+          min: 1,
+          max: "",
+          step: 1,
+        };
+      }
+      return {
+        label: "Cleared level",
+        placeholder: "1-150",
+        min: 1,
+        max: 150,
+        step: 1,
+      };
+    }
+
+    function applyCommunityTargetConfig(labelEl, inputEl) {
+      if (!inputEl) return;
+      const cfg = communityTargetConfig();
+      if (labelEl) labelEl.textContent = cfg.label;
+      inputEl.required = true;
+      inputEl.min = String(cfg.min);
+      inputEl.max = cfg.max === "" ? "" : String(cfg.max);
+      inputEl.step = String(cfg.step);
+      inputEl.placeholder = cfg.placeholder;
+    }
+
+    function updateCommunityPublishFields() {
+      applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
+      applyCommunityTargetConfig(communityTargetLabelEl, communityTargetValueEl);
+    }
+
+    function communityFilterValues(modeId = modeEl?.value) {
+      if (modeId === "stage") return Array.from({ length: 150 }, (_, i) => i + 1);
+      if (modeId === "abyss") return Array.from({ length: 200 }, (_, i) => (i + 1) * 10);
+      return [];
+    }
+
+    function formatNumber(value) {
+      return Number(value).toLocaleString("en-US");
+    }
+
+    function communityTargetLabel(modeId, value) {
+      if (modeId === "abyss") return `Cleared floor ${formatNumber(value)}`;
+      if (modeId === "boss") return `Boss damage ${formatNumber(value)}`;
+      return `Cleared level ${formatNumber(value)}`;
     }
 
     function emptySlot() {
@@ -2695,10 +2812,13 @@
       );
     }
 
-    function snapshotCurrentBuild() {
+    function snapshotCurrentBuild(metadata = {}) {
       return {
         character: currentCharacter().id,
         mode: modeEl.value,
+        targetValue: metadata.targetValue ?? null,
+        targetLabel: metadata.targetLabel || "",
+        power: metadata.power ?? null,
         slots: slots.map((s) => ({ ...s })),
         evoPool: evoPool.map((e) => ({ ...e })),
         consumedEvo: Array.from(consumedEvo),
@@ -2737,6 +2857,7 @@
     }
 
     function communityBuildPreview(state) {
+      state = state || {};
       const n = slotCount(state.mode);
       const consumed = new Set(state.consumedEvo || []);
       const html = [];
@@ -2768,11 +2889,78 @@
       return html.join("");
     }
 
-    async function publishCurrentCommunityBuild(nameEl = communityBuildNameEl, authorEl = communityBuildAuthorEl) {
+    function readIntegerInput(inputEl) {
+      if (!inputEl || inputEl.value.trim() === "") return null;
+      const value = Number(inputEl.value);
+      return Number.isFinite(value) && Number.isInteger(value) ? value : null;
+    }
+
+    function readCommunityMetadata(targetInputEl, powerInputEl) {
+      const mode = modeEl.value;
+      const cfg = communityTargetConfig(mode);
+      const targetValue = readIntegerInput(targetInputEl);
+      if (targetValue === null) {
+        showPassiveHint(`${cfg.label} is required before publishing.`);
+        targetInputEl?.focus();
+        return null;
+      }
+      if (targetValue < cfg.min || (cfg.max !== "" && targetValue > cfg.max)) {
+        showPassiveHint(
+          cfg.max === ""
+            ? `${cfg.label} must be at least ${cfg.min}.`
+            : `${cfg.label} must be between ${cfg.min} and ${cfg.max}.`
+        );
+        targetInputEl?.focus();
+        return null;
+      }
+      if ((targetValue - cfg.min) % cfg.step !== 0) {
+        showPassiveHint(`${cfg.label} must use steps of ${cfg.step}.`);
+        targetInputEl?.focus();
+        return null;
+      }
+      const power = readIntegerInput(powerInputEl);
+      if (powerInputEl?.value.trim() && (power === null || power < 0)) {
+        showPassiveHint("Power must be a positive whole number.");
+        powerInputEl.focus();
+        return null;
+      }
+      return {
+        targetValue,
+        targetLabel: communityTargetLabel(mode, targetValue),
+        power,
+      };
+    }
+
+    function buildTargetValue(build) {
+      const value = build?.targetValue ?? build?.state?.targetValue;
+      if (value === "" || value === null || value === undefined) return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function buildTargetLabel(build) {
+      return build?.targetLabel || build?.state?.targetLabel || "";
+    }
+
+    function buildPower(build) {
+      const value = build?.power ?? build?.state?.power;
+      if (value === "" || value === null || value === undefined) return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    async function publishCurrentCommunityBuild(
+      nameEl = communityBuildNameEl,
+      authorEl = communityBuildAuthorEl,
+      targetInputEl = communityTargetValueEl,
+      powerInputEl = communityPowerEl
+    ) {
       if (!currentBuildHasContent()) {
         showPassiveHint("Create a build before publishing it.");
         return;
       }
+      const metadata = readCommunityMetadata(targetInputEl, powerInputEl);
+      if (!metadata) return;
       const ch = currentCharacter();
       const mode = modeEl.value;
       const ownerKey = communityOwnerKey();
@@ -2780,13 +2968,17 @@
         nameEl?.value.trim() ||
         `${ch.label} ${modeLabel(mode)} build`;
       const author = authorEl?.value.trim() || "Anonymous";
+      const state = snapshotCurrentBuild(metadata);
       const payload = {
         title,
         author,
         ownerKey,
         character: ch.id,
         mode,
-        state: snapshotCurrentBuild(),
+        targetValue: metadata.targetValue,
+        targetLabel: metadata.targetLabel,
+        power: metadata.power,
+        state,
       };
       const builds = loadCommunityBuilds();
       const localBuild = {
@@ -2796,9 +2988,12 @@
         ownerKey,
         character: ch.id,
         mode,
+        targetValue: metadata.targetValue,
+        targetLabel: metadata.targetLabel,
+        power: metadata.power,
         votes: 0,
         createdAt: Date.now(),
-        state: snapshotCurrentBuild(),
+        state,
       };
       if (API_ENABLED) {
         try {
@@ -2811,6 +3006,8 @@
           communityBuildCache = builds;
           saveCommunityBuilds(builds);
           if (nameEl) nameEl.value = "";
+          if (targetInputEl) targetInputEl.value = "";
+          if (powerInputEl) powerInputEl.value = "";
           showPassiveHint("Build published online. Vote sorting updated.");
           renderCommunityBuilds();
           return;
@@ -2823,6 +3020,8 @@
       communityBuildCache = builds;
       saveCommunityBuilds(builds);
       if (nameEl) nameEl.value = "";
+      if (targetInputEl) targetInputEl.value = "";
+      if (powerInputEl) powerInputEl.value = "";
       showPassiveHint("Build published locally. Vote sorting updated.");
       renderCommunityBuilds();
     }
@@ -2878,8 +3077,28 @@
       renderCommunityBuilds();
     }
 
+    function renderCommunityFilters() {
+      if (!communityFiltersEl) return;
+      const mode = modeEl.value;
+      const values = communityFilterValues(mode);
+      if (!values.length) {
+        communityTargetFilter = null;
+        communityFiltersEl.innerHTML = '<span class="tag">Boss builds are sorted by damage, then votes.</span>';
+        return;
+      }
+      communityFiltersEl.innerHTML = [
+        `<button type="button" data-community-filter="" class="${communityTargetFilter === null ? "is-active" : ""}">All</button>`,
+        ...values.map(
+          (value) =>
+            `<button type="button" data-community-filter="${value}" class="${communityTargetFilter === value ? "is-active" : ""}">${value}</button>`
+        ),
+      ].join("");
+    }
+
     function renderCommunityBuilds() {
       if (!communityBuildsEl) return;
+      updateCommunityPublishFields();
+      renderCommunityFilters();
       if (API_ENABLED && !communityBuildCache) {
         communityBuildsEl.innerHTML = '<p class="community-empty">Loading online builds...</p>';
         refreshCommunityBuildsFromServer();
@@ -2889,14 +3108,26 @@
       const mode = modeEl.value;
       const builds = loadCommunityBuilds()
         .filter((b) => b.character === ch.id && b.mode === mode)
-        .sort(
-          (a, b) =>
+        .filter((b) => {
+          if (mode === "boss" || communityTargetFilter === null) return true;
+          return buildTargetValue(b) === communityTargetFilter;
+        })
+        .sort((a, b) => {
+          if (mode === "boss") {
+            return (
+              (buildTargetValue(b) || 0) - (buildTargetValue(a) || 0) ||
+              (Number(b.votes) || 0) - (Number(a.votes) || 0) ||
+              (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)
+            );
+          }
+          return (
             (Number(b.votes) || 0) - (Number(a.votes) || 0) ||
             (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0)
-        );
+          );
+        });
       if (!builds.length) {
         communityBuildsEl.innerHTML =
-          '<p class="community-empty">No builds published for this character and mode yet.</p>';
+          '<p class="community-empty">No builds published for this character, mode, and filter yet.</p>';
         return;
       }
       communityBuildsEl.innerHTML = "";
@@ -2906,11 +3137,18 @@
         const deleteButton = canDeleteCommunityBuild(b)
           ? `<button type="button" class="community-delete" data-community-action="delete" data-build-id="${escapeHtml(b.id)}">Delete</button>`
           : "";
+        const targetLabel = buildTargetLabel(b);
+        const power = buildPower(b);
+        const progression = [
+          targetLabel ? escapeHtml(targetLabel) : "",
+          power !== null ? `Power ${escapeHtml(formatNumber(power))}` : "",
+        ].filter(Boolean);
+        const progressionMeta = progression.length ? ` · ${progression.join(" · ")}` : "";
         card.innerHTML = `
           <div class="community-build-head">
             <div>
               <div class="community-build-title">${escapeHtml(b.title)}</div>
-              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(currentCharacter().label)} ${modeLabel(mode)}</div>
+              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(currentCharacter().label)} ${modeLabel(mode)}${progressionMeta}</div>
             </div>
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
@@ -2927,11 +3165,29 @@
 
     function bindCommunityBuilds() {
       builderSaveCommunityBuildEl?.addEventListener("click", () =>
-        publishCurrentCommunityBuild(builderCommunityBuildNameEl, builderCommunityBuildAuthorEl)
+        publishCurrentCommunityBuild(
+          builderCommunityBuildNameEl,
+          builderCommunityBuildAuthorEl,
+          builderCommunityTargetValueEl,
+          builderCommunityPowerEl
+        )
       );
       saveCommunityBuildEl?.addEventListener("click", () =>
-        publishCurrentCommunityBuild(communityBuildNameEl, communityBuildAuthorEl)
+        publishCurrentCommunityBuild(
+          communityBuildNameEl,
+          communityBuildAuthorEl,
+          communityTargetValueEl,
+          communityPowerEl
+        )
       );
+      communityFiltersEl?.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-community-filter]");
+        if (!btn) return;
+        communityTargetFilter = btn.dataset.communityFilter
+          ? Number(btn.dataset.communityFilter)
+          : null;
+        renderCommunityBuilds();
+      });
       communityBuildsEl?.addEventListener("click", (ev) => {
         const btn = ev.target.closest("[data-community-action]");
         if (!btn) return;
@@ -3431,6 +3687,7 @@
       focusSkillSlot = 1;
       focusPassiveSlot = 0;
       focusField = "passive";
+      communityTargetFilter = null;
       plannerSelectedMythics.clear();
       plannerGeneratedSlots = [];
       resetBuildSlots();
@@ -3444,6 +3701,7 @@
       focusSkillSlot = 1;
       focusPassiveSlot = 0;
       focusField = "passive";
+      communityTargetFilter = null;
       plannerSelectedMythics.clear();
       plannerGeneratedSlots = [];
       resetBuildSlots();
