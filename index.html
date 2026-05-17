@@ -2046,24 +2046,14 @@
       return `Cleared level ${formatNumber(value)}`;
     }
 
+    const STAGE_BOSS_IMAGE_COUNT = 81;
+
     function communityStageBossAssetCandidates(stageLevel) {
       const n = Number(stageLevel);
-      if (!Number.isInteger(n) || n < 1) return [];
+      if (!Number.isInteger(n) || n < 1 || n > STAGE_BOSS_IMAGE_COUNT) return [];
       const padded = String(n).padStart(3, "0");
       return [
-        `assets/community/stage-bosses/stage-${n}.png`,
-        `assets/community/stage-bosses/stage-${padded}.png`,
-        `assets/community/stage-bosses/${n}.png`,
-        `assets/community/stage-bosses/${padded}.png`,
-        `assets/stage-bosses/stage-${n}.png`,
         `assets/stage-bosses/stage-${padded}.png`,
-        `assets/bosses/stage-${n}.png`,
-        `assets/bosses/stage-${padded}.png`,
-        `assets/stages/stage-${n}.png`,
-        `assets/stages/stage-${padded}.png`,
-        `assets/fond_sombre_corrige/stage-${n}.png`,
-        `assets/fond_sombre_corrige/stage-${padded}.png`,
-        `assets/fond_sombre_corrige.png`,
       ].map(assetUrl);
     }
 
@@ -2091,13 +2081,25 @@
       const candidates = communityStageBossAssetCandidates(stageLevel);
       const [src, ...fallbacks] = candidates;
       communityStageBossEl.hidden = false;
+      if (!src) {
+        communityStageBossEl.innerHTML = `
+          <div class="community-stage-boss-media">
+            <span>No boss image imported</span>
+          </div>
+          <div>
+            <div class="community-stage-boss-title">Stage ${formatNumber(stageLevel)} boss</div>
+            <div class="community-stage-boss-note">Boss images are available for Stage 1-${formatNumber(STAGE_BOSS_IMAGE_COUNT)}.</div>
+          </div>
+        `;
+        return;
+      }
       communityStageBossEl.innerHTML = `
         <div class="community-stage-boss-media">
           <img src="${escapeHtml(src)}" data-fallbacks="${escapeHtml(JSON.stringify(fallbacks))}" alt="Stage ${formatNumber(stageLevel)} boss" loading="lazy" decoding="async" onerror="communityStageBossImageError(this)" />
         </div>
         <div>
           <div class="community-stage-boss-title">Stage ${formatNumber(stageLevel)} boss</div>
-          <div class="community-stage-boss-note">Image is shown when a matching asset exists.</div>
+          <div class="community-stage-boss-note">Imported Stage boss image.</div>
         </div>
       `;
     }
