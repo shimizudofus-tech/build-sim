@@ -88,6 +88,10 @@ function sanitizeNumber(value) {
   return Math.floor(number);
 }
 
+function sanitizePowerText(value) {
+  return String(value ?? "").trim().slice(0, 48);
+}
+
 function sanitizeUrl(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -127,7 +131,7 @@ async function handleApi(req, res, url) {
       mode: sanitizeText(body.mode, 24),
       targetValue: sanitizeNumber(body.targetValue),
       targetLabel: sanitizeText(body.targetLabel, 64),
-      power: sanitizeNumber(body.power),
+      power: sanitizePowerText(body.power),
       videoUrl: sanitizeUrl(body.videoUrl),
       votes: 0,
       createdAt: Date.now(),

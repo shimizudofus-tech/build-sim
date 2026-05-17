@@ -700,6 +700,30 @@
       align-items: flex-end;
       margin: 0.65rem 0 0.75rem;
     }
+    .publish-community-box {
+      padding: 0.6rem;
+      border: 1px solid rgba(62, 207, 142, 0.42);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(62, 207, 142, 0.12), rgba(0, 0, 0, 0.12));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+    .publish-community-copy {
+      flex: 1 0 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.65rem;
+      align-items: baseline;
+      margin-bottom: 0.05rem;
+    }
+    .publish-community-title {
+      color: #bdf6d5;
+      font-weight: 800;
+      font-size: 0.86rem;
+    }
+    .publish-community-hint {
+      color: var(--muted);
+      font-size: 0.76rem;
+    }
     .community-form input,
     .community-form select,
     .community-controls select {
@@ -720,7 +744,8 @@
     .community-form .community-target-field label {
       margin-bottom: 0.2rem;
     }
-    .community-form .community-target-field input {
+    .community-form .community-target-field input,
+    .community-form .community-target-field select {
       flex: 0 0 auto;
       width: 100%;
       min-width: 0;
@@ -755,6 +780,36 @@
       flex: 0 0 auto;
       min-width: 0;
       width: 100%;
+    }
+    .community-control option.has-build {
+      color: #3ecf8e;
+    }
+    .community-control option.no-build {
+      color: #ff6b6b;
+    }
+    .community-progress-select.has-build {
+      border-color: rgba(62, 207, 142, 0.7);
+      box-shadow: 0 0 0 1px rgba(62, 207, 142, 0.2);
+    }
+    .community-progress-select.no-build {
+      border-color: rgba(255, 107, 107, 0.75);
+      box-shadow: 0 0 0 1px rgba(255, 107, 107, 0.16);
+    }
+    .community-progress-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      align-items: center;
+      margin-top: 0.12rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1.1;
+    }
+    .community-progress-legend .has-build {
+      color: #3ecf8e;
+    }
+    .community-progress-legend .no-build {
+      color: #ff8a8a;
     }
     .community-filter-bar {
       display: contents;
@@ -826,6 +881,21 @@
       flex-wrap: wrap;
       gap: 0.45rem;
       align-items: center;
+    }
+    .community-video-embed {
+      margin: 0 0 0.5rem;
+      max-width: 22rem;
+      border: 1px solid rgba(62, 207, 142, 0.24);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #050807;
+      aspect-ratio: 16 / 9;
+    }
+    .community-video-embed iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
     }
     .community-score {
       padding: 0.28rem 0.55rem;
@@ -1157,14 +1227,18 @@
       <button type="button" class="secondary" id="undo" disabled>Undo last fusion</button>
       <div id="buildLevelCounter" class="build-level-counter" aria-label="Current build level">Build level: 0</div>
       <div class="toolbar-grow">
-        <div class="community-form builder-publish" aria-label="Publish build">
+        <div class="community-form builder-publish publish-community-box" aria-label="Publish build to Community">
+          <div class="publish-community-copy">
+            <span class="publish-community-title">Publish to Community</span>
+            <span class="publish-community-hint">This posts your current build to the Community tab.</span>
+          </div>
           <input id="builderCommunityBuildName" type="text" maxlength="48" placeholder="Build name" />
           <input id="builderCommunityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
           <div class="community-target-field">
             <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue">Cleared level</label>
             <input id="builderCommunityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
           </div>
-          <input id="builderCommunityPower" class="community-power-input" type="number" min="0" step="1" placeholder="Power (optional)" />
+          <input id="builderCommunityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power note (optional)" />
           <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
           <button type="button" id="builderSaveCommunityBuild">Publish current build</button>
         </div>
@@ -1230,14 +1304,18 @@
         Create your build in the Build tab, publish it here, then vote. The highest score moves to the top for the selected character and mode.
       </p>
       <p id="communityHint" class="hint" aria-live="polite"></p>
-      <div class="community-form">
+      <div class="community-form publish-community-box">
+        <div class="publish-community-copy">
+          <span class="publish-community-title">Publish to Community</span>
+          <span class="publish-community-hint">Save the current Build tab setup for others to browse and vote.</span>
+        </div>
         <input id="communityBuildName" type="text" maxlength="48" placeholder="Build name" />
         <input id="communityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
         <div class="community-target-field">
           <label id="communityTargetLabel" for="communityTargetValue">Cleared level</label>
           <input id="communityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
         </div>
-        <input id="communityPower" class="community-power-input" type="number" min="0" step="1" placeholder="Power (optional)" />
+        <input id="communityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power note (optional)" />
         <input id="communityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
         <button type="button" id="saveCommunityBuild">Publish current build</button>
       </div>
@@ -1937,6 +2015,39 @@
       } catch {
         return null;
       }
+    }
+
+    function sanitizePowerText(value) {
+      return String(value ?? "").trim().slice(0, 48);
+    }
+
+    function youtubeVideoIdFromUrl(value) {
+      const safeUrl = sanitizeVideoUrlInput(value);
+      if (!safeUrl) return "";
+      try {
+        const url = new URL(safeUrl);
+        const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+        let id = "";
+        if (host === "youtu.be") {
+          id = url.pathname.split("/").filter(Boolean)[0] || "";
+        } else if (host === "youtube.com" || host === "m.youtube.com") {
+          if (url.pathname === "/watch") id = url.searchParams.get("v") || "";
+          else {
+            const parts = url.pathname.split("/").filter(Boolean);
+            if (parts[0] === "shorts" || parts[0] === "embed") id = parts[1] || "";
+          }
+        }
+        return /^[A-Za-z0-9_-]{11}$/.test(id) ? id : "";
+      } catch {
+        return "";
+      }
+    }
+
+    function communityVideoEmbedHtml(videoUrl) {
+      const videoId = youtubeVideoIdFromUrl(videoUrl);
+      if (!videoId) return "";
+      const src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+      return `<div class="community-video-embed"><iframe src="${src}" title="Community build YouTube video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
     }
 
     function communityBrowsingMode() {
@@ -2981,12 +3092,7 @@
         targetInputEl?.focus();
         return null;
       }
-      const power = readIntegerInput(powerInputEl);
-      if (powerInputEl?.value.trim() && (power === null || power < 0)) {
-        showPassiveHint("Power must be a positive whole number.");
-        powerInputEl.focus();
-        return null;
-      }
+      const power = sanitizePowerText(powerInputEl?.value);
       const videoUrl = sanitizeVideoUrlInput(videoInputEl?.value);
       if (videoUrl === null) {
         showPassiveHint("Video link must be a valid http or https URL.");
@@ -3015,8 +3121,7 @@
     function buildPower(build) {
       const value = build?.power ?? build?.state?.power;
       if (value === "" || value === null || value === undefined) return null;
-      const number = Number(value);
-      return Number.isFinite(number) ? number : null;
+      return sanitizePowerText(value);
     }
 
     function buildVideoUrl(build) {
@@ -3170,18 +3275,39 @@
       if (communityTargetFilter !== null && !values.includes(communityTargetFilter)) {
         communityTargetFilter = null;
       }
+      const ch = currentCharacter();
+      const targetCounts = new Map();
+      loadCommunityBuilds()
+        .filter((b) => b.character === ch.id && b.mode === mode)
+        .forEach((build) => {
+          const target = buildTargetValue(build);
+          if (!values.includes(target)) return;
+          targetCounts.set(target, (targetCounts.get(target) || 0) + 1);
+        });
+      const selectedHasBuild =
+        communityTargetFilter === null ? null : (targetCounts.get(communityTargetFilter) || 0) > 0;
+      const selectedStatusClass =
+        communityTargetFilter === null ? "" : selectedHasBuild ? " has-build" : " no-build";
       communityFiltersEl.innerHTML = `
         <div class="community-control">
           <label for="communityProgressFilter">${escapeHtml(cfg.label)}</label>
-          <select id="communityProgressFilter" data-community-filter aria-label="${escapeHtml(cfg.label)} filter">
+          <select id="communityProgressFilter" class="community-progress-select${selectedStatusClass}" data-community-filter aria-label="${escapeHtml(cfg.label)} filter">
             <option value="">All</option>
             ${values
-              .map(
-                (value) =>
-                  `<option value="${value}"${communityTargetFilter === value ? " selected" : ""}>${formatNumber(value)}</option>`
-              )
+              .map((value) => {
+                const count = targetCounts.get(value) || 0;
+                const hasBuild = count > 0;
+                const statusClass = hasBuild ? "has-build" : "no-build";
+                const color = hasBuild ? "#3ecf8e" : "#ff6b6b";
+                return `<option class="${statusClass}" style="color:${color}" value="${value}"${communityTargetFilter === value ? " selected" : ""}>● ${formatNumber(value)}${count ? ` (${count})` : ""}</option>`;
+              })
               .join("")}
           </select>
+          <span class="community-progress-legend" aria-label="Progression build status">
+            <span class="has-build">● build</span>
+            <span class="no-build">● none</span>
+            <span>${targetCounts.size}/${values.length}</span>
+          </span>
         </div>
       `;
     }
@@ -3231,12 +3357,13 @@
         const targetLabel = buildTargetLabel(b);
         const power = buildPower(b);
         const videoUrl = buildVideoUrl(b);
+        const youtubeEmbed = communityVideoEmbedHtml(videoUrl);
         const progression = [
           targetLabel ? escapeHtml(targetLabel) : "",
-          power !== null ? `Power ${escapeHtml(formatNumber(power))}` : "",
+          power !== null ? `Power ${escapeHtml(power)}` : "",
         ].filter(Boolean);
         const progressionMeta = progression.length ? ` · ${progression.join(" · ")}` : "";
-        const videoLink = videoUrl
+        const videoLink = videoUrl && !youtubeEmbed
           ? `<a class="community-video-link" href="${escapeHtml(videoUrl)}" target="_blank" rel="noopener noreferrer">Video</a>`
           : "";
         card.innerHTML = `
@@ -3248,6 +3375,7 @@
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
           <div class="community-build-preview">${communityBuildPreview(b.state)}</div>
+          ${youtubeEmbed}
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}">Vote</button>
             <button type="button" data-community-action="apply" data-build-id="${escapeHtml(b.id)}">Apply</button>
