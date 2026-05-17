@@ -7,6 +7,9 @@ const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
 const PORT = Number(process.env.PORT || 8765);
+const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
+const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
+const GETGEMS_TIMEOUT_MS = 6500;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -77,6 +80,80 @@ function publicBuild(build) {
   return safe;
 }
 
+async function fetchJsonWithTimeout(url, timeoutMs = GETGEMS_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { headers: { accept: "application/json" }, signal: controller.signal });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function asNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function biggestSaleFromHistory(items) {
+  let biggest = null;
+  for (const item of Array.isArray(items) ? items : []) {
+    const typeData = item?.typeData || {};
+    if (typeData.type !== "sold") continue;
+    const priceTon = asNumber(typeData.price) ?? (asNumber(typeData.priceNano) != null ? asNumber(typeData.priceNano) / 1e9 : null);
+    if (priceTon == null) continue;
+    if (!biggest || priceTon > biggest.priceTon) {
+      biggest = {
+        priceTon,
+        name: item.name || "NFT sale",
+        time: item.time || null,
+      };
+    }
+  }
+  return biggest;
+}
+
+async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS) {
+  const collectionAddress = address === GETGEMS_COLLECTION_ADDRESS ? address : GETGEMS_COLLECTION_ADDRESS;
+  const payload = {
+    collection: {
+      address: collectionAddress,
+      url: `https://getgems.io/collection/${collectionAddress}`,
+      imageUrl: null,
+      floorTon: null,
+    },
+    biggestSaleMonth: null,
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    const basic = await fetchJsonWithTimeout(
+      `${GETGEMS_PUBLIC_API_BASE}/v1/collection/basic-info/${encodeURIComponent(collectionAddress)}`
+    );
+    const info = basic?.response || {};
+    payload.collection.name = info.name || info.slug || "Getgems collection";
+    payload.collection.imageUrl = info.image_url || info.banner_image_url || null;
+    payload.collection.floorTon = asNumber(info.floor);
+    payload.collection.url = info.getgems_url || payload.collection.url;
+  } catch (err) {
+    payload.collection.unavailableReason = err.message || "Getgems unavailable";
+  }
+
+  try {
+    const minTime = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const history = await fetchJsonWithTimeout(
+      `${GETGEMS_PUBLIC_API_BASE}/v1/collection/history/${encodeURIComponent(collectionAddress)}?minTime=${encodeURIComponent(minTime)}&types=sold&limit=100`
+    );
+    payload.biggestSaleMonth = biggestSaleFromHistory(history?.response?.items);
+  } catch (err) {
+    payload.biggestSaleUnavailableReason = err.message || "Getgems history unavailable";
+  }
+
+  return payload;
+}
+
 function sanitizeText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
@@ -107,6 +184,10 @@ function sanitizeUrl(value) {
 }
 
 async function handleApi(req, res, url) {
+  if (url.pathname === "/api/market/getgems-collection" && req.method === "GET") {
+    return sendJson(res, 200, await getGetgemsCollectionMarket(url.searchParams.get("address")));
+  }
+
   if (url.pathname === "/api/visits" && req.method === "POST") {
     const db = readDb();
     db.visits += 1;

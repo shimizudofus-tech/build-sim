@@ -204,6 +204,99 @@
       justify-content: space-between;
       gap: 0.75rem 1rem;
     }
+    .market-header {
+      display: grid;
+      grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
+      align-items: start;
+      gap: 0.85rem;
+    }
+    .market-header .header-row {
+      justify-content: center;
+      align-self: center;
+    }
+    .market-widget {
+      display: flex;
+      align-items: center;
+      gap: 0.58rem;
+      min-width: 0;
+      max-width: 21rem;
+      padding: 0.48rem 0.62rem;
+      border: 1px solid rgba(110, 168, 254, 0.28);
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(110, 168, 254, 0.12), rgba(166, 115, 255, 0.08));
+      color: var(--text);
+      text-decoration: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+    }
+    .market-widget:hover {
+      border-color: rgba(110, 168, 254, 0.5);
+      filter: brightness(1.05);
+    }
+    .market-widget.is-right {
+      justify-self: end;
+      border-color: rgba(62, 207, 142, 0.28);
+      background: linear-gradient(135deg, rgba(62, 207, 142, 0.11), rgba(110, 168, 254, 0.08));
+    }
+    .market-image {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 42px;
+      border-radius: 11px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      object-fit: cover;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.24), transparent 36%),
+        linear-gradient(135deg, #1e3358, #352453);
+    }
+    .market-copy {
+      display: grid;
+      gap: 0.12rem;
+      min-width: 0;
+    }
+    .market-title {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #dce8ff;
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .market-live {
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 999px;
+      background: var(--good);
+      box-shadow: 0 0 0 3px rgba(62, 207, 142, 0.14);
+    }
+    .market-line {
+      color: var(--muted);
+      font-size: 0.77rem;
+      line-height: 1.25;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .market-line strong {
+      color: var(--text);
+      font-weight: 800;
+    }
+    .market-change {
+      font-weight: 800;
+    }
+    .market-change.is-up {
+      color: var(--good);
+    }
+    .market-change.is-down {
+      color: #ff8a8a;
+    }
+    .market-updated {
+      color: #78859e;
+      font-size: 0.68rem;
+      white-space: nowrap;
+    }
     .visit-counter {
       padding: 0.32rem 0.65rem;
       border: 1px solid rgba(110, 168, 254, 0.35);
@@ -229,6 +322,40 @@
       background: linear-gradient(180deg, #2a3f63, #22324d);
       border-color: #3d5a8a;
       color: var(--text);
+    }
+    @media (max-width: 980px) {
+      .market-header {
+        grid-template-columns: 1fr 1fr;
+      }
+      .market-header .header-row {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-content: center;
+      }
+      .market-widget {
+        max-width: none;
+      }
+    }
+    @media (max-width: 640px) {
+      header {
+        padding-inline: 0.85rem;
+      }
+      .market-header {
+        display: flex;
+        flex-direction: column;
+      }
+      .market-widget,
+      .market-widget.is-right {
+        width: 100%;
+        justify-self: stretch;
+      }
+      .market-header .header-row {
+        width: 100%;
+      }
+      .app-nav {
+        width: 100%;
+        justify-content: center;
+      }
     }
     main { padding: 1.25rem 1.5rem 2rem; max-width: 1120px; margin: 0 auto; }
     #panelBuild {
@@ -1349,14 +1476,58 @@
     </div>
   </aside>
   <header>
-    <div class="header-row">
-      <h1>BUILDER</h1>
-      <div id="visitCounter" class="visit-counter" aria-label="Site visit counter">Visits: 0</div>
-      <nav class="app-nav" aria-label="Navigation">
-        <button type="button" class="is-active" data-app-tab="build" aria-current="page">Build</button>
-        <button type="button" data-app-tab="community">Community</button>
-        <button type="button" data-app-tab="book">Book</button>
-      </nav>
+    <div class="market-header">
+      <a
+        class="market-widget"
+        id="collectionMarketWidget"
+        href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Open Getgems collection"
+      >
+        <img
+          id="collectionMarketImage"
+          class="market-image"
+          alt="Getgems collection"
+          width="42"
+          height="42"
+        />
+        <span class="market-copy">
+          <span class="market-title"><span class="market-live" aria-hidden="true"></span>Getgems collection</span>
+          <span class="market-line">Floor: <strong id="collectionFloorPrice">Loading...</strong></span>
+          <span class="market-line">Monthly top sale: <strong id="collectionTopSale">Loading...</strong></span>
+          <span class="market-updated" id="collectionMarketUpdated">Live</span>
+        </span>
+      </a>
+      <div class="header-row">
+        <h1>BUILDER</h1>
+        <div id="visitCounter" class="visit-counter" aria-label="Site visit counter">Visits: 0</div>
+        <nav class="app-nav" aria-label="Navigation">
+          <button type="button" class="is-active" data-app-tab="build" aria-current="page">Build</button>
+          <button type="button" data-app-tab="community">Community</button>
+          <button type="button" data-app-tab="book">Book</button>
+        </nav>
+      </div>
+      <a
+        class="market-widget is-right"
+        id="astarMarketWidget"
+        href="https://coinmarketcap.com/fr/currencies/astar/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Open Astar on CoinMarketCap"
+      >
+        <span class="market-copy">
+          <span class="market-title"><span class="market-live" aria-hidden="true"></span>Astar market</span>
+          <span class="market-line">ASTR: <strong id="astarPrice">Loading...</strong></span>
+          <span class="market-line">
+            24h <span id="astarChange24h" class="market-change">--</span>
+            / 7d <span id="astarChange7d" class="market-change">--</span>
+            / 1m <span id="astarChange30d" class="market-change">--</span>
+          </span>
+          <span class="market-line"><strong>$SPEK: TBA</strong></span>
+          <span class="market-updated" id="astarMarketUpdated">Live</span>
+        </span>
+      </a>
     </div>
   </header>
   <main id="panelBuild">
@@ -1508,6 +1679,15 @@
     const ICONE_DIR = "assets/icone";
     const PNG_DIR = "assets/png";
     const IMPORT_DIR = "assets/import";
+    const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
+    const GETGEMS_COLLECTION_URL = `https://getgems.io/collection/${GETGEMS_COLLECTION_ADDRESS}`;
+    const ASTAR_CMC_URL = "https://coinmarketcap.com/fr/currencies/astar/";
+    const MARKET_TIMEOUT_MS = 6500;
+    const COLLECTION_PLACEHOLDER_IMAGE =
+      "data:image/svg+xml;utf8," +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#6ea8fe"/><stop offset="1" stop-color="#9b7bd6"/></linearGradient></defs><rect width="84" height="84" rx="18" fill="#111827"/><circle cx="42" cy="34" r="18" fill="url(#g)" opacity=".9"/><path d="M18 66c7-16 41-16 48 0" fill="#e9edf5" opacity=".9"/><text x="42" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#94a0b8">GG</text></svg>'
+      );
     /** Incrémenté par tools/import_named_icons.py à chaque copie. */
     let iconCacheVer = String(Date.now());
 
@@ -1546,6 +1726,135 @@
       } catch {
         return relativePath;
       }
+    }
+
+    function fetchJsonWithTimeout(url, options = {}, timeoutMs = MARKET_TIMEOUT_MS) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, {
+        headers: { accept: "application/json", ...(options.headers || {}) },
+        ...options,
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .finally(() => clearTimeout(timeout));
+    }
+
+    function marketNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function formatTon(value) {
+      const number = marketNumber(value);
+      if (number === null) return "Unavailable";
+      return `${number.toLocaleString("en-US", {
+        maximumFractionDigits: number >= 10 ? 1 : 3,
+      })} TON`;
+    }
+
+    function formatUsd(value) {
+      const number = marketNumber(value);
+      if (number === null) return "Unavailable";
+      return number.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: number < 1 ? 4 : 2,
+        maximumFractionDigits: number < 1 ? 6 : 2,
+      });
+    }
+
+    function formatPercent(value) {
+      const number = marketNumber(value);
+      if (number === null) return "--";
+      const sign = number > 0 ? "+" : "";
+      return `${sign}${number.toFixed(2)}%`;
+    }
+
+    function setMarketChange(el, value) {
+      if (!el) return;
+      const number = marketNumber(value);
+      el.textContent = formatPercent(number);
+      el.classList.toggle("is-up", number !== null && number >= 0);
+      el.classList.toggle("is-down", number !== null && number < 0);
+    }
+
+    function setMarketUpdated(el, label = "Live") {
+      if (!el) return;
+      el.textContent = `${label} · ${new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    }
+
+    function renderCollectionFallback() {
+      const imageEl = document.getElementById("collectionMarketImage");
+      const floorEl = document.getElementById("collectionFloorPrice");
+      const saleEl = document.getElementById("collectionTopSale");
+      const updatedEl = document.getElementById("collectionMarketUpdated");
+      if (imageEl) imageEl.src = COLLECTION_PLACEHOLDER_IMAGE;
+      if (floorEl) floorEl.textContent = "Unavailable";
+      if (saleEl) saleEl.textContent = "Unavailable";
+      if (updatedEl) updatedEl.textContent = "Open Getgems";
+    }
+
+    async function updateCollectionMarket() {
+      const imageEl = document.getElementById("collectionMarketImage");
+      const floorEl = document.getElementById("collectionFloorPrice");
+      const saleEl = document.getElementById("collectionTopSale");
+      const updatedEl = document.getElementById("collectionMarketUpdated");
+      try {
+        const data = await fetchJsonWithTimeout(
+          `/api/market/getgems-collection?address=${encodeURIComponent(GETGEMS_COLLECTION_ADDRESS)}`
+        );
+        const collection = data.collection || {};
+        if (imageEl) imageEl.src = collection.imageUrl || COLLECTION_PLACEHOLDER_IMAGE;
+        if (floorEl) floorEl.textContent = formatTon(collection.floorTon);
+        if (saleEl) saleEl.textContent = data.biggestSaleMonth?.priceTon ? formatTon(data.biggestSaleMonth.priceTon) : "Unavailable";
+        setMarketUpdated(updatedEl);
+      } catch {
+        renderCollectionFallback();
+      }
+    }
+
+    async function updateAstarMarket() {
+      const priceEl = document.getElementById("astarPrice");
+      const updatedEl = document.getElementById("astarMarketUpdated");
+      try {
+        const data = await fetchJsonWithTimeout(
+          "https://api.coingecko.com/api/v3/coins/astar?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
+        );
+        const market = data.market_data || {};
+        if (priceEl) priceEl.textContent = formatUsd(market.current_price?.usd);
+        setMarketChange(document.getElementById("astarChange24h"), market.price_change_percentage_24h);
+        setMarketChange(document.getElementById("astarChange7d"), market.price_change_percentage_7d);
+        setMarketChange(document.getElementById("astarChange30d"), market.price_change_percentage_30d);
+        setMarketUpdated(updatedEl);
+      } catch {
+        if (priceEl) priceEl.textContent = "Unavailable";
+        setMarketChange(document.getElementById("astarChange24h"), null);
+        setMarketChange(document.getElementById("astarChange7d"), null);
+        setMarketChange(document.getElementById("astarChange30d"), null);
+        if (updatedEl) updatedEl.textContent = "CoinGecko unavailable";
+      }
+    }
+
+    function initMarketWidgets() {
+      const collectionLink = document.getElementById("collectionMarketWidget");
+      const astarLink = document.getElementById("astarMarketWidget");
+      const collectionImage = document.getElementById("collectionMarketImage");
+      if (collectionLink) collectionLink.href = GETGEMS_COLLECTION_URL;
+      if (astarLink) astarLink.href = ASTAR_CMC_URL;
+      if (collectionImage && !collectionImage.getAttribute("src")) {
+        collectionImage.src = COLLECTION_PLACEHOLDER_IMAGE;
+      }
+      updateCollectionMarket();
+      updateAstarMarket();
+      setInterval(updateCollectionMarket, 5 * 60 * 1000);
+      setInterval(updateAstarMarket, 2 * 60 * 1000);
     }
 
     function iconeBareFile(id) {
@@ -4694,6 +5003,7 @@
       panelBuild?.prepend(fatal);
     } else {
       loadIconCacheVer().then(() => {
+        initMarketWidgets();
         updateVisitCounter();
         resetBuildSlots();
         bindAppTabs();
