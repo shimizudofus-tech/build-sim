@@ -1500,7 +1500,6 @@
             Supply: <strong id="collectionSupply">Loading...</strong>
             / Owners: <strong id="collectionOwners">Loading...</strong>
           </span>
-          <span class="market-line">24h: <span id="collectionChange24h" class="market-change">Loading...</span></span>
           <span class="market-updated" id="collectionMarketUpdated">Live</span>
         </span>
       </a>
@@ -1802,13 +1801,11 @@
       const floorEl = document.getElementById("collectionFloorPrice");
       const supplyEl = document.getElementById("collectionSupply");
       const ownersEl = document.getElementById("collectionOwners");
-      const change24hEl = document.getElementById("collectionChange24h");
       const updatedEl = document.getElementById("collectionMarketUpdated");
       if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
       if (floorEl) floorEl.textContent = "Unavailable";
       if (supplyEl) supplyEl.textContent = "Unavailable";
       if (ownersEl) ownersEl.textContent = "Unavailable";
-      setMarketChange(change24hEl, null, "Unavailable");
       if (updatedEl) updatedEl.textContent = "Open Getgems";
     }
 
@@ -1817,7 +1814,6 @@
       const floorEl = document.getElementById("collectionFloorPrice");
       const supplyEl = document.getElementById("collectionSupply");
       const ownersEl = document.getElementById("collectionOwners");
-      const change24hEl = document.getElementById("collectionChange24h");
       const updatedEl = document.getElementById("collectionMarketUpdated");
       try {
         const data = await fetchJsonWithTimeout(
@@ -1828,7 +1824,6 @@
         if (floorEl) floorEl.textContent = formatTon(collection.floorTon);
         if (supplyEl) supplyEl.textContent = formatCount(collection.supply);
         if (ownersEl) ownersEl.textContent = formatCount(collection.owners);
-        setMarketChange(change24hEl, collection.change24hPercent ?? data.change24h?.percent, "Unavailable");
         setMarketUpdated(updatedEl);
       } catch {
         renderCollectionFallback();

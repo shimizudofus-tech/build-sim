@@ -107,9 +107,7 @@ async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS) 
       floorTon: null,
       supply: null,
       owners: null,
-      change24hPercent: null,
     },
-    change24h: { percent: null, unavailableReason: "Getgems public 24h stats require authorization" },
     updatedAt: new Date().toISOString(),
   };
 
