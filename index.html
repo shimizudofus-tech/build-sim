@@ -1480,10 +1480,10 @@
       <a
         class="market-widget"
         id="collectionMarketWidget"
-        href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk"
+        href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk?filter=%7B%22attributes%22%3A%7B%22Rarity%22%3A%5B%22Mythic%22%5D%7D%7D"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Open Getgems collection"
+        aria-label="Open Getgems Mythic filter"
       >
         <img
           id="collectionMarketImage"
@@ -1682,6 +1682,7 @@
     const IMPORT_DIR = "assets/import";
     const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
     const GETGEMS_COLLECTION_URL = `https://getgems.io/collection/${GETGEMS_COLLECTION_ADDRESS}`;
+    const GETGEMS_MYTHIC_FILTER_URL = `${GETGEMS_COLLECTION_URL}?filter=%7B%22attributes%22%3A%7B%22Rarity%22%3A%5B%22Mythic%22%5D%7D%7D`;
     const GETGEMS_COLLECTION_IMAGE = "assets/getgems-collection.png";
     const ASTAR_CMC_URL = "https://coinmarketcap.com/fr/currencies/astar/";
     const MARKET_TIMEOUT_MS = 6500;
@@ -1794,7 +1795,7 @@
       const updatedEl = document.getElementById("collectionMarketUpdated");
       if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
       if (floorEl) floorEl.textContent = "Unavailable";
-      if (mythicFloorEl) mythicFloorEl.textContent = "Unavailable";
+      if (mythicFloorEl) mythicFloorEl.textContent = "Open Mythic filter";
       if (updatedEl) updatedEl.textContent = "Open Getgems";
     }
 
@@ -1810,7 +1811,11 @@
         const collection = data.collection || {};
         if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
         if (floorEl) floorEl.textContent = formatTon(collection.floorTon);
-        if (mythicFloorEl) mythicFloorEl.textContent = formatTon(data.mythicFloor?.floorTon);
+        if (mythicFloorEl) {
+          const mythicFloor = marketNumber(data.mythicFloor?.floorTon);
+          mythicFloorEl.textContent =
+            mythicFloor === null ? "Open Mythic filter" : formatTon(mythicFloor);
+        }
         setMarketUpdated(updatedEl);
       } catch {
         renderCollectionFallback();
@@ -1843,7 +1848,10 @@
       const collectionLink = document.getElementById("collectionMarketWidget");
       const astarLink = document.getElementById("astarMarketWidget");
       const collectionImage = document.getElementById("collectionMarketImage");
-      if (collectionLink) collectionLink.href = GETGEMS_COLLECTION_URL;
+      if (collectionLink) {
+        collectionLink.href = GETGEMS_MYTHIC_FILTER_URL;
+        collectionLink.title = "Open Getgems filtered by Mythic rarity";
+      }
       if (astarLink) astarLink.href = ASTAR_CMC_URL;
       if (collectionImage && !collectionImage.getAttribute("src")) {
         collectionImage.src = COLLECTION_PLACEHOLDER_IMAGE;
@@ -4714,6 +4722,8 @@
           total += slot.skillStars || 1;
         } else if (slot.type === "evo") {
           total += SKILL_STAR_EVO_MIN + 1;
+        } else if (slot.type === "passive") {
+          continue;
         } else {
           total += slot.components.length * (SKILL_STAR_EVO_MIN + 1) + 1;
         }
@@ -4754,7 +4764,7 @@
       let best = [];
 
       const scoreBuild = (slots) => {
-        const mythics = slots.filter((slot) => slot.type !== "evo" && slot.type !== "skill").length;
+        const mythics = slots.filter((slot) => slot.type !== "evo" && slot.type !== "skill" && slot.type !== "passive").length;
         const evos = slots.filter((slot) => slot.type === "evo").length;
         const level = buildLevelForSlots(slots);
         const preferred = slots.reduce((sum, slot) => sum + (priority.get(buildSlotKey(slot)) || 0), 0);
@@ -5004,7 +5014,7 @@
       const ch = currentCharacter();
       const mode = modeEl.value;
       const finalSlots = currentTheoreticalBuildSlots(ch, mode);
-      const mythicCount = finalSlots.filter((slot) => slot.type !== "evo" && slot.type !== "skill").length;
+      const mythicCount = finalSlots.filter((slot) => slot.type !== "evo" && slot.type !== "skill" && slot.type !== "passive").length;
       const evoCount = finalSlots.filter((slot) => slot.type === "evo").length;
       const target = `${mythicCount} mythic${mythicCount > 1 ? "s" : ""}${evoCount ? ` + ${evoCount} EVO` : ""}`;
       const maxPassives = slotCount(mode);
@@ -5016,10 +5026,14 @@
       }
 
       const passiveIcons = (slot) => {
+        if (slot.type === "skill") return "";
+        if (slot.type === "passive") {
+          return `<span class="best-build-passives">${iconMarkup("passive", slot.passive, 24, passiveLabel(slot.passive))}</span>`;
+        }
         const ids =
           slot.type === "evo"
             ? [slot.passive]
-            : slot.components.map((c) => c.passive);
+            : (slot.components || []).map((c) => c.passive);
         return `<span class="best-build-passives">${ids
           .map((pid) => iconMarkup("passive", pid, 24, passiveLabel(pid)))
           .join("")}</span>`;
@@ -5037,6 +5051,12 @@
             const sl = skillLabel(slot.skill);
             const pl = passiveLabel(slot.passive);
             return `<div class="fusion row-icon">${iconMarkup("skill", slot.skill, 34, sl)}<span class="slot-arrow">+</span>${iconMarkup("passive", slot.passive, 34, pl)}<span class="slot-arrow">→</span>${iconMarkup("evo", slot.id, 34, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span></div>`;
+          }
+          if (slot.type === "skill") {
+            return `<div class="fusion row-icon">${iconMarkup("skill", slot.skill, 34, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span><span class="tag">base skill</span></div>`;
+          }
+          if (slot.type === "passive") {
+            return `<div class="fusion row-icon">${iconMarkup("passive", slot.passive, 34, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span><span class="tag">passive</span></div>`;
           }
           const [a, b] = slot.components;
           const la = evoLabelById(a.evo);
