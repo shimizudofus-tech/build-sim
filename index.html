@@ -695,36 +695,46 @@
     .planner-mythic {
       display: inline-flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      padding: 0.36rem 0.48rem;
-      border: 1px solid var(--border);
-      border-radius: 10px;
+      justify-content: center;
+      flex-wrap: nowrap;
+      position: relative;
+      gap: 0.18rem;
+      min-width: 4.65rem;
+      min-height: 4.2rem;
+      padding: 0.44rem;
+      border: 2px solid var(--border);
+      border-radius: 14px;
       background: rgba(0, 0, 0, 0.16);
       color: var(--text);
+      cursor: pointer;
     }
     .planner-mythic.is-recommended {
-      border-color: rgba(62, 207, 142, 0.72);
-      background: linear-gradient(180deg, rgba(62, 207, 142, 0.18), rgba(0, 0, 0, 0.16));
-      box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.1);
+      box-shadow: inset 0 0 0 1px rgba(62, 207, 142, 0.34), 0 0 0 2px rgba(62, 207, 142, 0.1);
     }
     .planner-mythic.is-strong {
-      border-color: rgba(255, 224, 138, 0.58);
-      background: linear-gradient(180deg, rgba(255, 224, 138, 0.14), rgba(0, 0, 0, 0.16));
+      box-shadow: inset 0 0 0 1px rgba(255, 224, 138, 0.22);
     }
     .planner-mythic.is-flexible {
-      border-color: rgba(110, 168, 254, 0.5);
+      opacity: 0.92;
     }
     .planner-rank-badge {
-      border-color: rgba(255, 255, 255, 0.18);
+      position: absolute;
+      top: 0.22rem;
+      right: 0.22rem;
+      min-width: 1.15rem;
+      justify-content: center;
+      padding: 0.08rem 0.24rem;
+      border-color: rgba(255, 255, 255, 0.22);
+      background: rgba(0, 0, 0, 0.52);
+      font-size: 0.65rem;
       font-weight: 800;
+      line-height: 1;
     }
     .planner-mythic.is-recommended .planner-rank-badge {
       color: #bdf6d5;
     }
     .planner-reason {
-      color: var(--muted);
-      font-size: 0.72rem;
+      display: none;
     }
     .planner-mythic.is-selected {
       border-color: #ffe08a;
@@ -732,29 +742,33 @@
       box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.12);
     }
     .planner-mythic.is-evo {
-      border-color: rgba(110, 168, 254, 0.35);
+      border-color: rgba(186, 133, 255, 0.82);
+      background:
+        radial-gradient(circle at 50% 18%, rgba(196, 168, 255, 0.24), transparent 56%),
+        linear-gradient(180deg, rgba(112, 63, 190, 0.26), rgba(31, 17, 56, 0.34));
+      box-shadow: 0 0 0 1px rgba(196, 168, 255, 0.14), 0 0 14px rgba(155, 123, 214, 0.16);
     }
     .planner-mythic.is-evo.is-selected {
-      border-color: #6ea8fe;
-      background: rgba(110, 168, 254, 0.16);
-      box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.12);
+      border-color: #d6b7ff;
+      background:
+        radial-gradient(circle at 50% 18%, rgba(214, 183, 255, 0.34), transparent 58%),
+        linear-gradient(180deg, rgba(139, 83, 224, 0.36), rgba(46, 20, 82, 0.44));
+      box-shadow: 0 0 0 3px rgba(186, 133, 255, 0.24), 0 0 18px rgba(186, 133, 255, 0.24);
     }
     .planner-mythic.is-mythic {
-      border-color: rgba(255, 224, 138, 0.35);
-    }
-    .planner-mythic.is-recommended {
-      border-color: rgba(62, 207, 142, 0.72);
-    }
-    .planner-mythic.is-strong {
-      border-color: rgba(255, 224, 138, 0.58);
-    }
-    .planner-mythic.is-flexible {
-      border-color: rgba(110, 168, 254, 0.5);
+      border-width: 3px;
+      border-color: #ff4f4f;
+      background:
+        linear-gradient(135deg, rgba(255, 79, 79, 0.3), rgba(255, 224, 138, 0.16) 52%, rgba(0, 0, 0, 0.26)),
+        rgba(40, 4, 4, 0.52);
+      box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.35), 0 0 22px rgba(255, 79, 79, 0.28);
     }
     .planner-mythic.is-mythic.is-selected {
       border-color: #ffe08a;
-      background: rgba(255, 224, 138, 0.16);
-      box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.12);
+      background:
+        linear-gradient(135deg, rgba(255, 224, 138, 0.36), rgba(255, 79, 79, 0.24) 56%, rgba(0, 0, 0, 0.2)),
+        rgba(69, 15, 15, 0.56);
+      box-shadow: 0 0 0 4px rgba(255, 224, 138, 0.28), 0 0 28px rgba(255, 79, 79, 0.34);
     }
     .planner-result {
       display: flex;
@@ -3986,12 +4000,18 @@
           .map(({ plan, rank }) => {
             const selected = plannerSelectedChoices.has(plan.key);
             const kind = plan.type === "evo" ? "EVO" : "Mythic";
+            const rankBadge = rank.badge === "Recommended" ? "★" : rank.badge === "Strong" ? "S" : "•";
+            const accessibleLabel = `${kind}: ${plan.label}. ${rank.badge}: ${rank.reason}`;
+            const componentIcons = plan.type === "mythic"
+              ? plan.components
+                  .map((component) => iconMarkup("evo", component.evo, 22, evoLabelById(component.evo)))
+                  .join("")
+              : "";
             return `
-              <button type="button" class="planner-mythic is-${escapeHtml(plan.type)} ${escapeHtml(rank.className)}${selected ? " is-selected" : ""}" data-planner-mythic="${escapeHtml(plan.key)}" title="${escapeHtml(rank.reason)}">
+              <button type="button" class="planner-mythic is-${escapeHtml(plan.type)} ${escapeHtml(rank.className)}${selected ? " is-selected" : ""}" data-planner-mythic="${escapeHtml(plan.key)}" title="${escapeHtml(accessibleLabel)}" aria-label="${escapeHtml(accessibleLabel)}">
                 ${iconMarkup(plan.type, plan.id, 34, plan.label)}
-                <span class="tag">${escapeHtml(kind)}</span>
-                <span class="tag planner-rank-badge">${escapeHtml(rank.badge)}</span>
-                <span class="tag">${escapeHtml(plan.label)}</span>
+                ${componentIcons}
+                <span class="tag planner-rank-badge">${escapeHtml(rankBadge)}</span>
                 <span class="planner-reason">${escapeHtml(rank.reason)}</span>
               </button>
             `;
