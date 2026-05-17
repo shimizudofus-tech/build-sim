@@ -714,6 +714,7 @@
       gap: 0.35rem 0.65rem;
       align-items: baseline;
       margin-bottom: 0.05rem;
+      order: -2;
     }
     .publish-community-title {
       color: #bdf6d5;
@@ -737,9 +738,10 @@
     }
     .community-form .community-target-field {
       display: flex;
-      flex: 0 1 8.5rem;
+      flex: 0 1 8rem;
       flex-direction: column;
       min-width: 7rem;
+      order: -1;
     }
     .community-form .community-target-field label {
       margin-bottom: 0.2rem;
@@ -751,8 +753,8 @@
       min-width: 0;
     }
     .community-form .community-power-input {
-      flex: 0 1 8rem;
-      min-width: 7rem;
+      flex: 1 1 12rem;
+      min-width: 10rem;
     }
     .community-form .community-video-input {
       flex: 1 1 13rem;
@@ -781,9 +783,11 @@
       min-width: 0;
       width: 100%;
     }
+    .community-form option.has-build,
     .community-control option.has-build {
       color: #3ecf8e;
     }
+    .community-form option.no-build,
     .community-control option.no-build {
       color: #ff6b6b;
     }
@@ -1278,9 +1282,9 @@
           <input id="builderCommunityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
           <div class="community-target-field">
             <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue">Cleared level</label>
-            <input id="builderCommunityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
+            <select id="builderCommunityTargetValue"></select>
           </div>
-          <input id="builderCommunityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power note (optional)" />
+          <input id="builderCommunityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
           <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
           <button type="button" id="builderSaveCommunityBuild">Publish current build</button>
         </div>
@@ -1355,9 +1359,9 @@
         <input id="communityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
         <div class="community-target-field">
           <label id="communityTargetLabel" for="communityTargetValue">Cleared level</label>
-          <input id="communityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
+          <select id="communityTargetValue"></select>
         </div>
-        <input id="communityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power note (optional)" />
+        <input id="communityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
         <input id="communityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
         <button type="button" id="saveCommunityBuild">Publish current build</button>
       </div>
@@ -1782,14 +1786,14 @@
     const builderCommunityBuildNameEl = document.getElementById("builderCommunityBuildName");
     const builderCommunityBuildAuthorEl = document.getElementById("builderCommunityBuildAuthor");
     const builderCommunityTargetLabelEl = document.getElementById("builderCommunityTargetLabel");
-    const builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
+    let builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
     const builderCommunityPowerEl = document.getElementById("builderCommunityPower");
     const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
     const communityBuildNameEl = document.getElementById("communityBuildName");
     const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
     const communityTargetLabelEl = document.getElementById("communityTargetLabel");
-    const communityTargetValueEl = document.getElementById("communityTargetValue");
+    let communityTargetValueEl = document.getElementById("communityTargetValue");
     const communityPowerEl = document.getElementById("communityPower");
     const communityVideoUrlEl = document.getElementById("communityVideoUrl");
     const communityModeEl = document.getElementById("communityMode");
@@ -2015,20 +2019,75 @@
       };
     }
 
+    function publishTargetCounts(mode, values) {
+      const ch = currentCharacter();
+      const allowed = new Set(values);
+      const targetCounts = new Map();
+      loadCommunityBuilds()
+        .filter((b) => b.character === ch.id && b.mode === mode)
+        .forEach((build) => {
+          const target = buildTargetValue(build);
+          if (!allowed.has(target)) return;
+          targetCounts.set(target, (targetCounts.get(target) || 0) + 1);
+        });
+      return targetCounts;
+    }
+
+    function publishTargetOptionsHtml(mode, values, selectedValue) {
+      const targetCounts = publishTargetCounts(mode, values);
+      return [
+        `<option value="">Select ${mode === "abyss" ? "floor" : "level"}</option>`,
+        ...values.map((value) => {
+          const count = targetCounts.get(value) || 0;
+          const hasBuild = count > 0;
+          const statusClass = hasBuild ? "has-build" : "no-build";
+          const color = hasBuild ? "#3ecf8e" : "#ff6b6b";
+          const status = hasBuild ? `build${count > 1 ? ` (${count})` : ""}` : "none";
+          const selected = selectedValue === value ? " selected" : "";
+          return `<option class="${statusClass}" style="color:${color}" value="${value}"${selected}>● ${formatNumber(value)} - ${status}</option>`;
+        }),
+      ].join("");
+    }
+
+    function ensureCommunityTargetControl(fieldEl, mode) {
+      if (!fieldEl) return null;
+      const isBoss = mode === "boss";
+      const expectedTag = isBoss ? "INPUT" : "SELECT";
+      if (fieldEl.tagName === expectedTag) return fieldEl;
+      const replacement = document.createElement(isBoss ? "input" : "select");
+      replacement.id = fieldEl.id;
+      replacement.required = true;
+      if (isBoss) {
+        replacement.type = "text";
+        replacement.inputMode = "numeric";
+      }
+      fieldEl.replaceWith(replacement);
+      return replacement;
+    }
+
     function applyCommunityTargetConfig(labelEl, inputEl) {
-      if (!inputEl) return;
-      const cfg = communityTargetConfig();
+      const mode = modeEl?.value || "stage";
+      inputEl = ensureCommunityTargetControl(inputEl, mode);
+      if (!inputEl) return null;
+      const cfg = communityTargetConfig(mode);
       if (labelEl) labelEl.textContent = cfg.label;
       inputEl.required = true;
-      inputEl.min = String(cfg.min);
-      inputEl.max = cfg.max === "" ? "" : String(cfg.max);
-      inputEl.step = String(cfg.step);
       inputEl.placeholder = cfg.placeholder;
+      if (inputEl.tagName === "SELECT") {
+        const selectedValue = readIntegerInput(inputEl);
+        const values = communityFilterValues(mode);
+        inputEl.innerHTML = publishTargetOptionsHtml(mode, values, selectedValue);
+      } else {
+        inputEl.min = String(cfg.min);
+        inputEl.max = cfg.max === "" ? "" : String(cfg.max);
+        inputEl.step = String(cfg.step);
+      }
+      return inputEl;
     }
 
     function updateCommunityPublishFields() {
-      applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
-      applyCommunityTargetConfig(communityTargetLabelEl, communityTargetValueEl);
+      builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
+      communityTargetValueEl = applyCommunityTargetConfig(communityTargetLabelEl, communityTargetValueEl);
     }
 
     function communityFilterValues(modeId = modeEl?.value) {
