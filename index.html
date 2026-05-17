@@ -1480,10 +1480,10 @@
       <a
         class="market-widget"
         id="collectionMarketWidget"
-        href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk?filter=%7B%22attributes%22%3A%7B%22Rarity%22%3A%5B%22Mythic%22%5D%7D%7D"
+        href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Open Getgems Mythic filter"
+        aria-label="Open Getgems collection"
       >
         <img
           id="collectionMarketImage"
@@ -1496,7 +1496,11 @@
         <span class="market-copy">
           <span class="market-title"><span class="market-live" aria-hidden="true"></span>Getgems collection</span>
           <span class="market-line">Floor: <strong id="collectionFloorPrice">Loading...</strong></span>
-          <span class="market-line">Mythic FP: <strong id="collectionMythicFloor">Loading...</strong></span>
+          <span class="market-line">
+            Supply: <strong id="collectionSupply">Loading...</strong>
+            / Owners: <strong id="collectionOwners">Loading...</strong>
+          </span>
+          <span class="market-line">24h: <span id="collectionChange24h" class="market-change">Loading...</span></span>
           <span class="market-updated" id="collectionMarketUpdated">Live</span>
         </span>
       </a>
@@ -1682,7 +1686,6 @@
     const IMPORT_DIR = "assets/import";
     const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
     const GETGEMS_COLLECTION_URL = `https://getgems.io/collection/${GETGEMS_COLLECTION_ADDRESS}`;
-    const GETGEMS_MYTHIC_FILTER_URL = `${GETGEMS_COLLECTION_URL}?filter=%7B%22attributes%22%3A%7B%22Rarity%22%3A%5B%22Mythic%22%5D%7D%7D`;
     const GETGEMS_COLLECTION_IMAGE = "assets/getgems-collection.png";
     const ASTAR_CMC_URL = "https://coinmarketcap.com/fr/currencies/astar/";
     const MARKET_TIMEOUT_MS = 6500;
@@ -1754,15 +1757,6 @@
       })} TON`;
     }
 
-    function formatMythicFloor(mythicFloor) {
-      const number = marketNumber(mythicFloor?.floorTon);
-      if (number === null || number < 0) return "Open Mythic filter";
-      if (number === 0 && mythicFloor?.source !== "attributes") {
-        return "Open Mythic filter";
-      }
-      return formatTon(number);
-    }
-
     function formatUsd(value) {
       const number = marketNumber(value);
       if (number === null) return "Unavailable";
@@ -1781,10 +1775,16 @@
       return `${sign}${number.toFixed(2)}%`;
     }
 
-    function setMarketChange(el, value) {
+    function formatCount(value) {
+      const number = marketNumber(value);
+      if (number === null) return "Unavailable";
+      return number.toLocaleString("en-US", { maximumFractionDigits: 0 });
+    }
+
+    function setMarketChange(el, value, fallbackText = "--") {
       if (!el) return;
       const number = marketNumber(value);
-      el.textContent = formatPercent(number);
+      el.textContent = number === null ? fallbackText : formatPercent(number);
       el.classList.toggle("is-up", number !== null && number >= 0);
       el.classList.toggle("is-down", number !== null && number < 0);
     }
@@ -1800,18 +1800,24 @@
     function renderCollectionFallback() {
       const imageEl = document.getElementById("collectionMarketImage");
       const floorEl = document.getElementById("collectionFloorPrice");
-      const mythicFloorEl = document.getElementById("collectionMythicFloor");
+      const supplyEl = document.getElementById("collectionSupply");
+      const ownersEl = document.getElementById("collectionOwners");
+      const change24hEl = document.getElementById("collectionChange24h");
       const updatedEl = document.getElementById("collectionMarketUpdated");
       if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
       if (floorEl) floorEl.textContent = "Unavailable";
-      if (mythicFloorEl) mythicFloorEl.textContent = "Open Mythic filter";
+      if (supplyEl) supplyEl.textContent = "Unavailable";
+      if (ownersEl) ownersEl.textContent = "Unavailable";
+      setMarketChange(change24hEl, null, "Unavailable");
       if (updatedEl) updatedEl.textContent = "Open Getgems";
     }
 
     async function updateCollectionMarket() {
       const imageEl = document.getElementById("collectionMarketImage");
       const floorEl = document.getElementById("collectionFloorPrice");
-      const mythicFloorEl = document.getElementById("collectionMythicFloor");
+      const supplyEl = document.getElementById("collectionSupply");
+      const ownersEl = document.getElementById("collectionOwners");
+      const change24hEl = document.getElementById("collectionChange24h");
       const updatedEl = document.getElementById("collectionMarketUpdated");
       try {
         const data = await fetchJsonWithTimeout(
@@ -1820,9 +1826,9 @@
         const collection = data.collection || {};
         if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
         if (floorEl) floorEl.textContent = formatTon(collection.floorTon);
-        if (mythicFloorEl) {
-          mythicFloorEl.textContent = formatMythicFloor(data.mythicFloor);
-        }
+        if (supplyEl) supplyEl.textContent = formatCount(collection.supply);
+        if (ownersEl) ownersEl.textContent = formatCount(collection.owners);
+        setMarketChange(change24hEl, collection.change24hPercent ?? data.change24h?.percent, "Unavailable");
         setMarketUpdated(updatedEl);
       } catch {
         renderCollectionFallback();
@@ -1856,12 +1862,12 @@
       const astarLink = document.getElementById("astarMarketWidget");
       const collectionImage = document.getElementById("collectionMarketImage");
       if (collectionLink) {
-        collectionLink.href = GETGEMS_MYTHIC_FILTER_URL;
-        collectionLink.title = "Open Getgems filtered by Mythic rarity";
+        collectionLink.href = GETGEMS_COLLECTION_URL;
+        collectionLink.title = "Open Getgems collection";
       }
       if (astarLink) astarLink.href = ASTAR_CMC_URL;
       if (collectionImage && !collectionImage.getAttribute("src")) {
-        collectionImage.src = COLLECTION_PLACEHOLDER_IMAGE;
+        collectionImage.src = GETGEMS_COLLECTION_IMAGE;
       }
       updateCollectionMarket();
       updateAstarMarket();

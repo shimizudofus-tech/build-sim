@@ -64,62 +64,7 @@ function asNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function getProcessEnvValue(name) {
-  return typeof process !== "undefined" ? process.env?.[name] : undefined;
-}
-
-function getEnvValue(env, name) {
-  return env?.[name] ?? getProcessEnvValue(name);
-}
-
-function getGetgemsAuthHeaders(env) {
-  const apiKey = getEnvValue(env, "GETGEMS_API_KEY");
-  if (!apiKey) return null;
-  return { authorization: apiKey.startsWith("Bearer ") ? apiKey : `Bearer ${apiKey}` };
-}
-
-function attributeValueFloorTon(value) {
-  return asNumber(value?.minPrice) ?? (asNumber(value?.minPriceNano) != null ? asNumber(value.minPriceNano) / 1e9 : null);
-}
-
-function mythicFloorFromAttributes(attributes) {
-  let floorTon = null;
-  for (const attribute of Array.isArray(attributes) ? attributes : []) {
-    for (const value of Array.isArray(attribute?.values) ? attribute.values : []) {
-      if (!/mythic/i.test(String(value?.value || ""))) continue;
-      const candidate = attributeValueFloorTon(value);
-      if (candidate == null) continue;
-      floorTon = floorTon == null ? candidate : Math.min(floorTon, candidate);
-    }
-  }
-  return floorTon;
-}
-
-async function getMythicFloor(collectionAddress, env) {
-  const configuredFloor = asNumber(getEnvValue(env, "GETGEMS_MYTHIC_FP_TON"));
-  if (configuredFloor > 0) return { floorTon: configuredFloor, source: "configured" };
-
-  const authHeaders = getGetgemsAuthHeaders(env);
-  if (!authHeaders) {
-    return { floorTon: null, unavailableReason: "Getgems attributes API requires authorization" };
-  }
-
-  try {
-    const attributes = await fetchJsonWithTimeout(
-      `${GETGEMS_PUBLIC_API_BASE}/v1/collection/attributes/${encodeURIComponent(collectionAddress)}`,
-      GETGEMS_TIMEOUT_MS,
-      authHeaders
-    );
-    const floorTon = mythicFloorFromAttributes(attributes?.response?.attributes);
-    return floorTon == null
-      ? { floorTon: null, unavailableReason: "Mythic attribute floor not found" }
-      : { floorTon, source: "attributes" };
-  } catch (err) {
-    return { floorTon: null, unavailableReason: err.message || "Getgems attributes unavailable" };
-  }
-}
-
-async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS, env = {}) {
+async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS) {
   const collectionAddress = address === GETGEMS_COLLECTION_ADDRESS ? address : GETGEMS_COLLECTION_ADDRESS;
   const payload = {
     collection: {
@@ -127,8 +72,11 @@ async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS, 
       url: `https://getgems.io/collection/${collectionAddress}`,
       imageUrl: null,
       floorTon: null,
+      supply: null,
+      owners: null,
+      change24hPercent: null,
     },
-    mythicFloor: { floorTon: null, unavailableReason: "Loading" },
+    change24h: { percent: null, unavailableReason: "Getgems public 24h stats require authorization" },
     updatedAt: new Date().toISOString(),
   };
 
@@ -140,12 +88,12 @@ async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS, 
     payload.collection.name = info.name || info.slug || "Getgems collection";
     payload.collection.imageUrl = info.image_url || info.banner_image_url || null;
     payload.collection.floorTon = asNumber(info.floor);
+    payload.collection.supply = asNumber(info.total_supply);
+    payload.collection.owners = asNumber(info.unique_owners);
     payload.collection.url = info.getgems_url || payload.collection.url;
   } catch (err) {
     payload.collection.unavailableReason = err.message || "Getgems unavailable";
   }
-
-  payload.mythicFloor = await getMythicFloor(collectionAddress, env);
 
   return payload;
 }
@@ -188,7 +136,7 @@ export async function onRequest(context) {
 
   try {
     if (path === "/api/market/getgems-collection" && method === "GET") {
-      return json(await getGetgemsCollectionMarket(url.searchParams.get("address"), env));
+      return json(await getGetgemsCollectionMarket(url.searchParams.get("address")));
     }
 
     if (path === "/api/visits" && method === "POST") {
