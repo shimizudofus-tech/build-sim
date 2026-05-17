@@ -695,12 +695,36 @@
     .planner-mythic {
       display: inline-flex;
       align-items: center;
+      flex-wrap: wrap;
       gap: 0.35rem;
       padding: 0.36rem 0.48rem;
       border: 1px solid var(--border);
       border-radius: 10px;
       background: rgba(0, 0, 0, 0.16);
       color: var(--text);
+    }
+    .planner-mythic.is-recommended {
+      border-color: rgba(62, 207, 142, 0.72);
+      background: linear-gradient(180deg, rgba(62, 207, 142, 0.18), rgba(0, 0, 0, 0.16));
+      box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.1);
+    }
+    .planner-mythic.is-strong {
+      border-color: rgba(255, 224, 138, 0.58);
+      background: linear-gradient(180deg, rgba(255, 224, 138, 0.14), rgba(0, 0, 0, 0.16));
+    }
+    .planner-mythic.is-flexible {
+      border-color: rgba(110, 168, 254, 0.5);
+    }
+    .planner-rank-badge {
+      border-color: rgba(255, 255, 255, 0.18);
+      font-weight: 800;
+    }
+    .planner-mythic.is-recommended .planner-rank-badge {
+      color: #bdf6d5;
+    }
+    .planner-reason {
+      color: var(--muted);
+      font-size: 0.72rem;
     }
     .planner-mythic.is-selected {
       border-color: #ffe08a;
@@ -717,6 +741,15 @@
     }
     .planner-mythic.is-mythic {
       border-color: rgba(255, 224, 138, 0.35);
+    }
+    .planner-mythic.is-recommended {
+      border-color: rgba(62, 207, 142, 0.72);
+    }
+    .planner-mythic.is-strong {
+      border-color: rgba(255, 224, 138, 0.58);
+    }
+    .planner-mythic.is-flexible {
+      border-color: rgba(110, 168, 254, 0.5);
     }
     .planner-mythic.is-mythic.is-selected {
       border-color: #ffe08a;
@@ -3777,6 +3810,119 @@
       return nextPlans.length + (needsBase ? 1 : 0) <= slotCount();
     }
 
+    function plannerPlanEvoIds(plan) {
+      if (plan.type === "evo") return [plan.id].filter(Boolean);
+      if (plan.type === "mythic") return plan.components.map((component) => component.evo);
+      return [];
+    }
+
+    function plannerEvoCanPairWithSelected(evoId, selectedEvos) {
+      return MYTHIC_RECIPES.some(
+        ([leftEvo, rightEvo]) =>
+          (leftEvo === evoId && selectedEvos.has(rightEvo)) ||
+          (rightEvo === evoId && selectedEvos.has(leftEvo))
+      );
+    }
+
+    function plannerOpenMythicLinks(plan, selectedPlans, ch) {
+      if (plan.type !== "evo") return 0;
+      let count = 0;
+      for (const [leftEvo, rightEvo] of MYTHIC_RECIPES) {
+        const otherEvo = leftEvo === plan.id ? rightEvo : rightEvo === plan.id ? leftEvo : "";
+        if (!otherEvo) continue;
+        const other = EVO_ID_TO_COMPONENT.get(otherEvo);
+        if (!other || !skillOwnedByCharacter(other.skill, ch.id)) continue;
+        const synthetic = {
+          type: "evo",
+          key: `evo:${other.evo}`,
+          id: other.evo,
+          label: evoLabelById(other.evo),
+          skill: other.skill,
+          passive: other.passive,
+          components: [other],
+        };
+        if (canUseSelectablePlannerPlan(synthetic, [...selectedPlans, plan], ch)) count += 1;
+      }
+      return count;
+    }
+
+    function rankPlannerChoice(plan, selectedPlans, ch) {
+      const comparisonPlans = selectedPlans.filter((selectedPlan) => selectedPlan.key !== plan.key);
+      const selectedEvos = new Set(comparisonPlans.flatMap(plannerPlanEvoIds));
+      const theoreticalSlots = currentTheoreticalBuildSlots(ch, modeEl.value);
+      const theoreticalKeys = new Set(theoreticalSlots.map(buildSlotKey));
+      const theoreticalEvos = new Set(theoreticalSlots.flatMap(plannerPlanEvoIds));
+      const planEvos = plannerPlanEvoIds(plan);
+      const reasons = [];
+      let score = 0;
+
+      if (plannerSelectedChoices.has(plan.key)) {
+        score += 500;
+        reasons.push("already selected");
+      }
+      if (theoreticalKeys.has(buildSlotKey(plan))) {
+        score += 260;
+        reasons.push("part of theoretical plan");
+      } else if (planEvos.some((evoId) => theoreticalEvos.has(evoId))) {
+        score += 130;
+        reasons.push("supports theoretical plan");
+      }
+      if (plannerPlanRepresentsExclusive(plan, ch)) {
+        score += 90;
+        reasons.push("keeps slot 1 legal");
+      }
+      if (plan.type === "mythic") {
+        score += 95;
+        reasons.push("mythic payoff");
+        if (planEvos.some((evoId) => selectedEvos.has(evoId))) {
+          score += 90;
+          reasons.unshift("upgrades selected EVO");
+        }
+      } else {
+        score += 35;
+        const links = plannerOpenMythicLinks(plan, comparisonPlans, ch);
+        if (plannerEvoCanPairWithSelected(plan.id, selectedEvos)) {
+          score += 80;
+          reasons.unshift("completes a mythic pair");
+        } else if (links > 1) {
+          score += 45;
+          reasons.push("keeps mythic paths open");
+        } else if (links === 1) {
+          score += 20;
+          reasons.push("keeps a mythic path open");
+        }
+      }
+
+      const passiveCount = plannerUsedPassives([...comparisonPlans, plan]).length;
+      if (passiveCount <= slotCount()) {
+        score += 12;
+        if (!reasons.length) reasons.push("uses available passive");
+      }
+      if (modeUsesUniqueSkills() && plannerPlanSkillIds(plan).length === new Set(plannerPlanSkillIds(plan)).size) {
+        score += 10;
+        if (!reasons.length) reasons.push("fits unique-skill mode");
+      }
+
+      const badge =
+        score >= 260
+          ? "Recommended"
+          : score >= 150
+            ? "Strong"
+            : "Flexible";
+      const className =
+        badge === "Recommended"
+          ? "is-recommended"
+          : badge === "Strong"
+            ? "is-strong"
+            : "is-flexible";
+      return {
+        badge,
+        className,
+        reason: reasons[0] || "fits current constraints",
+        score,
+      };
+    }
+
     function buildPlannerPlan() {
       const ch = currentCharacter();
       const options = selectablePlannerOptions();
@@ -3830,14 +3976,23 @@
             if (plannerSelectedChoices.has(plan.key)) return true;
             return canUseSelectablePlannerPlan(plan, selectedPlans, ch);
           })
-          .map((plan) => {
+          .map((plan) => ({ plan, rank: rankPlannerChoice(plan, selectedPlans, ch) }))
+          .sort(
+            (a, b) =>
+              b.rank.score - a.rank.score ||
+              Number(b.plan.type === "mythic") - Number(a.plan.type === "mythic") ||
+              a.plan.label.localeCompare(b.plan.label)
+          )
+          .map(({ plan, rank }) => {
             const selected = plannerSelectedChoices.has(plan.key);
             const kind = plan.type === "evo" ? "EVO" : "Mythic";
             return `
-              <button type="button" class="planner-mythic is-${escapeHtml(plan.type)}${selected ? " is-selected" : ""}" data-planner-mythic="${escapeHtml(plan.key)}">
+              <button type="button" class="planner-mythic is-${escapeHtml(plan.type)} ${escapeHtml(rank.className)}${selected ? " is-selected" : ""}" data-planner-mythic="${escapeHtml(plan.key)}" title="${escapeHtml(rank.reason)}">
                 ${iconMarkup(plan.type, plan.id, 34, plan.label)}
                 <span class="tag">${escapeHtml(kind)}</span>
+                <span class="tag planner-rank-badge">${escapeHtml(rank.badge)}</span>
                 <span class="tag">${escapeHtml(plan.label)}</span>
+                <span class="planner-reason">${escapeHtml(rank.reason)}</span>
               </button>
             `;
           })
@@ -3845,8 +4000,7 @@
         return buttons ? `<div class="planner-choice-section">${escapeHtml(title)}</div>${buttons}` : "";
       };
       plannerMythicsEl.innerHTML = [
-        optionHtml("EVO choices", evoPlanOptions()),
-        optionHtml("Mythic choices", mythicPlanOptions()),
+        optionHtml("Recommended choices", selectablePlannerOptions()),
       ].join("");
     }
 
@@ -3989,8 +4143,7 @@
       return selected;
     }
 
-    function renderBestBuilds() {
-      if (!bestBuildShuAbyssEl) return;
+    function bestBuildPlanCatalog() {
       const M = {
         nox: {
           id: "bat-red",
@@ -4163,11 +4316,24 @@
           abyss: [M.shu, M.whip, M.buldakFrost, M.frogRazor, M.chronos, E.familiar],
         },
       };
+      return buildPlans;
+    }
+
+    function bestBuildCandidateSlots(ch, mode) {
+      const plans = bestBuildPlanCatalog();
+      const plan = plans[ch.id] ?? plans.nox;
+      return plan[mode] ?? plan.stage;
+    }
+
+    function currentTheoreticalBuildSlots(ch = currentCharacter(), mode = modeEl.value) {
+      return selectBestBuildForCap(bestBuildCandidateSlots(ch, mode), ch, mode);
+    }
+
+    function renderBestBuilds() {
+      if (!bestBuildShuAbyssEl) return;
       const ch = currentCharacter();
       const mode = modeEl.value;
-      const plan = buildPlans[ch.id] ?? buildPlans.nox;
-      const candidateSlots = plan[mode] ?? plan.stage;
-      const finalSlots = selectBestBuildForCap(candidateSlots, ch, mode);
+      const finalSlots = currentTheoreticalBuildSlots(ch, mode);
       const mythicCount = finalSlots.filter((slot) => slot.type !== "evo").length;
       const evoCount = finalSlots.length - mythicCount;
       const target = `${mythicCount} mythic${mythicCount > 1 ? "s" : ""}${evoCount ? ` + ${evoCount} EVO` : ""}`;
