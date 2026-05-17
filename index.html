@@ -1352,12 +1352,12 @@
           <div id="plannerResult" class="planner-result"></div>
         </section>
 
-        <section>
+        <section id="evosSection" hidden>
           <h2 class="visually-hidden">EVO in the build</h2>
           <div id="evos" class="icon-strip"></div>
         </section>
 
-        <section>
+        <section id="fusionsSection" hidden>
           <h2 class="visually-hidden">Available fusions</h2>
           <div id="fusions" class="list"></div>
         </section>
@@ -1814,7 +1814,9 @@
     const buildSkillsCol = document.getElementById("buildSkillsCol");
     const buildPassivesCol = document.getElementById("buildPassivesCol");
     const errorsEl = document.getElementById("errors");
+    const evosSectionEl = document.getElementById("evosSection");
     const evosEl = document.getElementById("evos");
+    const fusionsSectionEl = document.getElementById("fusionsSection");
     const fusionsEl = document.getElementById("fusions");
     const fusionsTopEl = document.getElementById("fusionsTop");
     const mythicOffersTopEl = document.getElementById("mythicOffersTop");
@@ -3006,6 +3008,9 @@
 
     function renderEvos() {
       const act = activeEvos();
+      if (evosSectionEl) {
+        evosSectionEl.hidden = act.length === 0;
+      }
       evosEl.innerHTML = act.length
         ? act.map((e) => iconMarkup("evo", e.evoId, 44, e.label)).join("")
         : "";
@@ -4082,6 +4087,9 @@
       const opts = possibleFusions();
       if (mythicOffersTopEl) {
         mythicOffersTopEl.classList.toggle("has-offers", opts.length > 0);
+      }
+      if (fusionsSectionEl) {
+        fusionsSectionEl.hidden = opts.length === 0;
       }
       renderFusionOffers(fusionsTopEl, opts);
       renderFusionOffers(fusionsEl, opts);
