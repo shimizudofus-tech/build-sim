@@ -680,17 +680,41 @@
     .planner-mythics {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.45rem;
+      gap: 0.65rem;
       margin: 0.6rem 0;
     }
-    .planner-choice-section {
+    .planner-choice-group {
       width: 100%;
-      margin-top: 0.25rem;
+      padding: 0.58rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .planner-choice-group.is-evo {
+      border-color: rgba(186, 133, 255, 0.28);
+      background: linear-gradient(180deg, rgba(112, 63, 190, 0.12), rgba(0, 0, 0, 0.08));
+    }
+    .planner-choice-group.is-mythic {
+      border-color: rgba(255, 224, 138, 0.34);
+      background: linear-gradient(180deg, rgba(255, 79, 79, 0.12), rgba(0, 0, 0, 0.1));
+    }
+    .planner-choice-section {
+      margin: 0 0 0.45rem;
       color: var(--muted);
       font-size: 0.78rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.04em;
+    }
+    .planner-choice-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+    }
+    .planner-choice-empty {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.86rem;
     }
     .planner-mythic {
       display: inline-flex;
@@ -4056,8 +4080,9 @@
       const byKey = new Map(options.map((plan) => [plan.key, plan]));
       const constraints = currentPlannerConstraintPlans(ch, byKey);
       const selectedPlans = buildPlannerPlan().plans.filter((plan) => plan.type !== "skill");
-      const optionHtml = (title, plans) => {
-        const buttons = plans
+      const optionHtml = (title, type, emptyMessage) => {
+        const buttons = options
+          .filter((plan) => plan.type === type)
           .filter((plan) => {
             if (!plannerPlanSkillIds(plan).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
               return false;
@@ -4090,10 +4115,18 @@
             `;
           })
           .join("");
-        return buttons ? `<div class="planner-choice-section">${escapeHtml(title)}</div>${buttons}` : "";
+        return `
+          <section class="planner-choice-group is-${escapeHtml(type)}" aria-label="${escapeHtml(title)}">
+            <h3 class="planner-choice-section">${escapeHtml(title)}</h3>
+            <div class="planner-choice-list">
+              ${buttons || `<p class="planner-choice-empty">${escapeHtml(emptyMessage)}</p>`}
+            </div>
+          </section>
+        `;
       };
       plannerMythicsEl.innerHTML = [
-        optionHtml("Recommended choices", selectablePlannerOptions()),
+        optionHtml("EVO choices", "evo", "No EVO choices fit the current build."),
+        optionHtml("Mythic choices", "mythic", "No mythic choices fit the current build."),
       ].join("");
     }
 
