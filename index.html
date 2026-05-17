@@ -1488,6 +1488,7 @@
         <img
           id="collectionMarketImage"
           class="market-image"
+          src="assets/getgems-collection.png"
           alt="Getgems collection"
           width="42"
           height="42"
@@ -1495,7 +1496,7 @@
         <span class="market-copy">
           <span class="market-title"><span class="market-live" aria-hidden="true"></span>Getgems collection</span>
           <span class="market-line">Floor: <strong id="collectionFloorPrice">Loading...</strong></span>
-          <span class="market-line">Monthly top sale: <strong id="collectionTopSale">Loading...</strong></span>
+          <span class="market-line">Mythic FP: <strong id="collectionMythicFloor">Loading...</strong></span>
           <span class="market-updated" id="collectionMarketUpdated">Live</span>
         </span>
       </a>
@@ -1681,13 +1682,9 @@
     const IMPORT_DIR = "assets/import";
     const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
     const GETGEMS_COLLECTION_URL = `https://getgems.io/collection/${GETGEMS_COLLECTION_ADDRESS}`;
+    const GETGEMS_COLLECTION_IMAGE = "assets/getgems-collection.png";
     const ASTAR_CMC_URL = "https://coinmarketcap.com/fr/currencies/astar/";
     const MARKET_TIMEOUT_MS = 6500;
-    const COLLECTION_PLACEHOLDER_IMAGE =
-      "data:image/svg+xml;utf8," +
-      encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84"><defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#6ea8fe"/><stop offset="1" stop-color="#9b7bd6"/></linearGradient></defs><rect width="84" height="84" rx="18" fill="#111827"/><circle cx="42" cy="34" r="18" fill="url(#g)" opacity=".9"/><path d="M18 66c7-16 41-16 48 0" fill="#e9edf5" opacity=".9"/><text x="42" y="78" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#94a0b8">GG</text></svg>'
-      );
     /** Incrémenté par tools/import_named_icons.py à chaque copie. */
     let iconCacheVer = String(Date.now());
 
@@ -1793,27 +1790,27 @@
     function renderCollectionFallback() {
       const imageEl = document.getElementById("collectionMarketImage");
       const floorEl = document.getElementById("collectionFloorPrice");
-      const saleEl = document.getElementById("collectionTopSale");
+      const mythicFloorEl = document.getElementById("collectionMythicFloor");
       const updatedEl = document.getElementById("collectionMarketUpdated");
-      if (imageEl) imageEl.src = COLLECTION_PLACEHOLDER_IMAGE;
+      if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
       if (floorEl) floorEl.textContent = "Unavailable";
-      if (saleEl) saleEl.textContent = "Unavailable";
+      if (mythicFloorEl) mythicFloorEl.textContent = "Unavailable";
       if (updatedEl) updatedEl.textContent = "Open Getgems";
     }
 
     async function updateCollectionMarket() {
       const imageEl = document.getElementById("collectionMarketImage");
       const floorEl = document.getElementById("collectionFloorPrice");
-      const saleEl = document.getElementById("collectionTopSale");
+      const mythicFloorEl = document.getElementById("collectionMythicFloor");
       const updatedEl = document.getElementById("collectionMarketUpdated");
       try {
         const data = await fetchJsonWithTimeout(
           `/api/market/getgems-collection?address=${encodeURIComponent(GETGEMS_COLLECTION_ADDRESS)}`
         );
         const collection = data.collection || {};
-        if (imageEl) imageEl.src = collection.imageUrl || COLLECTION_PLACEHOLDER_IMAGE;
+        if (imageEl) imageEl.src = GETGEMS_COLLECTION_IMAGE;
         if (floorEl) floorEl.textContent = formatTon(collection.floorTon);
-        if (saleEl) saleEl.textContent = data.biggestSaleMonth?.priceTon ? formatTon(data.biggestSaleMonth.priceTon) : "Unavailable";
+        if (mythicFloorEl) mythicFloorEl.textContent = formatTon(data.mythicFloor?.floorTon);
         setMarketUpdated(updatedEl);
       } catch {
         renderCollectionFallback();

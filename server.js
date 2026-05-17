@@ -80,11 +80,11 @@ function publicBuild(build) {
   return safe;
 }
 
-async function fetchJsonWithTimeout(url, timeoutMs = GETGEMS_TIMEOUT_MS) {
+async function fetchJsonWithTimeout(url, timeoutMs = GETGEMS_TIMEOUT_MS, headers = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(url, { headers: { accept: "application/json" }, signal: controller.signal });
+    const response = await fetch(url, { headers: { accept: "application/json", ...headers }, signal: controller.signal });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
   } finally {
@@ -97,25 +97,58 @@ function asNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function biggestSaleFromHistory(items) {
-  let biggest = null;
-  for (const item of Array.isArray(items) ? items : []) {
-    const typeData = item?.typeData || {};
-    if (typeData.type !== "sold") continue;
-    const priceTon = asNumber(typeData.price) ?? (asNumber(typeData.priceNano) != null ? asNumber(typeData.priceNano) / 1e9 : null);
-    if (priceTon == null) continue;
-    if (!biggest || priceTon > biggest.priceTon) {
-      biggest = {
-        priceTon,
-        name: item.name || "NFT sale",
-        time: item.time || null,
-      };
-    }
-  }
-  return biggest;
+function getEnvValue(env, name) {
+  return env?.[name] ?? process.env[name];
 }
 
-async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS) {
+function getGetgemsAuthHeaders(env) {
+  const apiKey = getEnvValue(env, "GETGEMS_API_KEY");
+  if (!apiKey) return null;
+  return { authorization: apiKey.startsWith("Bearer ") ? apiKey : `Bearer ${apiKey}` };
+}
+
+function attributeValueFloorTon(value) {
+  return asNumber(value?.minPrice) ?? (asNumber(value?.minPriceNano) != null ? asNumber(value.minPriceNano) / 1e9 : null);
+}
+
+function mythicFloorFromAttributes(attributes) {
+  let floorTon = null;
+  for (const attribute of Array.isArray(attributes) ? attributes : []) {
+    for (const value of Array.isArray(attribute?.values) ? attribute.values : []) {
+      if (!/mythic/i.test(String(value?.value || ""))) continue;
+      const candidate = attributeValueFloorTon(value);
+      if (candidate == null) continue;
+      floorTon = floorTon == null ? candidate : Math.min(floorTon, candidate);
+    }
+  }
+  return floorTon;
+}
+
+async function getMythicFloor(collectionAddress, env) {
+  const configuredFloor = asNumber(getEnvValue(env, "GETGEMS_MYTHIC_FP_TON"));
+  if (configuredFloor != null) return { floorTon: configuredFloor, source: "configured" };
+
+  const authHeaders = getGetgemsAuthHeaders(env);
+  if (!authHeaders) {
+    return { floorTon: null, unavailableReason: "Getgems attributes API requires authorization" };
+  }
+
+  try {
+    const attributes = await fetchJsonWithTimeout(
+      `${GETGEMS_PUBLIC_API_BASE}/v1/collection/attributes/${encodeURIComponent(collectionAddress)}`,
+      GETGEMS_TIMEOUT_MS,
+      authHeaders
+    );
+    const floorTon = mythicFloorFromAttributes(attributes?.response?.attributes);
+    return floorTon == null
+      ? { floorTon: null, unavailableReason: "Mythic attribute floor not found" }
+      : { floorTon, source: "attributes" };
+  } catch (err) {
+    return { floorTon: null, unavailableReason: err.message || "Getgems attributes unavailable" };
+  }
+}
+
+async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS, env = process.env) {
   const collectionAddress = address === GETGEMS_COLLECTION_ADDRESS ? address : GETGEMS_COLLECTION_ADDRESS;
   const payload = {
     collection: {
@@ -124,7 +157,7 @@ async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS) 
       imageUrl: null,
       floorTon: null,
     },
-    biggestSaleMonth: null,
+    mythicFloor: { floorTon: null, unavailableReason: "Loading" },
     updatedAt: new Date().toISOString(),
   };
 
@@ -141,15 +174,7 @@ async function getGetgemsCollectionMarket(address = GETGEMS_COLLECTION_ADDRESS) 
     payload.collection.unavailableReason = err.message || "Getgems unavailable";
   }
 
-  try {
-    const minTime = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const history = await fetchJsonWithTimeout(
-      `${GETGEMS_PUBLIC_API_BASE}/v1/collection/history/${encodeURIComponent(collectionAddress)}?minTime=${encodeURIComponent(minTime)}&types=sold&limit=100`
-    );
-    payload.biggestSaleMonth = biggestSaleFromHistory(history?.response?.items);
-  } catch (err) {
-    payload.biggestSaleUnavailableReason = err.message || "Getgems history unavailable";
-  }
+  payload.mythicFloor = await getMythicFloor(collectionAddress, env);
 
   return payload;
 }
