@@ -683,6 +683,15 @@
       gap: 0.45rem;
       margin: 0.6rem 0;
     }
+    .planner-choice-section {
+      width: 100%;
+      margin-top: 0.25rem;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
     .planner-mythic {
       display: inline-flex;
       align-items: center;
@@ -698,10 +707,21 @@
       background: rgba(255, 224, 138, 0.16);
       box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.12);
     }
-    .planner-mythic.is-required {
-      border-color: rgba(255, 107, 107, 0.58);
-      background: rgba(160, 45, 45, 0.2);
-      cursor: not-allowed;
+    .planner-mythic.is-evo {
+      border-color: rgba(110, 168, 254, 0.35);
+    }
+    .planner-mythic.is-evo.is-selected {
+      border-color: #6ea8fe;
+      background: rgba(110, 168, 254, 0.16);
+      box-shadow: 0 0 0 2px rgba(110, 168, 254, 0.12);
+    }
+    .planner-mythic.is-mythic {
+      border-color: rgba(255, 224, 138, 0.35);
+    }
+    .planner-mythic.is-mythic.is-selected {
+      border-color: #ffe08a;
+      background: rgba(255, 224, 138, 0.16);
+      box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.12);
     }
     .planner-result {
       display: flex;
@@ -1339,7 +1359,7 @@
 
         <section class="planner-builds" aria-label="Quick build planner">
           <h2>Quick build planner</h2>
-          <p class="hint">Pick wanted mythics. The character mythic is required and locked first; impossible choices disappear automatically.</p>
+          <p class="hint">Pick wanted EVOs and mythics. Slot 1 keeps the character base skill unless you choose its EVO or a mythic containing it; impossible choices disappear automatically.</p>
           <div class="planner-controls">
             <button type="button" class="secondary" id="plannerClear">Clear picks</button>
           </div>
@@ -1875,7 +1895,7 @@
     let communityFetchInFlight = null;
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
-    const plannerSelectedMythics = new Set();
+    const plannerSelectedChoices = new Set();
     let plannerGeneratedSlots = [];
 
     function escapeHtml(s) {
@@ -3031,7 +3051,7 @@
       };
       for (const slot of finalSlots) {
         if (slot.type === "evo") add(slot.passive);
-        else slot.components.forEach((c) => add(c.passive));
+        else if (slot.type !== "skill") slot.components.forEach((c) => add(c.passive));
       }
       return out;
     }
@@ -3052,6 +3072,12 @@
         });
 
       finalSlots.slice(0, n).forEach((slot, skillSlotIndex) => {
+        if (slot.type === "skill") {
+          slots[skillSlotIndex].skill = slot.skill;
+          slots[skillSlotIndex].skillStars = slot.skillStars || 1;
+          return;
+        }
+
         if (slot.type === "evo") {
           evoPool.push({
             instanceId: nextInstance++,
@@ -3643,6 +3669,8 @@
         const right = EVO_ID_TO_COMPONENT.get(rightEvo);
         if (!left || !right) return null;
         return {
+          type: "mythic",
+          key: `mythic:${mythicId}`,
           id: mythicId,
           label,
           components: [
@@ -3653,24 +3681,66 @@
       }).filter(Boolean);
     }
 
-    function requiredMythicPlan(ch) {
-      return mythicPlanOptions().find((plan) =>
-        plan.components.some((component) => component.skill === ch.exclusiveSkill)
-      );
+    function evoPlanOptions() {
+      return EVO_RECIPES.map(([skill, passive, evo, label]) => ({
+        type: "evo",
+        key: `evo:${evo}`,
+        id: evo,
+        label,
+        skill,
+        passive,
+        components: [{ evo, skill, passive }],
+      }));
+    }
+
+    function selectablePlannerOptions() {
+      return [...evoPlanOptions(), ...mythicPlanOptions()];
+    }
+
+    function exclusiveBasePlan(ch) {
+      return {
+        type: "skill",
+        key: `skill:${ch.exclusiveSkill}`,
+        id: ch.exclusiveSkill,
+        label: skillLabel(ch.exclusiveSkill),
+        skill: ch.exclusiveSkill,
+        skillStars: 1,
+        components: [],
+      };
+    }
+
+    function plannerPlanSkillIds(plan) {
+      if (plan.type === "skill") return [plan.skill].filter(Boolean);
+      if (plan.type === "evo") return [plan.skill].filter(Boolean);
+      return plan.components.map((component) => component.skill);
+    }
+
+    function plannerPlanPassives(plan) {
+      if (plan.type === "skill") return [];
+      if (plan.type === "evo") return [plan.passive].filter(Boolean);
+      return plan.components.map((component) => component.passive);
+    }
+
+    function plannerPlanRepresentsExclusive(plan, ch) {
+      return plannerPlanSkillIds(plan).includes(ch.exclusiveSkill);
+    }
+
+    function plannerPlansRepresentExclusive(plans, ch) {
+      return plans.some((plan) => plannerPlanRepresentsExclusive(plan, ch));
     }
 
     function plannerUsedSkills(plans) {
-      return plans.flatMap((plan) => plan.components.map((component) => component.skill));
+      return plans.flatMap((plan) => plannerPlanSkillIds(plan));
     }
 
     function plannerUsedPassives(plans) {
       const out = [];
       const seen = new Set();
       for (const plan of plans) {
-        for (const component of plan.components) {
-          if (!seen.has(component.passive)) {
-            seen.add(component.passive);
-            out.push(component.passive);
+        for (const passive of plannerPlanPassives(plan)) {
+          if (!seen.has(passive)) {
+            seen.add(passive);
+            out.push(passive);
           }
         }
       }
@@ -3679,107 +3749,136 @@
 
     function canUsePlannerPlan(plan, currentPlans, ch) {
       if (!plan) return false;
-      if (currentPlans.some((p) => p.id === plan.id)) return false;
-      if (!plan.components.every((component) => skillOwnedByCharacter(component.skill, ch.id))) {
+      if (currentPlans.some((p) => p.key === plan.key)) return false;
+      if (currentPlans.length + 1 > slotCount()) return false;
+      if (!plannerPlanSkillIds(plan).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
         return false;
       }
       const passives = new Set(plannerUsedPassives(currentPlans));
-      for (const component of plan.components) {
-        passives.add(component.passive);
+      for (const passive of plannerPlanPassives(plan)) {
+        if (passives.has(passive)) return false;
+        passives.add(passive);
       }
       if (passives.size > slotCount()) return false;
       if (modeUsesUniqueSkills()) {
         const usedSkills = plannerUsedSkills(currentPlans);
-        for (const component of plan.components) {
-          if (usedSkills.includes(component.skill)) return false;
+        for (const skill of plannerPlanSkillIds(plan)) {
+          if (usedSkills.includes(skill)) return false;
         }
       }
       return true;
     }
 
+    function canUseSelectablePlannerPlan(plan, currentPlans, ch) {
+      if (!canUsePlannerPlan(plan, currentPlans, ch)) return false;
+      const nextPlans = [...currentPlans, plan];
+      const needsBase = !plannerPlansRepresentExclusive(nextPlans, ch);
+      return nextPlans.length + (needsBase ? 1 : 0) <= slotCount();
+    }
+
     function buildPlannerPlan() {
       const ch = currentCharacter();
-      const options = mythicPlanOptions();
-      const byId = new Map(options.map((plan) => [plan.id, plan]));
-      const required = requiredMythicPlan(ch);
+      const options = selectablePlannerOptions();
+      const byKey = new Map(options.map((plan) => [plan.key, plan]));
       const plans = [];
       const invalidSelected = [];
       const addPlan = (plan) => {
-        if (canUsePlannerPlan(plan, plans, ch)) {
+        if (canUseSelectablePlannerPlan(plan, plans, ch)) {
           plans.push(plan);
           return true;
         }
         return false;
       };
 
-      if (!required || !addPlan(required)) {
-        return { plans: [], error: `No valid required mythic found for ${ch.label}.` };
-      }
-
-      for (const id of plannerSelectedMythics) {
-        if (id === required.id) continue;
-        const plan = byId.get(id);
+      for (const key of plannerSelectedChoices) {
+        const plan = byKey.get(key);
         if (!plan) continue;
         if (!addPlan(plan)) {
-          invalidSelected.push(id);
+          invalidSelected.push(key);
         }
       }
 
-      invalidSelected.forEach((id) => plannerSelectedMythics.delete(id));
+      invalidSelected.forEach((key) => plannerSelectedChoices.delete(key));
+      if (!plannerPlansRepresentExclusive(plans, ch)) {
+        const base = exclusiveBasePlan(ch);
+        if (!canUsePlannerPlan(base, plans, ch)) {
+          return { plans: [], error: `No valid slot 1 base skill found for ${ch.label}.` };
+        }
+        plans.unshift(base);
+      } else {
+        plans.sort((a, b) =>
+          Number(plannerPlanRepresentsExclusive(b, ch)) - Number(plannerPlanRepresentsExclusive(a, ch))
+        );
+      }
       return {
         plans,
-        error: invalidSelected.length ? "Some impossible mythics were removed." : "",
+        error: invalidSelected.length ? "Some impossible planner picks were removed." : "",
       };
     }
 
     function renderPlannerMythics() {
       if (!plannerMythicsEl) return;
       const ch = currentCharacter();
-      const currentPlans = buildPlannerPlan().plans;
-      const required = requiredMythicPlan(ch);
-      plannerMythicsEl.innerHTML = mythicPlanOptions()
-        .filter((plan) => {
-          if (!plan.components.every((component) => skillOwnedByCharacter(component.skill, ch.id))) {
-            return false;
-          }
-          if (plan.id === required?.id) return true;
-          if (plannerSelectedMythics.has(plan.id)) return true;
-          return canUsePlannerPlan(plan, currentPlans, ch);
-        })
-        .map((plan) => {
-          const requiredPlan = plan.id === required?.id;
-          const selected = requiredPlan || plannerSelectedMythics.has(plan.id);
-          return `
-            <button type="button" class="planner-mythic${selected ? " is-selected" : ""}${requiredPlan ? " is-required" : ""}" data-planner-mythic="${escapeHtml(plan.id)}"${requiredPlan ? " disabled title=\"Required character mythic\"" : ""}>
-              ${iconMarkup("mythic", plan.id, 34, plan.label)}
-              <span class="tag">${escapeHtml(plan.label)}${requiredPlan ? " · required" : ""}</span>
-            </button>
-          `;
-        })
-        .join("");
+      const selectedPlans = buildPlannerPlan().plans.filter((plan) => plan.type !== "skill");
+      const optionHtml = (title, plans) => {
+        const buttons = plans
+          .filter((plan) => {
+            if (!plannerPlanSkillIds(plan).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
+              return false;
+            }
+            if (plannerSelectedChoices.has(plan.key)) return true;
+            return canUseSelectablePlannerPlan(plan, selectedPlans, ch);
+          })
+          .map((plan) => {
+            const selected = plannerSelectedChoices.has(plan.key);
+            const kind = plan.type === "evo" ? "EVO" : "Mythic";
+            return `
+              <button type="button" class="planner-mythic is-${escapeHtml(plan.type)}${selected ? " is-selected" : ""}" data-planner-mythic="${escapeHtml(plan.key)}">
+                ${iconMarkup(plan.type, plan.id, 34, plan.label)}
+                <span class="tag">${escapeHtml(kind)}</span>
+                <span class="tag">${escapeHtml(plan.label)}</span>
+              </button>
+            `;
+          })
+          .join("");
+        return buttons ? `<div class="planner-choice-section">${escapeHtml(title)}</div>${buttons}` : "";
+      };
+      plannerMythicsEl.innerHTML = [
+        optionHtml("EVO choices", evoPlanOptions()),
+        optionHtml("Mythic choices", mythicPlanOptions()),
+      ].join("");
     }
 
     function renderPlannerResult() {
       if (!plannerResultEl) return;
       if (!plannerGeneratedSlots.length) {
-        plannerResultEl.innerHTML = '<p class="community-empty">Pick mythics to extend the required character mythic.</p>';
+        plannerResultEl.innerHTML = '<p class="community-empty">Pick EVOs or mythics, or apply the base character skill only.</p>';
         return;
       }
       const usedPassives = plannerUsedPassives(plannerGeneratedSlots);
       const finalHtml = plannerGeneratedSlots
         .map(
-          (slot, i) =>
-            `<span class="best-build-slot"><span class="tag mono">#${i + 1}</span>${iconMarkup("mythic", slot.id, 42, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span><span class="best-build-passives">${slot.components
-              .map((component) => iconMarkup("passive", component.passive, 24, passiveLabel(component.passive)))
-              .join("")}</span></span>`
+          (slot, i) => {
+            const type = slot.type || "mythic";
+            const passiveHtml = plannerPlanPassives(slot)
+              .map((passive) => iconMarkup("passive", passive, 24, passiveLabel(passive)))
+              .join("");
+            return `<span class="best-build-slot"><span class="tag mono">#${i + 1}</span>${iconMarkup(type, slot.id, 42, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span>${passiveHtml ? `<span class="best-build-passives">${passiveHtml}</span>` : ""}</span>`;
+          }
         )
         .join("");
       const recipeHtml = plannerGeneratedSlots
         .map((slot) => {
+          if (slot.type === "skill") {
+            return `<div class="fusion row-icon">${iconMarkup("skill", slot.skill, 30, skillLabel(slot.skill))}<span class="tag">Base skill kept in slot 1</span></div>`;
+          }
+          if (slot.type === "evo") {
+            return `<div class="fusion row-icon">${iconMarkup("skill", slot.skill, 30, skillLabel(slot.skill))}${iconMarkup("passive", slot.passive, 24, passiveLabel(slot.passive))}<span class="slot-arrow">→</span>${iconMarkup("evo", slot.id, 32, slot.label)}<span class="tag">EVO</span><span class="tag">${escapeHtml(slot.label)}</span></div>`;
+          }
           const [a, b] = slot.components;
           const la = evoLabelById(a.evo);
           const lb = evoLabelById(b.evo);
-          return `<div class="fusion myth row-icon">${iconMarkup("skill", a.skill, 30, skillLabel(a.skill))}${iconMarkup("passive", a.passive, 24, passiveLabel(a.passive))}<span class="slot-arrow">→</span>${iconMarkup("evo", a.evo, 32, la)}<span class="slot-arrow">+</span>${iconMarkup("skill", b.skill, 30, skillLabel(b.skill))}${iconMarkup("passive", b.passive, 24, passiveLabel(b.passive))}<span class="slot-arrow">→</span>${iconMarkup("evo", b.evo, 32, lb)}<span class="slot-arrow">→</span>${iconMarkup("mythic", slot.id, 34, slot.label)}<span class="tag">${escapeHtml(slot.label)}</span></div>`;
+          return `<div class="fusion myth row-icon">${iconMarkup("skill", a.skill, 30, skillLabel(a.skill))}${iconMarkup("passive", a.passive, 24, passiveLabel(a.passive))}<span class="slot-arrow">→</span>${iconMarkup("evo", a.evo, 32, la)}<span class="slot-arrow">+</span>${iconMarkup("skill", b.skill, 30, skillLabel(b.skill))}${iconMarkup("passive", b.passive, 24, passiveLabel(b.passive))}<span class="slot-arrow">→</span>${iconMarkup("evo", b.evo, 32, lb)}<span class="slot-arrow">→</span>${iconMarkup("mythic", slot.id, 34, slot.label)}<span class="tag">Mythic</span><span class="tag">${escapeHtml(slot.label)}</span></div>`;
         })
         .join("");
       plannerResultEl.innerHTML = `
@@ -3816,7 +3915,7 @@
 
     function bindPlanner() {
       plannerClearEl?.addEventListener("click", () => {
-        plannerSelectedMythics.clear();
+        plannerSelectedChoices.clear();
         generatePlannerBuild();
         renderPlanner();
         showPassiveHint("Planner picks cleared.");
@@ -3825,11 +3924,67 @@
         const btn = ev.target.closest("[data-planner-mythic]");
         if (!btn) return;
         const id = btn.dataset.plannerMythic;
-        if (plannerSelectedMythics.has(id)) plannerSelectedMythics.delete(id);
-        else plannerSelectedMythics.add(id);
+        if (plannerSelectedChoices.has(id)) plannerSelectedChoices.delete(id);
+        else plannerSelectedChoices.add(id);
         generatePlannerBuild();
       });
       renderPlanner();
+    }
+
+    function buildSlotKey(slot) {
+      return `${slot.type || "mythic"}:${slot.id}`;
+    }
+
+    function buildLevelForSlots(finalSlots) {
+      let total = bestBuildPassiveOrder(finalSlots).length;
+      for (const slot of finalSlots) {
+        if (slot.type === "skill") {
+          total += slot.skillStars || 1;
+        } else if (slot.type === "evo") {
+          total += SKILL_STAR_EVO_MIN + 1;
+        } else {
+          total += slot.components.length * (SKILL_STAR_EVO_MIN + 1) + 1;
+        }
+      }
+      return total;
+    }
+
+    function canUseBestBuildSlot(slot, currentSlots, ch, mode, maxLevel) {
+      if (!slot || currentSlots.some((existing) => buildSlotKey(existing) === buildSlotKey(slot))) {
+        return false;
+      }
+      if (currentSlots.length + 1 > slotCount(mode)) return false;
+      if (!plannerPlanSkillIds(slot).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
+        return false;
+      }
+
+      const passives = new Set(plannerUsedPassives(currentSlots));
+      for (const passive of plannerPlanPassives(slot)) {
+        if (passives.has(passive)) return false;
+        passives.add(passive);
+      }
+      if (passives.size > slotCount(mode)) return false;
+
+      if (modeUsesUniqueSkills(mode)) {
+        const usedSkills = plannerUsedSkills(currentSlots);
+        for (const skill of plannerPlanSkillIds(slot)) {
+          if (usedSkills.includes(skill)) return false;
+        }
+      }
+
+      if (maxLevel && buildLevelForSlots([...currentSlots, slot]) > maxLevel) return false;
+      return true;
+    }
+
+    function selectBestBuildForCap(candidateSlots, ch, mode) {
+      const maxLevel = modeConfig(mode).maxLevel || 0;
+      const selected = [];
+      for (const slot of candidateSlots) {
+        if (canUseBestBuildSlot(slot, selected, ch, mode, maxLevel)) {
+          selected.push(slot);
+        }
+      }
+      return selected;
     }
 
     function renderBestBuilds() {
@@ -4009,14 +4164,17 @@
       const ch = currentCharacter();
       const mode = modeEl.value;
       const plan = buildPlans[ch.id] ?? buildPlans.nox;
-      const finalSlots = plan[mode] ?? plan.stage;
+      const candidateSlots = plan[mode] ?? plan.stage;
+      const finalSlots = selectBestBuildForCap(candidateSlots, ch, mode);
       const mythicCount = finalSlots.filter((slot) => slot.type !== "evo").length;
       const evoCount = finalSlots.length - mythicCount;
       const target = `${mythicCount} mythic${mythicCount > 1 ? "s" : ""}${evoCount ? ` + ${evoCount} EVO` : ""}`;
       const maxPassives = slotCount(mode);
+      const maxLevel = modeConfig(mode).maxLevel;
+      const buildLevel = buildLevelForSlots(finalSlots);
 
       if (bestBuildTitleEl) {
-        bestBuildTitleEl.textContent = `Best theoretical build — ${ch.label} ${modeLabel(mode)}`;
+        bestBuildTitleEl.textContent = `Best theoretical build — ${ch.label} ${modeLabel(mode)} / max level ${maxLevel}`;
       }
 
       const passiveIcons = (slot) => {
@@ -4051,6 +4209,7 @@
 
       bestBuildShuAbyssEl.innerHTML = `
         <button type="button" class="best-build-apply" id="applyBestBuild">Apply this build</button>
+        <p class="hint">Constraint-based ${escapeHtml(target)} · build level ${buildLevel}/${maxLevel} · passives ${usedPassives.length}/${maxPassives}</p>
         <div class="best-build-final">${finalHtml}</div>
         <div class="best-build-recipes">${recipeHtml}</div>
       `;
@@ -4129,7 +4288,7 @@
       focusField = "passive";
       communityModeFilter = modeEl.value;
       communityTargetFilter = null;
-      plannerSelectedMythics.clear();
+      plannerSelectedChoices.clear();
       plannerGeneratedSlots = [];
       resetBuildSlots();
       renderSlots();
@@ -4143,7 +4302,7 @@
       focusPassiveSlot = 0;
       focusField = "passive";
       communityTargetFilter = null;
-      plannerSelectedMythics.clear();
+      plannerSelectedChoices.clear();
       plannerGeneratedSlots = [];
       resetBuildSlots();
       renderSlots();
@@ -4158,7 +4317,7 @@
       focusSkillSlot = 1;
       focusPassiveSlot = 0;
       focusField = "passive";
-      plannerSelectedMythics.clear();
+      plannerSelectedChoices.clear();
       plannerGeneratedSlots = [];
       resetBuildSlots();
       renderSlots();
