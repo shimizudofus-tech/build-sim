@@ -1414,10 +1414,6 @@
 
         <section class="planner-builds" aria-label="Quick build planner">
           <h2>Quick build planner</h2>
-          <p class="hint">Pick wanted EVOs and mythics. Planner choices auto-apply and replace the current build; slot 1 keeps the character base skill unless you choose its EVO or a mythic containing it. Impossible choices disappear automatically.</p>
-          <div class="planner-controls">
-            <button type="button" class="secondary" id="plannerClear">Clear picks</button>
-          </div>
           <div id="plannerMythics" class="planner-mythics"></div>
           <div id="plannerResult" class="planner-result"></div>
         </section>
@@ -1897,7 +1893,6 @@
     const mythicOffersTopEl = document.getElementById("mythicOffersTop");
     const bestBuildTitleEl = document.getElementById("bestBuildTitle");
     const bestBuildShuAbyssEl = document.getElementById("bestBuildShuAbyss");
-    const plannerClearEl = document.getElementById("plannerClear");
     const plannerMythicsEl = document.getElementById("plannerMythics");
     const plannerResultEl = document.getElementById("plannerResult");
     const builderCommunityBuildNameEl = document.getElementById("builderCommunityBuildName");
@@ -4255,11 +4250,6 @@
     }
 
     function bindPlanner() {
-      plannerClearEl?.addEventListener("click", () => {
-        plannerSelectedChoices.clear();
-        generatePlannerBuild();
-        applyPlannerBuild("Planner picks cleared. Base skill applied.");
-      });
       plannerMythicsEl?.addEventListener("click", (ev) => {
         const btn = ev.target.closest("[data-planner-mythic]");
         if (!btn) return;
