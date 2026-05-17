@@ -700,7 +700,9 @@
       align-items: flex-end;
       margin: 0.65rem 0 0.75rem;
     }
-    .community-form input {
+    .community-form input,
+    .community-form select,
+    .community-controls select {
       min-width: 10rem;
       flex: 1 1 12rem;
       padding: 0.48rem 0.6rem;
@@ -711,9 +713,9 @@
     }
     .community-form .community-target-field {
       display: flex;
-      flex: 1 1 10rem;
+      flex: 0 1 8.5rem;
       flex-direction: column;
-      min-width: 10rem;
+      min-width: 7rem;
     }
     .community-form .community-target-field label {
       margin-bottom: 0.2rem;
@@ -726,26 +728,34 @@
       flex: 0 1 8rem;
       min-width: 7rem;
     }
-    .community-filter-bar {
+    .community-form .community-video-input {
+      flex: 1 1 13rem;
+      min-width: 11rem;
+    }
+    .community-controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.35rem;
+      gap: 0.5rem;
+      align-items: flex-end;
       margin: 0.65rem 0 0.75rem;
-      max-height: 8.5rem;
-      overflow: auto;
     }
-    .community-filter-bar button {
-      padding: 0.32rem 0.55rem;
-      border-radius: 999px;
-      background: var(--panel);
-      border-color: var(--border);
+    .community-control {
+      display: flex;
+      flex: 0 1 12rem;
+      flex-direction: column;
+      gap: 0.2rem;
+      min-width: 9rem;
+    }
+    .community-control label {
       color: var(--muted);
       font-size: 0.78rem;
     }
-    .community-filter-bar button.is-active {
-      border-color: var(--good);
-      background: rgba(62, 207, 142, 0.16);
-      color: #d8ffe8;
+    .community-control select {
+      min-width: 0;
+      width: 100%;
+    }
+    .community-filter-bar {
+      display: contents;
     }
     .community-form button,
     .community-build-card button {
@@ -823,6 +833,14 @@
       font-size: 0.82rem;
       font-weight: 750;
       background: rgba(62, 207, 142, 0.1);
+    }
+    .community-video-link {
+      color: #bdf6d5;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .community-video-link:hover {
+      text-decoration: underline;
     }
     .visually-hidden {
       position: absolute;
@@ -1145,6 +1163,7 @@
             <input id="builderCommunityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
           </div>
           <input id="builderCommunityPower" class="community-power-input" type="number" min="0" step="1" placeholder="Power (optional)" />
+          <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
           <button type="button" id="builderSaveCommunityBuild">Publish current build</button>
         </div>
         <p id="passiveHint" class="hint" aria-live="polite" style="margin:0"></p>
@@ -1217,9 +1236,20 @@
           <input id="communityTargetValue" type="number" min="1" max="150" step="1" placeholder="1-150" />
         </div>
         <input id="communityPower" class="community-power-input" type="number" min="0" step="1" placeholder="Power (optional)" />
+        <input id="communityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
         <button type="button" id="saveCommunityBuild">Publish current build</button>
       </div>
-      <div id="communityFilters" class="community-filter-bar" aria-label="Community progression filters"></div>
+      <div class="community-controls" aria-label="Community filters">
+        <div class="community-control">
+          <label for="communityMode">Community mode</label>
+          <select id="communityMode" aria-label="Community mode">
+            <option value="stage">Stage</option>
+            <option value="boss">Boss</option>
+            <option value="abyss">Abyss</option>
+          </select>
+        </div>
+        <div id="communityFilters" class="community-filter-bar" aria-label="Community progression filters"></div>
+      </div>
       <div id="communityBuilds" class="community-list"></div>
     </section>
   </main>
@@ -1631,12 +1661,15 @@
     const builderCommunityTargetLabelEl = document.getElementById("builderCommunityTargetLabel");
     const builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
     const builderCommunityPowerEl = document.getElementById("builderCommunityPower");
+    const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
     const communityBuildNameEl = document.getElementById("communityBuildName");
     const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
     const communityTargetLabelEl = document.getElementById("communityTargetLabel");
     const communityTargetValueEl = document.getElementById("communityTargetValue");
     const communityPowerEl = document.getElementById("communityPower");
+    const communityVideoUrlEl = document.getElementById("communityVideoUrl");
+    const communityModeEl = document.getElementById("communityMode");
     const saveCommunityBuildEl = document.getElementById("saveCommunityBuild");
     const communityFiltersEl = document.getElementById("communityFilters");
     const communityBuildsEl = document.getElementById("communityBuilds");
@@ -1671,6 +1704,7 @@
     let communityBuildCache = null;
     let communityFetchInFlight = null;
     let communityTargetFilter = null;
+    let communityModeFilter = modeEl?.value || "stage";
     const plannerSelectedMythics = new Set();
     let plannerGeneratedSlots = [];
 
@@ -1887,6 +1921,30 @@
       if (modeId === "abyss") return `Cleared floor ${formatNumber(value)}`;
       if (modeId === "boss") return `Boss damage ${formatNumber(value)}`;
       return `Cleared level ${formatNumber(value)}`;
+    }
+
+    function sanitizeVideoUrlInput(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      const candidate = /^[a-z][a-z\d+\-.]*:/i.test(raw) ? raw : `https://${raw}`;
+      try {
+        const url = new URL(candidate);
+        if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+        url.hash = "";
+        return url.href.slice(0, 240);
+      } catch {
+        return null;
+      }
+    }
+
+    function communityBrowsingMode() {
+      return MODE_CONFIG[communityModeFilter] ? communityModeFilter : modeEl?.value || "stage";
+    }
+
+    function syncCommunityModeControl() {
+      if (communityModeEl && communityModeEl.value !== communityBrowsingMode()) {
+        communityModeEl.value = communityBrowsingMode();
+      }
     }
 
     function emptySlot() {
@@ -2819,6 +2877,7 @@
         targetValue: metadata.targetValue ?? null,
         targetLabel: metadata.targetLabel || "",
         power: metadata.power ?? null,
+        videoUrl: metadata.videoUrl || "",
         slots: slots.map((s) => ({ ...s })),
         evoPool: evoPool.map((e) => ({ ...e })),
         consumedEvo: Array.from(consumedEvo),
@@ -2838,6 +2897,8 @@
       if (!state) return;
       if (characterEl && state.character) characterEl.value = state.character;
       if (modeEl && MODE_CONFIG[state.mode]) modeEl.value = state.mode;
+      communityModeFilter = modeEl?.value || communityModeFilter;
+      communityTargetFilter = null;
       slots = (state.slots || []).map((s) => ({ ...emptySlot(), ...s }));
       evoPool = (state.evoPool || []).map((e) => ({ ...e }));
       consumedEvo = new Set(state.consumedEvo || []);
@@ -2895,7 +2956,7 @@
       return Number.isFinite(value) && Number.isInteger(value) ? value : null;
     }
 
-    function readCommunityMetadata(targetInputEl, powerInputEl) {
+    function readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl) {
       const mode = modeEl.value;
       const cfg = communityTargetConfig(mode);
       const targetValue = readIntegerInput(targetInputEl);
@@ -2924,10 +2985,17 @@
         powerInputEl.focus();
         return null;
       }
+      const videoUrl = sanitizeVideoUrlInput(videoInputEl?.value);
+      if (videoUrl === null) {
+        showPassiveHint("Video link must be a valid http or https URL.");
+        videoInputEl?.focus();
+        return null;
+      }
       return {
         targetValue,
         targetLabel: communityTargetLabel(mode, targetValue),
         power,
+        videoUrl,
       };
     }
 
@@ -2949,17 +3017,22 @@
       return Number.isFinite(number) ? number : null;
     }
 
+    function buildVideoUrl(build) {
+      return sanitizeVideoUrlInput(build?.videoUrl ?? build?.state?.videoUrl) || "";
+    }
+
     async function publishCurrentCommunityBuild(
       nameEl = communityBuildNameEl,
       authorEl = communityBuildAuthorEl,
       targetInputEl = communityTargetValueEl,
-      powerInputEl = communityPowerEl
+      powerInputEl = communityPowerEl,
+      videoInputEl = communityVideoUrlEl
     ) {
       if (!currentBuildHasContent()) {
         showPassiveHint("Create a build before publishing it.");
         return;
       }
-      const metadata = readCommunityMetadata(targetInputEl, powerInputEl);
+      const metadata = readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl);
       if (!metadata) return;
       const ch = currentCharacter();
       const mode = modeEl.value;
@@ -2978,6 +3051,7 @@
         targetValue: metadata.targetValue,
         targetLabel: metadata.targetLabel,
         power: metadata.power,
+        videoUrl: metadata.videoUrl,
         state,
       };
       const builds = loadCommunityBuilds();
@@ -2991,6 +3065,7 @@
         targetValue: metadata.targetValue,
         targetLabel: metadata.targetLabel,
         power: metadata.power,
+        videoUrl: metadata.videoUrl,
         votes: 0,
         createdAt: Date.now(),
         state,
@@ -3008,6 +3083,7 @@
           if (nameEl) nameEl.value = "";
           if (targetInputEl) targetInputEl.value = "";
           if (powerInputEl) powerInputEl.value = "";
+          if (videoInputEl) videoInputEl.value = "";
           showPassiveHint("Build published online. Vote sorting updated.");
           renderCommunityBuilds();
           return;
@@ -3022,6 +3098,7 @@
       if (nameEl) nameEl.value = "";
       if (targetInputEl) targetInputEl.value = "";
       if (powerInputEl) powerInputEl.value = "";
+      if (videoInputEl) videoInputEl.value = "";
       showPassiveHint("Build published locally. Vote sorting updated.");
       renderCommunityBuilds();
     }
@@ -3079,20 +3156,32 @@
 
     function renderCommunityFilters() {
       if (!communityFiltersEl) return;
-      const mode = modeEl.value;
+      syncCommunityModeControl();
+      const mode = communityBrowsingMode();
       const values = communityFilterValues(mode);
       if (!values.length) {
         communityTargetFilter = null;
         communityFiltersEl.innerHTML = '<span class="tag">Boss builds are sorted by damage, then votes.</span>';
         return;
       }
-      communityFiltersEl.innerHTML = [
-        `<button type="button" data-community-filter="" class="${communityTargetFilter === null ? "is-active" : ""}">All</button>`,
-        ...values.map(
-          (value) =>
-            `<button type="button" data-community-filter="${value}" class="${communityTargetFilter === value ? "is-active" : ""}">${value}</button>`
-        ),
-      ].join("");
+      const cfg = communityTargetConfig(mode);
+      if (communityTargetFilter !== null && !values.includes(communityTargetFilter)) {
+        communityTargetFilter = null;
+      }
+      communityFiltersEl.innerHTML = `
+        <div class="community-control">
+          <label for="communityProgressFilter">${escapeHtml(cfg.label)}</label>
+          <select id="communityProgressFilter" data-community-filter aria-label="${escapeHtml(cfg.label)} filter">
+            <option value="">All</option>
+            ${values
+              .map(
+                (value) =>
+                  `<option value="${value}"${communityTargetFilter === value ? " selected" : ""}>${formatNumber(value)}</option>`
+              )
+              .join("")}
+          </select>
+        </div>
+      `;
     }
 
     function renderCommunityBuilds() {
@@ -3105,7 +3194,7 @@
         return;
       }
       const ch = currentCharacter();
-      const mode = modeEl.value;
+      const mode = communityBrowsingMode();
       const builds = loadCommunityBuilds()
         .filter((b) => b.character === ch.id && b.mode === mode)
         .filter((b) => {
@@ -3139,11 +3228,15 @@
           : "";
         const targetLabel = buildTargetLabel(b);
         const power = buildPower(b);
+        const videoUrl = buildVideoUrl(b);
         const progression = [
           targetLabel ? escapeHtml(targetLabel) : "",
           power !== null ? `Power ${escapeHtml(formatNumber(power))}` : "",
         ].filter(Boolean);
         const progressionMeta = progression.length ? ` · ${progression.join(" · ")}` : "";
+        const videoLink = videoUrl
+          ? `<a class="community-video-link" href="${escapeHtml(videoUrl)}" target="_blank" rel="noopener noreferrer">Video</a>`
+          : "";
         card.innerHTML = `
           <div class="community-build-head">
             <div>
@@ -3156,6 +3249,7 @@
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}">Vote</button>
             <button type="button" data-community-action="apply" data-build-id="${escapeHtml(b.id)}">Apply</button>
+            ${videoLink}
             ${deleteButton}
           </div>
         `;
@@ -3169,7 +3263,8 @@
           builderCommunityBuildNameEl,
           builderCommunityBuildAuthorEl,
           builderCommunityTargetValueEl,
-          builderCommunityPowerEl
+          builderCommunityPowerEl,
+          builderCommunityVideoUrlEl
         )
       );
       saveCommunityBuildEl?.addEventListener("click", () =>
@@ -3177,14 +3272,20 @@
           communityBuildNameEl,
           communityBuildAuthorEl,
           communityTargetValueEl,
-          communityPowerEl
+          communityPowerEl,
+          communityVideoUrlEl
         )
       );
-      communityFiltersEl?.addEventListener("click", (ev) => {
-        const btn = ev.target.closest("[data-community-filter]");
-        if (!btn) return;
-        communityTargetFilter = btn.dataset.communityFilter
-          ? Number(btn.dataset.communityFilter)
+      communityModeEl?.addEventListener("change", () => {
+        communityModeFilter = communityModeEl.value;
+        communityTargetFilter = null;
+        renderCommunityBuilds();
+      });
+      communityFiltersEl?.addEventListener("change", (ev) => {
+        const select = ev.target.closest("[data-community-filter]");
+        if (!select) return;
+        communityTargetFilter = select.value
+          ? Number(select.value)
           : null;
         renderCommunityBuilds();
       });
@@ -3687,6 +3788,7 @@
       focusSkillSlot = 1;
       focusPassiveSlot = 0;
       focusField = "passive";
+      communityModeFilter = modeEl.value;
       communityTargetFilter = null;
       plannerSelectedMythics.clear();
       plannerGeneratedSlots = [];

@@ -88,6 +88,20 @@ function sanitizeNumber(value) {
   return Math.floor(number);
 }
 
+function sanitizeUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const candidate = /^[a-z][a-z\d+\-.]*:/i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    url.hash = "";
+    return url.href.slice(0, 240);
+  } catch {
+    return "";
+  }
+}
+
 async function handleApi(req, res, url) {
   if (url.pathname === "/api/visits" && req.method === "POST") {
     const db = readDb();
@@ -114,6 +128,7 @@ async function handleApi(req, res, url) {
       targetValue: sanitizeNumber(body.targetValue),
       targetLabel: sanitizeText(body.targetLabel, 64),
       power: sanitizeNumber(body.power),
+      videoUrl: sanitizeUrl(body.videoUrl),
       votes: 0,
       createdAt: Date.now(),
       state: body.state || {},
