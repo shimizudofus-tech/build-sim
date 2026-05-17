@@ -3892,19 +3892,20 @@
 
     function canUsePlannerPlan(plan, currentPlans, ch) {
       if (!plan) return false;
-      if (currentPlans.some((p) => p.key === plan.key)) return false;
-      if (plannerPlanSlotCount(currentPlans) + plannerPlanSlotCost(plan) > slotCount()) return false;
+      const effectivePlans = plannerPlansAfterResourceConsumption(plan, currentPlans);
+      if (effectivePlans.some((p) => p.key === plan.key)) return false;
+      if (plannerPlanSlotCount(effectivePlans) + plannerPlanSlotCost(plan) > slotCount()) return false;
       if (!plannerPlanSkillIds(plan).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
         return false;
       }
-      const passives = new Set(plannerUsedPassives(currentPlans));
+      const passives = new Set(plannerUsedPassives(effectivePlans));
       for (const passive of plannerPlanPassives(plan)) {
         if (passives.has(passive)) return false;
         passives.add(passive);
       }
       if (passives.size > slotCount()) return false;
       if (modeUsesUniqueSkills()) {
-        const usedSkills = plannerUsedSkills(currentPlans);
+        const usedSkills = plannerUsedSkills(effectivePlans);
         for (const skill of plannerPlanSkillIds(plan)) {
           if (usedSkills.includes(skill)) return false;
         }
@@ -3914,7 +3915,7 @@
 
     function canUseSelectablePlannerPlan(plan, currentPlans, ch) {
       if (!canUsePlannerPlan(plan, currentPlans, ch)) return false;
-      const nextPlans = [...currentPlans, plan];
+      const nextPlans = [...plannerPlansAfterResourceConsumption(plan, currentPlans), plan];
       const needsBase = !plannerPlansRepresentExclusive(nextPlans, ch);
       return plannerPlanSlotCount(nextPlans) + (needsBase ? 1 : 0) <= slotCount();
     }
@@ -3923,6 +3924,31 @@
       if (plan.type === "evo") return [plan.id].filter(Boolean);
       if (plan.type === "mythic") return plan.components.map((component) => component.evo);
       return [];
+    }
+
+    function plannerMythicComponentEvos(plan) {
+      return new Set(plan?.type === "mythic" ? plannerPlanEvoIds(plan) : []);
+    }
+
+    function plannerPlansAfterResourceConsumption(plan, currentPlans) {
+      const componentEvos = plannerMythicComponentEvos(plan);
+      if (!componentEvos.size) return currentPlans;
+
+      const consumedPassives = new Set();
+      const consumedSkills = new Set();
+      for (const existing of currentPlans) {
+        if (existing.type !== "evo" || !componentEvos.has(existing.id)) continue;
+        if (existing.passive) consumedPassives.add(existing.passive);
+        if (existing.skill) consumedSkills.add(existing.skill);
+      }
+      if (!consumedPassives.size && !consumedSkills.size) return currentPlans;
+
+      return currentPlans.filter((existing) => {
+        if (existing.type === "evo" && componentEvos.has(existing.id)) return false;
+        if (existing.type === "passive" && consumedPassives.has(existing.passive)) return false;
+        if (existing.type === "skill" && consumedSkills.has(existing.skill)) return false;
+        return true;
+      });
     }
 
     function plannerEvoCanPairWithSelected(evoId, selectedEvos) {
@@ -4041,6 +4067,14 @@
       const invalidSelected = [];
       const addPlan = (plan) => {
         if (canUseSelectablePlannerPlan(plan, [...constraints, ...plans], ch)) {
+          const consumedEvos = plannerMythicComponentEvos(plan);
+          if (consumedEvos.size) {
+            for (let i = plans.length - 1; i >= 0; i--) {
+              if (plans[i].type === "evo" && consumedEvos.has(plans[i].id)) {
+                plans.splice(i, 1);
+              }
+            }
+          }
           plans.push(plan);
           return true;
         }
@@ -4189,6 +4223,31 @@
       showPassiveHint(error ? `${error} Build updated.` : message);
     }
 
+    function runPlannerSanityChecks() {
+      const nox = CHARACTERS.find((character) => character.id === "nox") || CHARACTERS[0];
+      const batEvo = evoPlanOptions().find((plan) => plan.id === "bat-purple");
+      const batMythic = mythicPlanOptions().find((plan) => plan.id === "bat-red");
+      if (!batEvo || !batMythic) return;
+
+      const currentBatPassive = {
+        type: "passive",
+        key: "sanity-current-passive:damage",
+        id: "damage",
+        label: passiveLabel("damage"),
+        passive: "damage",
+        components: [],
+      };
+      const selectedEvoCanUpgrade = canUseSelectablePlannerPlan(batMythic, [batEvo], nox);
+      const currentEvoCanUpgrade = canUseSelectablePlannerPlan(
+        batMythic,
+        [batEvo, currentBatPassive],
+        nox
+      );
+      if (!selectedEvoCanUpgrade || !currentEvoCanUpgrade) {
+        console.warn("Planner sanity check failed: Bat EVO should keep Bat red available.");
+      }
+    }
+
     function renderPlanner() {
       generatePlannerBuild();
       renderPlannerMythics();
@@ -4210,6 +4269,7 @@
         generatePlannerBuild();
         applyPlannerBuild();
       });
+      runPlannerSanityChecks();
       renderPlanner();
     }
 
