@@ -1091,6 +1091,7 @@
         <label for="mode">Game mode</label>
         <select id="mode" aria-label="Game mode">
           <option value="stage">Stage (5 slots)</option>
+          <option value="boss">Boss (5 slots)</option>
           <option value="abyss">Abyss (6 slots)</option>
         </select>
       </div>
@@ -1749,8 +1750,26 @@
         `Page: <code>${escapeHtml(location.href)}</code>`;
     }
 
-    function slotCount() {
-      return modeEl.value === "stage" ? 5 : 6;
+    const MODE_CONFIG = {
+      stage: { label: "Stage", slots: 5, uniqueSkills: true, maxLevel: 40 },
+      boss: { label: "Boss", slots: 5, uniqueSkills: true, maxLevel: 40 },
+      abyss: { label: "Abyss", slots: 6, uniqueSkills: false, maxLevel: 48 },
+    };
+
+    function modeConfig(modeId = modeEl?.value) {
+      return MODE_CONFIG[modeId] || MODE_CONFIG.stage;
+    }
+
+    function modeLabel(modeId = modeEl?.value) {
+      return modeConfig(modeId).label;
+    }
+
+    function modeUsesUniqueSkills(modeId = modeEl?.value) {
+      return modeConfig(modeId).uniqueSkills;
+    }
+
+    function slotCount(modeId = modeEl?.value) {
+      return modeConfig(modeId).slots;
     }
 
     function emptySlot() {
@@ -1959,12 +1978,12 @@
       if (passives.length !== new Set(passives).size) {
         errs.push("Each passive must be unique (1 per slot, no duplicates).");
       }
-      if (modeEl.value === "stage") {
+      if (modeUsesUniqueSkills()) {
         const fromSlots = slots.map((s) => s.skill).filter(Boolean);
         const fromEvos = evoPool.map((e) => e.skillId).filter(Boolean);
         const all = [...fromSlots, ...fromEvos];
         if (all.length !== new Set(all).size) {
-          errs.push("Stage: each base skill can only be used once (slot, EVO, or mythic).");
+          errs.push(`${modeLabel()}: each base skill can only be used once (slot, EVO, or mythic).`);
         }
       }
       if (!slot0SatisfiesCharacter(ch)) {
@@ -2086,7 +2105,8 @@
 
     function renderBuildLevel() {
       if (!buildLevelCounterEl) return;
-      buildLevelCounterEl.textContent = `Build level: ${currentBuildLevel()}`;
+      const maxLevel = modeConfig().maxLevel;
+      buildLevelCounterEl.textContent = `Build level: ${currentBuildLevel()}${maxLevel ? `/${maxLevel}` : ""}`;
     }
 
     function pruneInvalidEvos() {
@@ -2167,14 +2187,14 @@
       return slots.some((sl, j) => j !== slotIndex && sl.skill === skillId);
     }
 
-    /** Stage : sort de base déjà sur le board, en EVO ou dans une fusion mythique. */
+    /** Unique-skill modes: base skill already on the board, in EVO, or in a mythic fusion. */
     function skillBaseUsedInBuild(skillId, exceptSlotIndex = -1) {
       if (slots.some((sl, j) => j !== exceptSlotIndex && sl.skill === skillId)) return true;
       return evoPool.some((e) => e.skillId === skillId);
     }
 
-    function skillHiddenInStagePicker(skillId, focusSlot) {
-      if (modeEl.value !== "stage") return false;
+    function skillHiddenInUniqueModePicker(skillId, focusSlot) {
+      if (!modeUsesUniqueSkills()) return false;
       return skillBaseUsedInBuild(skillId, focusSlot);
     }
 
@@ -2182,7 +2202,7 @@
       if (EXCLUSIVE_SKILL_OWNER.has(skillId)) {
         return slots.some((sl, j) => j !== slotIndex && sl.skill === skillId);
       }
-      if (modeEl.value === "stage") return skillBaseUsedInBuild(skillId, slotIndex);
+      if (modeUsesUniqueSkills()) return skillBaseUsedInBuild(skillId, slotIndex);
       return false;
     }
 
@@ -2216,13 +2236,13 @@
       if (!pickerSkillsEl || !pickerPassivesEl) return;
       const ch = currentCharacter();
       pickerSkillsEl.innerHTML = SKILLS.filter(
-        (s) => !skillHiddenInStagePicker(s.id, focusSkillSlot)
+        (s) => !skillHiddenInUniqueModePicker(s.id, focusSkillSlot)
       )
         .map((s) => {
           const locked = !skillOwnedByCharacter(s.id, ch.id);
           const disabled =
             locked ||
-            (modeEl.value !== "stage" &&
+            (!modeUsesUniqueSkills() &&
               EXCLUSIVE_SKILL_OWNER.has(s.id) &&
               skillUsedElsewhere(focusSkillSlot, s.id));
           return pickButton("skill", s.id, s.label, disabled, locked);
@@ -2280,7 +2300,7 @@
         showPassiveHint(
           EXCLUSIVE_SKILL_OWNER.has(skillId)
             ? "This exclusive skill is already in the build."
-            : "This skill is already used (Stage mode)."
+            : `This skill is already used (${modeLabel()} mode).`
         );
         return;
       }
@@ -2697,7 +2717,7 @@
     function applySerializedBuild(state) {
       if (!state) return;
       if (characterEl && state.character) characterEl.value = state.character;
-      if (modeEl && state.mode) modeEl.value = state.mode;
+      if (modeEl && MODE_CONFIG[state.mode]) modeEl.value = state.mode;
       slots = (state.slots || []).map((s) => ({ ...emptySlot(), ...s }));
       evoPool = (state.evoPool || []).map((e) => ({ ...e }));
       consumedEvo = new Set(state.consumedEvo || []);
@@ -2717,7 +2737,7 @@
     }
 
     function communityBuildPreview(state) {
-      const n = state.mode === "abyss" ? 6 : 5;
+      const n = slotCount(state.mode);
       const consumed = new Set(state.consumedEvo || []);
       const html = [];
       for (let i = 0; i < n; i++) {
@@ -2758,7 +2778,7 @@
       const ownerKey = communityOwnerKey();
       const title =
         nameEl?.value.trim() ||
-        `${ch.label} ${mode === "abyss" ? "Abyss" : "Stage"} build`;
+        `${ch.label} ${modeLabel(mode)} build`;
       const author = authorEl?.value.trim() || "Anonymous";
       const payload = {
         title,
@@ -2890,7 +2910,7 @@
           <div class="community-build-head">
             <div>
               <div class="community-build-title">${escapeHtml(b.title)}</div>
-              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(currentCharacter().label)} ${mode === "abyss" ? "Abyss" : "Stage"}</div>
+              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(currentCharacter().label)} ${modeLabel(mode)}</div>
             </div>
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
@@ -2975,7 +2995,7 @@
         passives.add(component.passive);
       }
       if (passives.size > slotCount()) return false;
-      if (modeEl.value === "stage") {
+      if (modeUsesUniqueSkills()) {
         const usedSkills = plannerUsedSkills(currentPlans);
         for (const component of plan.components) {
           if (usedSkills.includes(component.skill)) return false;
@@ -3274,18 +3294,22 @@
       const buildPlans = {
         nox: {
           stage: [M.nox, M.whip, M.prism, M.frogRazor, E.familiar],
+          boss: [M.nox, M.whip, M.prism, M.frogRazor, E.familiar],
           abyss: [M.nox, M.whip, M.prism, M.frogRazor, M.fireThunder, E.familiar],
         },
         vel: {
           stage: [M.vel, M.whip, M.frogRazor, M.buldakFrost, E.cutting],
+          boss: [M.vel, M.whip, M.frogRazor, M.buldakFrost, E.cutting],
           abyss: [M.vel, M.whip, M.frogRazor, M.buldakFrost, M.chronos, E.thunderbolt],
         },
         zen: {
           stage: [M.zen, M.whip, M.blueCrit, M.familiarTempest],
+          boss: [M.zen, M.whip, M.blueCrit, M.familiarTempest],
           abyss: [M.zen, M.whip, M.blueCrit, M.familiarTempest, M.chronos, E.lightning],
         },
         shu: {
           stage: [M.shu, M.whip, M.buldakFrost, E.cutting, E.familiar],
+          boss: [M.shu, M.whip, M.buldakFrost, E.cutting, E.familiar],
           abyss: [M.shu, M.whip, M.buldakFrost, M.frogRazor, M.chronos, E.familiar],
         },
       };
@@ -3296,10 +3320,10 @@
       const mythicCount = finalSlots.filter((slot) => slot.type !== "evo").length;
       const evoCount = finalSlots.length - mythicCount;
       const target = `${mythicCount} mythic${mythicCount > 1 ? "s" : ""}${evoCount ? ` + ${evoCount} EVO` : ""}`;
-      const maxPassives = mode === "abyss" ? 6 : 5;
+      const maxPassives = slotCount(mode);
 
       if (bestBuildTitleEl) {
-        bestBuildTitleEl.textContent = `Best theoretical build — ${ch.label} ${mode === "abyss" ? "Abyss" : "Stage"}`;
+        bestBuildTitleEl.textContent = `Best theoretical build — ${ch.label} ${modeLabel(mode)}`;
       }
 
       const passiveIcons = (slot) => {
