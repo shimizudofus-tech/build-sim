@@ -38,29 +38,55 @@
       gap: 0.45rem;
     }
     .profile-button {
-      width: 44px;
-      height: 44px;
-      padding: 0;
-      border-radius: 13px;
+      min-width: 8.8rem;
+      min-height: 3.25rem;
+      padding: 0.42rem 0.72rem;
+      border-radius: 16px;
       border: 1px solid rgba(110, 168, 254, 0.45);
-      background: rgba(21, 26, 36, 0.92);
+      background: linear-gradient(135deg, rgba(42, 63, 99, 0.96), rgba(21, 26, 36, 0.96));
       overflow: hidden;
       box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.58rem;
+      text-align: left;
     }
     .profile-button img {
-      width: 100%;
-      height: 100%;
+      width: 2.2rem;
+      height: 2.2rem;
       object-fit: cover;
       display: block;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
     }
-    .profile-initial {
+    .profile-initial,
+    .profile-icon {
       display: grid;
       place-items: center;
-      width: 100%;
-      height: 100%;
+      width: 2.2rem;
+      height: 2.2rem;
+      flex: 0 0 auto;
+      border-radius: 999px;
       color: #d7e6ff;
       font-weight: 800;
       background: linear-gradient(135deg, rgba(110, 168, 254, 0.32), rgba(62, 207, 142, 0.22));
+    }
+    .profile-button-copy {
+      display: grid;
+      gap: 0.05rem;
+      line-height: 1.15;
+    }
+    .profile-button-main {
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+    .profile-button-sub {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 600;
     }
     .profile-menu {
       width: min(19rem, calc(100vw - 4.5rem));
@@ -109,6 +135,97 @@
     }
     .profile-file {
       display: none;
+    }
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: rgba(5, 8, 13, 0.72);
+      backdrop-filter: blur(6px);
+    }
+    .auth-modal-backdrop[hidden] {
+      display: none;
+    }
+    .auth-modal {
+      width: min(32rem, 100%);
+      padding: 1.15rem;
+      border: 1px solid rgba(110, 168, 254, 0.4);
+      border-radius: 24px;
+      background:
+        radial-gradient(560px 220px at 20% 0%, rgba(110, 168, 254, 0.22), transparent 70%),
+        linear-gradient(180deg, rgba(27, 34, 48, 0.98), rgba(12, 15, 20, 0.98));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
+    }
+    .auth-modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .auth-modal-title {
+      margin: 0 0 0.22rem;
+      color: var(--text);
+      font-size: 1.34rem;
+      line-height: 1.15;
+    }
+    .auth-modal-copy {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .auth-modal-close {
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.22);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .auth-benefits {
+      display: grid;
+      gap: 0.42rem;
+      margin: 0.85rem 0;
+      padding: 0;
+      list-style: none;
+      color: #dbe4f5;
+      font-size: 0.9rem;
+    }
+    .auth-benefits li {
+      padding: 0.5rem 0.62rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    .auth-modal-actions {
+      display: grid;
+      gap: 0.55rem;
+    }
+    .auth-modal-actions button {
+      width: 100%;
+      min-height: 2.8rem;
+      font-size: 0.95rem;
+    }
+    .auth-discord-button {
+      border-color: rgba(110, 168, 254, 0.72);
+      background: linear-gradient(135deg, rgba(88, 101, 242, 0.44), rgba(42, 63, 99, 0.92));
+    }
+    .auth-provider-note {
+      margin: 0.7rem 0 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-align: center;
+    }
+    @media (max-width: 620px) {
+      .profile-button {
+        min-width: 7.6rem;
+      }
+      .profile-button-sub {
+        display: none;
+      }
     }
     .support-banner {
       text-align: center;
@@ -2032,7 +2149,11 @@
   </svg>
   <aside class="profile-widget" aria-label="Profile">
     <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" title="Profile">
-      <span class="profile-initial">?</span>
+      <span class="profile-icon" aria-hidden="true">ID</span>
+      <span class="profile-button-copy">
+        <span class="profile-button-main">Sign in</span>
+        <span class="profile-button-sub">Community account</span>
+      </span>
     </button>
     <div id="profileMenu" class="profile-menu" hidden>
       <p id="profileName" class="profile-name">Not signed in</p>
@@ -2042,6 +2163,27 @@
       <p id="profileStatus" class="profile-status" aria-live="polite"></p>
     </div>
   </aside>
+  <div id="authModalBackdrop" class="auth-modal-backdrop" hidden aria-hidden="true">
+    <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" aria-describedby="authModalDescription">
+      <div class="auth-modal-head">
+        <div>
+          <h2 id="authModalTitle" class="auth-modal-title">Sign in to use community features</h2>
+          <p id="authModalDescription" class="auth-modal-copy">
+            The build simulator stays fully usable without an account. Sign in only when you want to interact with the community.
+          </p>
+        </div>
+        <button type="button" id="authModalClose" class="auth-modal-close" aria-label="Close sign-in popup">x</button>
+      </div>
+      <ul class="auth-benefits">
+        <li>Publish your current build to the Community tab.</li>
+        <li>Vote for community builds and keep vote sorting fair.</li>
+        <li>Delete your own published builds.</li>
+        <li>Upload a custom avatar for your profile.</li>
+      </ul>
+      <div id="authModalActions" class="auth-modal-actions"></div>
+      <p id="authModalStatus" class="auth-provider-note" aria-live="polite"></p>
+    </section>
+  </div>
   <aside class="support-banner" aria-label="Support">
     <p>
       If this builder helps you a little, feel free to send a small coffee
@@ -2938,6 +3080,10 @@
     const profileActionsEl = document.getElementById("profileActions");
     const profileAvatarInputEl = document.getElementById("profileAvatarInput");
     const profileStatusEl = document.getElementById("profileStatus");
+    const authModalBackdropEl = document.getElementById("authModalBackdrop");
+    const authModalCloseEl = document.getElementById("authModalClose");
+    const authModalActionsEl = document.getElementById("authModalActions");
+    const authModalStatusEl = document.getElementById("authModalStatus");
     const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
@@ -3040,13 +3186,34 @@
       return user?.customAvatarUrl || user?.avatarUrl || "";
     }
 
+    function authProviderButtonsHtml() {
+      return `
+        <button type="button" class="auth-discord-button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>Sign in with Discord${authProviders.discord ? "" : " (not configured)"}</button>
+        <button type="button" data-auth-provider="telegram" disabled>Telegram login pending</button>
+      `;
+    }
+
+    function startAuthProvider(provider) {
+      if (!provider) return;
+      location.href = `/api/auth/login/${provider}`;
+    }
+
     function renderProfile() {
       if (!profileButtonEl || !profileActionsEl) return;
       const avatarUrl = userAvatarUrl();
       const displayName = currentUser?.displayName || "Guest";
-      profileButtonEl.innerHTML = avatarUrl
+      const identityHtml = currentUser && avatarUrl
         ? `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(displayName)} avatar" />`
-        : `<span class="profile-initial">${escapeHtml((displayName || "?").slice(0, 1).toUpperCase())}</span>`;
+        : currentUser
+          ? `<span class="profile-initial">${escapeHtml((displayName || "?").slice(0, 1).toUpperCase())}</span>`
+          : `<span class="profile-icon" aria-hidden="true">ID</span>`;
+      profileButtonEl.innerHTML = `
+        ${identityHtml}
+        <span class="profile-button-copy">
+          <span class="profile-button-main">${escapeHtml(currentUser ? displayName : "Sign in")}</span>
+          <span class="profile-button-sub">${escapeHtml(currentUser ? "Profile" : "Community account")}</span>
+        </span>
+      `;
       profileButtonEl.title = currentUser ? `Signed in as ${displayName}` : "Sign in";
       if (profileNameEl) profileNameEl.textContent = currentUser ? displayName : "Not signed in";
       if (profileMetaEl) {
@@ -3061,14 +3228,35 @@
           <button type="button" data-auth-action="logout">Logout</button>
         `;
       } else {
-        profileActionsEl.innerHTML = `
-          <button type="button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>Sign in with Discord${authProviders.discord ? "" : " (not configured)"}</button>
-          <button type="button" data-auth-provider="telegram" disabled>Telegram login widget pending</button>
-        `;
+        profileActionsEl.innerHTML = authProviderButtonsHtml();
+      }
+      if (authModalActionsEl) authModalActionsEl.innerHTML = authProviderButtonsHtml();
+      if (authModalStatusEl) {
+        authModalStatusEl.textContent = authProviders.discord
+          ? "Discord sign-in is available. Telegram login is not connected yet."
+          : "Discord sign-in is not configured yet. Telegram login is not connected yet.";
       }
       if (builderSaveCommunityBuildEl) {
         builderSaveCommunityBuildEl.textContent = API_ENABLED && !currentUser ? "Sign in to publish" : "Publish current build";
       }
+    }
+
+    function closeAuthModal() {
+      if (!authModalBackdropEl) return;
+      authModalBackdropEl.hidden = true;
+      authModalBackdropEl.setAttribute("aria-hidden", "true");
+    }
+
+    function openAuthModal(message = "") {
+      if (!authModalBackdropEl) {
+        openProfileMenu(message);
+        return;
+      }
+      renderProfile();
+      authModalBackdropEl.hidden = false;
+      authModalBackdropEl.setAttribute("aria-hidden", "false");
+      if (message && authModalStatusEl) authModalStatusEl.textContent = message;
+      authModalActionsEl?.querySelector("button:not(:disabled)")?.focus();
     }
 
     function openProfileMenu(message = "") {
@@ -3081,8 +3269,7 @@
     function requireSignedIn(action) {
       if (!API_ENABLED || currentUser) return true;
       const message = `Sign in to ${action}.`;
-      showPassiveHint(message);
-      openProfileMenu(message);
+      openAuthModal(message);
       return false;
     }
 
@@ -3140,6 +3327,10 @@
 
     function bindProfileMenu() {
       profileButtonEl?.addEventListener("click", () => {
+        if (!currentUser) {
+          openAuthModal();
+          return;
+        }
         const isHidden = profileMenuEl?.hidden;
         if (profileMenuEl) profileMenuEl.hidden = !isHidden;
         profileButtonEl.setAttribute("aria-expanded", String(Boolean(isHidden)));
@@ -3147,11 +3338,22 @@
       profileActionsEl?.addEventListener("click", (ev) => {
         const providerBtn = ev.target.closest("[data-auth-provider]");
         if (providerBtn && !providerBtn.disabled) {
-          location.href = `/api/auth/login/${providerBtn.dataset.authProvider}`;
+          startAuthProvider(providerBtn.dataset.authProvider);
           return;
         }
         const actionBtn = ev.target.closest("[data-auth-action]");
         if (actionBtn?.dataset.authAction === "logout") logoutProfile();
+      });
+      authModalActionsEl?.addEventListener("click", (ev) => {
+        const providerBtn = ev.target.closest("[data-auth-provider]");
+        if (providerBtn && !providerBtn.disabled) startAuthProvider(providerBtn.dataset.authProvider);
+      });
+      authModalCloseEl?.addEventListener("click", closeAuthModal);
+      authModalBackdropEl?.addEventListener("click", (ev) => {
+        if (ev.target === authModalBackdropEl) closeAuthModal();
+      });
+      document.addEventListener("keydown", (ev) => {
+        if (ev.key === "Escape") closeAuthModal();
       });
       profileAvatarInputEl?.addEventListener("change", (ev) => {
         const file = ev.target.files?.[0];
