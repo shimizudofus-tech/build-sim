@@ -5171,7 +5171,6 @@
       }
       const passives = new Set(plannerUsedPassives(effectivePlans));
       for (const passive of plannerPlanPassives(plan)) {
-        if (passives.has(passive)) return false;
         passives.add(passive);
       }
       if (passives.size > slotCount()) return false;
@@ -5539,6 +5538,15 @@
       if (!currentPassiveUnlocksEvo || !selectedEvoCanUpgrade || !currentEvoCanUpgrade) {
         console.warn("Planner sanity check failed: current Bat resources should keep Bat EVO/red available.");
       }
+      const thunderboltEvo = evoPlanOptions().find((plan) => plan.id === "thunderbolt-purple");
+      const familiarTempestForNox = mythicPlanOptions().find((plan) => plan.id === "familiar-tempest-red");
+      if (
+        thunderboltEvo &&
+        familiarTempestForNox &&
+        !canUseSelectablePlannerPlan(thunderboltEvo, [batMythic, familiarTempestForNox], nox)
+      ) {
+        console.warn("Planner sanity check failed: selected mythics should not consume shared Damage passive.");
+      }
 
       const shu = CHARACTERS.find((character) => character.id === "shu") || CHARACTERS[0];
       const familiarTempest = mythicPlanOptions().find((plan) => plan.id === "familiar-tempest-red");
@@ -5676,7 +5684,6 @@
 
       const passives = new Set(plannerUsedPassives(currentSlots));
       for (const passive of plannerPlanPassives(slot)) {
-        if (passives.has(passive)) return false;
         passives.add(passive);
       }
       if (passives.size > slotCount(mode)) return false;
