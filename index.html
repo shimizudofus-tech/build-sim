@@ -1173,11 +1173,15 @@
       background: #050807;
       aspect-ratio: 16 / 9;
     }
-    .community-video-embed iframe {
+    .community-video-embed iframe,
+    .community-video-embed video {
       width: 100%;
       height: 100%;
       border: 0;
       display: block;
+    }
+    .community-video-embed video {
+      object-fit: contain;
     }
     .community-score {
       padding: 0.28rem 0.55rem;
@@ -1195,6 +1199,11 @@
     }
     .community-video-link:hover {
       text-decoration: underline;
+    }
+    .community-video-unsupported {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 650;
     }
     .visually-hidden {
       position: absolute;
@@ -2599,6 +2608,51 @@
       `;
     }
 
+    const DIRECT_DISCORD_VIDEO_HOSTS = new Set([
+      "cdn.discordapp.com",
+      "media.discordapp.net",
+      "attachments.discordapp.net",
+    ]);
+    const DISCORD_LINK_HOSTS = new Set([
+      "discord.com",
+      "discord.gg",
+      "discordapp.com",
+    ]);
+    const DIRECT_VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov"]);
+    const X_LINK_HOSTS = new Set(["x.com", "twitter.com", "mobile.twitter.com"]);
+
+    function normalizedVideoHost(url) {
+      return url.hostname.replace(/^www\./i, "").toLowerCase();
+    }
+
+    function isYoutubeHost(host) {
+      return host === "youtube.com" || host === "m.youtube.com" || host === "youtu.be";
+    }
+
+    function isDiscordHost(host) {
+      return DIRECT_DISCORD_VIDEO_HOSTS.has(host) || DISCORD_LINK_HOSTS.has(host);
+    }
+
+    function isXHost(host) {
+      return X_LINK_HOSTS.has(host);
+    }
+
+    function isDirectDiscordVideoUrl(url, host) {
+      if (!DIRECT_DISCORD_VIDEO_HOSTS.has(host)) return false;
+      const path = url.pathname.toLowerCase();
+      return Array.from(DIRECT_VIDEO_EXTENSIONS).some((ext) => path.endsWith(ext));
+    }
+
+    function isAllowedCommunityVideoUrl(url) {
+      const host = normalizedVideoHost(url);
+      return (
+        isYoutubeHost(host) ||
+        DISCORD_LINK_HOSTS.has(host) ||
+        isDirectDiscordVideoUrl(url, host) ||
+        isXHost(host)
+      );
+    }
+
     function sanitizeVideoUrlInput(value) {
       const raw = String(value || "").trim();
       if (!raw) return "";
@@ -2606,6 +2660,7 @@
       try {
         const url = new URL(candidate);
         if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+        if (!isAllowedCommunityVideoUrl(url)) return null;
         url.hash = "";
         return url.href.slice(0, 240);
       } catch {
@@ -2622,7 +2677,7 @@
       if (!safeUrl) return "";
       try {
         const url = new URL(safeUrl);
-        const host = url.hostname.replace(/^www\./i, "").toLowerCase();
+        const host = normalizedVideoHost(url);
         let id = "";
         if (host === "youtu.be") {
           id = url.pathname.split("/").filter(Boolean)[0] || "";
@@ -2639,11 +2694,46 @@
       }
     }
 
+    function communityVideoInfo(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return { kind: "none" };
+      const safeUrl = sanitizeVideoUrlInput(raw);
+      if (!safeUrl) return { kind: "unsupported" };
+      const url = new URL(safeUrl);
+      const host = normalizedVideoHost(url);
+      if (isYoutubeHost(host)) {
+        const videoId = youtubeVideoIdFromUrl(safeUrl);
+        return videoId
+          ? { kind: "youtube", url: safeUrl, embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}` }
+          : { kind: "external", url: safeUrl, label: "Open YouTube" };
+      }
+      if (isDirectDiscordVideoUrl(url, host)) {
+        return { kind: "discord_video", url: safeUrl };
+      }
+      if (isDiscordHost(host)) return { kind: "external", url: safeUrl, label: "Open Discord" };
+      if (isXHost(host)) return { kind: "external", url: safeUrl, label: "Open X/Twitter" };
+      return { kind: "unsupported" };
+    }
+
     function communityVideoEmbedHtml(videoUrl) {
-      const videoId = youtubeVideoIdFromUrl(videoUrl);
-      if (!videoId) return "";
-      const src = `https://www.youtube-nocookie.com/embed/${videoId}`;
+      const info = communityVideoInfo(videoUrl);
+      if (info.kind === "discord_video") {
+        return `<div class="community-video-embed"><video controls preload="metadata" src="${escapeHtml(info.url)}"></video></div>`;
+      }
+      if (info.kind !== "youtube") return "";
+      const src = info.embedUrl;
       return `<div class="community-video-embed"><iframe src="${src}" title="Community build YouTube video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
+    }
+
+    function communityVideoActionHtml(videoUrl) {
+      const info = communityVideoInfo(videoUrl);
+      if (info.kind === "external") {
+        return `<a class="community-video-link" href="${escapeHtml(info.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(info.label || "Open video")}</a>`;
+      }
+      if (info.kind === "unsupported") {
+        return `<span class="community-video-unsupported">Unsupported video link</span>`;
+      }
+      return "";
     }
 
     function communityBrowsingMode() {
@@ -3791,7 +3881,7 @@
       const power = sanitizePowerText(powerInputEl?.value);
       const videoUrl = sanitizeVideoUrlInput(videoInputEl?.value);
       if (videoUrl === null) {
-        showPassiveHint("Video link must be a valid http or https URL.");
+        showPassiveHint("Video link must be YouTube, X/Twitter, or Discord.");
         videoInputEl?.focus();
         return null;
       }
@@ -3821,7 +3911,7 @@
     }
 
     function buildVideoUrl(build) {
-      return sanitizeVideoUrlInput(build?.videoUrl ?? build?.state?.videoUrl) || "";
+      return String(build?.videoUrl ?? build?.state?.videoUrl ?? "").trim().slice(0, 240);
     }
 
     async function publishCurrentCommunityBuild(
@@ -4054,15 +4144,13 @@
         const targetLabel = buildTargetLabel(b);
         const power = buildPower(b);
         const videoUrl = buildVideoUrl(b);
-        const youtubeEmbed = communityVideoEmbedHtml(videoUrl);
+        const videoEmbed = communityVideoEmbedHtml(videoUrl);
+        const videoAction = communityVideoActionHtml(videoUrl);
         const progression = [
           targetLabel ? escapeHtml(targetLabel) : "",
           power !== null ? `Power ${escapeHtml(power)}` : "",
         ].filter(Boolean);
         const progressionMeta = progression.length ? ` · ${progression.join(" · ")}` : "";
-        const videoLink = videoUrl && !youtubeEmbed
-          ? `<a class="community-video-link" href="${escapeHtml(videoUrl)}" target="_blank" rel="noopener noreferrer">Video</a>`
-          : "";
         card.innerHTML = `
           <div class="community-build-head">
             <div>
@@ -4072,11 +4160,11 @@
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
           <div class="community-build-preview">${communityBuildPreview(b.state)}</div>
-          ${youtubeEmbed}
+          ${videoEmbed}
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}">Vote</button>
             <button type="button" data-community-action="apply" data-build-id="${escapeHtml(b.id)}">Apply</button>
-            ${videoLink}
+            ${videoAction}
             ${deleteButton}
           </div>
         `;

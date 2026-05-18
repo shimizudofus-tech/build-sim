@@ -28,17 +28,53 @@ function sanitizePowerText(value) {
   return String(value ?? "").trim().slice(0, 48);
 }
 
-function sanitizeUrl(value) {
+const DIRECT_DISCORD_VIDEO_HOSTS = new Set([
+  "cdn.discordapp.com",
+  "media.discordapp.net",
+  "attachments.discordapp.net",
+]);
+const DISCORD_LINK_HOSTS = new Set([
+  "discord.com",
+  "discord.gg",
+  "discordapp.com",
+]);
+const DIRECT_VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov"]);
+const X_LINK_HOSTS = new Set(["x.com", "twitter.com", "mobile.twitter.com"]);
+
+function normalizedVideoHost(url) {
+  return url.hostname.replace(/^www\./i, "").toLowerCase();
+}
+
+function isDirectDiscordVideoUrl(url, host) {
+  if (!DIRECT_DISCORD_VIDEO_HOSTS.has(host)) return false;
+  const path = url.pathname.toLowerCase();
+  return Array.from(DIRECT_VIDEO_EXTENSIONS).some((ext) => path.endsWith(ext));
+}
+
+function isAllowedCommunityVideoUrl(url) {
+  const host = normalizedVideoHost(url);
+  return (
+    host === "youtube.com" ||
+    host === "m.youtube.com" ||
+    host === "youtu.be" ||
+    DISCORD_LINK_HOSTS.has(host) ||
+    isDirectDiscordVideoUrl(url, host) ||
+    X_LINK_HOSTS.has(host)
+  );
+}
+
+function sanitizeCommunityVideoUrl(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
   const candidate = /^[a-z][a-z\d+\-.]*:/i.test(raw) ? raw : `https://${raw}`;
   try {
     const url = new URL(candidate);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (!isAllowedCommunityVideoUrl(url)) return null;
     url.hash = "";
     return url.href.slice(0, 240);
   } catch {
-    return "";
+    return null;
   }
 }
 
@@ -152,6 +188,10 @@ export async function onRequest(context) {
     if (path === "/api/community-builds" && method === "POST") {
       const body = await readBody(request);
       const db = await readDb(env);
+      const videoUrl = sanitizeCommunityVideoUrl(body.videoUrl);
+      if (videoUrl === null) {
+        return json({ error: "Video link must be YouTube, X/Twitter, or Discord." }, 400);
+      }
       const build = {
         id: randomId(),
         title: sanitizeText(body.title, 48) || "Anonymous build",
@@ -162,7 +202,7 @@ export async function onRequest(context) {
         targetValue: sanitizeNumber(body.targetValue),
         targetLabel: sanitizeText(body.targetLabel, 64),
         power: sanitizePowerText(body.power),
-        videoUrl: sanitizeUrl(body.videoUrl),
+        videoUrl,
         votes: 0,
         createdAt: Date.now(),
         state: body.state || {},
