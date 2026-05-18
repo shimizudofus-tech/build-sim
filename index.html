@@ -2196,6 +2196,12 @@
             <option value="abyss">Abyss</option>
           </select>
         </div>
+        <div class="community-control">
+          <label for="communityPower">Power</label>
+          <select id="communityPower" aria-label="Community power">
+            <option value="">All power</option>
+          </select>
+        </div>
         <div id="communityFilters" class="community-filter-bar" aria-label="Community progression filters"></div>
       </div>
       <div id="communityStageBoss" class="community-stage-boss" hidden aria-live="polite"></div>
@@ -2765,6 +2771,7 @@
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
     const communityCharacterEl = document.getElementById("communityCharacter");
     const communityModeEl = document.getElementById("communityMode");
+    const communityPowerEl = document.getElementById("communityPower");
     const communityFiltersEl = document.getElementById("communityFilters");
     const communityStageBossEl = document.getElementById("communityStageBoss");
     const communityBuildsEl = document.getElementById("communityBuilds");
@@ -2811,6 +2818,7 @@
     let communityBuildCache = null;
     let communityFetchInFlight = null;
     let communityCharacterFilter = "";
+    let communityPowerFilter = null;
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
     let lastAppliedBuildNameSuggestionKey = "";
@@ -3415,6 +3423,51 @@
     function communityBuildMatchesCharacter(build) {
       const ch = communityBrowsingCharacter();
       return !ch || communityBuildCharacterId(build) === ch.id;
+    }
+
+    function communityBuildMatchesPower(build) {
+      if (communityPowerFilter === null) return true;
+      const power = parsePowerValue(buildPower(build));
+      return power !== null && power <= communityPowerFilter;
+    }
+
+    function formatPowerCap(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return "";
+      if (number >= 1_000_000) {
+        const millions = number / 1_000_000;
+        return `${Number.isInteger(millions) ? millions : millions.toFixed(1)}M`;
+      }
+      return `${Math.round(number / 1_000)}K`;
+    }
+
+    function communityPowerScopeLabel() {
+      return communityPowerFilter === null ? "all power" : `Power <= ${formatPowerCap(communityPowerFilter)}`;
+    }
+
+    function communityPowerCapOptions() {
+      const mode = communityBrowsingMode();
+      const maxPublishedPower = loadCommunityBuilds()
+        .filter((build) => communityBuildMatchesCharacter(build) && build.mode === mode)
+        .reduce((max, build) => {
+          const power = parsePowerValue(buildPower(build));
+          return power === null ? max : Math.max(max, power);
+        }, 0);
+      const maxCap = Math.max(1_000_000, Math.ceil(maxPublishedPower / 100_000) * 100_000, communityPowerFilter || 0);
+      const caps = [];
+      for (let cap = 100_000; cap <= maxCap; cap += 100_000) caps.push(cap);
+      return caps;
+    }
+
+    function syncCommunityPowerControl() {
+      if (!communityPowerEl) return;
+      const selectedValue = communityPowerFilter === null ? "" : String(communityPowerFilter);
+      communityPowerEl.innerHTML = [
+        `<option value=""${selectedValue === "" ? " selected" : ""}>All power</option>`,
+        ...communityPowerCapOptions().map(
+          (cap) => `<option value="${cap}"${selectedValue === String(cap) ? " selected" : ""}>${formatPowerCap(cap)}</option>`
+        ),
+      ].join("");
     }
 
     function communityCharacterScopeLabel() {
@@ -4847,12 +4900,14 @@
       if (!communityFiltersEl) return;
       syncCommunityCharacterControl();
       syncCommunityModeControl();
+      syncCommunityPowerControl();
       const mode = communityBrowsingMode();
       const characterScope = communityCharacterScopeLabel();
+      const powerScope = communityPowerScopeLabel();
       const values = communityFilterValues(mode);
       if (!values.length) {
         communityTargetFilter = null;
-        communityFiltersEl.innerHTML = `<span class="tag">Boss builds for ${escapeHtml(characterScope)} are sorted by votes, then lower Power, then Boss damage.</span>`;
+        communityFiltersEl.innerHTML = `<span class="tag">Boss builds for ${escapeHtml(characterScope)} (${escapeHtml(powerScope)}) are sorted by votes, then lower Power, then Boss damage.</span>`;
         return;
       }
       const cfg = communityTargetConfig(mode);
@@ -4862,6 +4917,7 @@
       const targetCounts = new Map();
       loadCommunityBuilds()
         .filter((b) => communityBuildMatchesCharacter(b) && b.mode === mode)
+        .filter((b) => communityBuildMatchesPower(b))
         .forEach((build) => {
           const target = buildTargetValue(build);
           if (!values.includes(target)) return;
@@ -4891,6 +4947,7 @@
           <span class="has-build">● build</span>
           <span class="no-build">● none</span>
           <span>${escapeHtml(characterScope)}</span>
+          <span>${escapeHtml(powerScope)}</span>
           <span>${targetCounts.size}/${values.length}</span>
         </span>
       `;
@@ -4931,11 +4988,13 @@
           if (communityTargetFilter === null) return true;
           return buildTargetValue(b) === communityTargetFilter;
         })
+        .filter((b) => communityBuildMatchesPower(b))
         .sort((a, b) => compareCommunityBuilds(a, b, mode));
       if (!builds.length) {
         const characterScope = communityCharacterScopeLabel();
+        const powerScope = communityPowerScopeLabel();
         communityBuildsEl.innerHTML =
-          `<p class="community-empty">No builds published for ${escapeHtml(characterScope)}, this mode, and this filter yet.</p>`;
+          `<p class="community-empty">No builds published for ${escapeHtml(characterScope)}, ${escapeHtml(powerScope)}, this mode, and this filter yet.</p>`;
         return;
       }
       communityBuildsEl.innerHTML = "";
@@ -5007,6 +5066,10 @@
       });
       communityCharacterEl?.addEventListener("change", () => {
         communityCharacterFilter = communityCharacterEl.value;
+        renderCommunityBuilds();
+      });
+      communityPowerEl?.addEventListener("change", () => {
+        communityPowerFilter = communityPowerEl.value ? Number(communityPowerEl.value) : null;
         renderCommunityBuilds();
       });
       communityFiltersEl?.addEventListener("change", (ev) => {
