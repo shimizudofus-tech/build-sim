@@ -11,6 +11,7 @@ const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0
 const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
 const GETGEMS_TIMEOUT_MS = 6500;
 const COMMUNITY_STRATEGY_NOTES_MAX = 360;
+const COMMUNITY_DIFFICULTIES = new Set(["", "very_easy", "easy", "medium", "hard", "very_hard"]);
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -153,6 +154,11 @@ function sanitizeStrategyNotes(value) {
     .slice(0, COMMUNITY_STRATEGY_NOTES_MAX);
 }
 
+function sanitizeCommunityDifficulty(value) {
+  const raw = String(value ?? "").trim();
+  return COMMUNITY_DIFFICULTIES.has(raw) ? raw : "";
+}
+
 const DIRECT_DISCORD_VIDEO_HOSTS = new Set([
   "cdn.discordapp.com",
   "media.discordapp.net",
@@ -237,6 +243,7 @@ async function handleApi(req, res, url) {
       targetValue: sanitizeNumber(body.targetValue),
       targetLabel: sanitizeText(body.targetLabel, 64),
       power: sanitizePowerText(body.power),
+      difficulty: sanitizeCommunityDifficulty(body.difficulty),
       videoUrl,
       strategyNotes: sanitizeStrategyNotes(body.strategyNotes),
       votes: 0,

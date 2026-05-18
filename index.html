@@ -399,6 +399,7 @@
       gap: 0.5rem;
     }
     .community-form.builder-publish input,
+    .community-form.builder-publish select,
     .community-form.builder-publish textarea {
       flex: 0 0 auto;
       min-width: 0;
@@ -409,6 +410,7 @@
       white-space: nowrap;
     }
     .community-form.builder-publish .community-target-field,
+    .community-form.builder-publish .community-difficulty-field,
     .community-form.builder-publish .community-power-input,
     .community-form.builder-publish .community-video-input,
     .community-form.builder-publish .community-strategy-input {
@@ -982,11 +984,20 @@
       min-width: 7rem;
       order: -1;
     }
-    .community-form .community-target-field label {
+    .community-form .community-difficulty-field {
+      display: flex;
+      flex: 0 1 8.5rem;
+      flex-direction: column;
+      min-width: 7.5rem;
+      order: -1;
+    }
+    .community-form .community-target-field label,
+    .community-form .community-difficulty-field label {
       margin-bottom: 0.2rem;
     }
     .community-form .community-target-field input,
-    .community-form .community-target-field select {
+    .community-form .community-target-field select,
+    .community-form .community-difficulty-field select {
       flex: 0 0 auto;
       width: 100%;
       min-width: 0;
@@ -1167,6 +1178,46 @@
     }
     .community-build-preview .best-build-slot {
       padding: 0.3rem 0.4rem;
+    }
+    .community-card-target-preview {
+      position: relative;
+      display: inline-grid;
+      place-items: center;
+      flex: 0 0 auto;
+      width: 96px;
+      min-height: 64px;
+      border: 1px solid rgba(189, 246, 213, 0.28);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.24);
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .community-card-target-preview img {
+      width: 100%;
+      height: 100%;
+      min-height: 64px;
+      object-fit: cover;
+      display: block;
+    }
+    .community-card-target-preview-text {
+      padding: 0.45rem;
+    }
+    .community-difficulty-chip {
+      position: absolute;
+      right: 0.25rem;
+      bottom: 0.25rem;
+      padding: 0.16rem 0.38rem;
+      border: 1px solid rgba(255, 224, 138, 0.52);
+      border-radius: 999px;
+      background: rgba(20, 12, 4, 0.82);
+      color: #ffe7a8;
+      font-size: 0.66rem;
+      font-weight: 800;
+      line-height: 1.1;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.24);
     }
     .community-build-notes {
       margin: 0 0 0.5rem;
@@ -1651,6 +1702,17 @@
             <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue">Cleared level</label>
             <select id="builderCommunityTargetValue"></select>
           </div>
+          <div class="community-difficulty-field">
+            <label for="builderCommunityDifficulty">Difficulty</label>
+            <select id="builderCommunityDifficulty" aria-label="Contextual boss difficulty">
+              <option value="">Not rated</option>
+              <option value="very_easy">Very easy</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+              <option value="very_hard">Very hard</option>
+            </select>
+          </div>
           <input id="builderCommunityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
           <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
           <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
@@ -1677,6 +1739,17 @@
         <div class="community-target-field">
           <label id="communityTargetLabel" for="communityTargetValue">Cleared level</label>
           <select id="communityTargetValue"></select>
+        </div>
+        <div class="community-difficulty-field">
+          <label for="communityDifficulty">Difficulty</label>
+          <select id="communityDifficulty" aria-label="Contextual boss difficulty">
+            <option value="">Not rated</option>
+            <option value="very_easy">Very easy</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+            <option value="very_hard">Very hard</option>
+          </select>
         </div>
         <input id="communityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
         <input id="communityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
@@ -2253,6 +2326,7 @@
     const builderCommunityBuildAuthorEl = document.getElementById("builderCommunityBuildAuthor");
     const builderCommunityTargetLabelEl = document.getElementById("builderCommunityTargetLabel");
     let builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
+    const builderCommunityDifficultyEl = document.getElementById("builderCommunityDifficulty");
     const builderCommunityPowerEl = document.getElementById("builderCommunityPower");
     const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
     const builderCommunityStrategyNotesEl = document.getElementById("builderCommunityStrategyNotes");
@@ -2261,6 +2335,7 @@
     const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
     const communityTargetLabelEl = document.getElementById("communityTargetLabel");
     let communityTargetValueEl = document.getElementById("communityTargetValue");
+    const communityDifficultyEl = document.getElementById("communityDifficulty");
     const communityPowerEl = document.getElementById("communityPower");
     const communityVideoUrlEl = document.getElementById("communityVideoUrl");
     const communityStrategyNotesEl = document.getElementById("communityStrategyNotes");
@@ -2276,6 +2351,15 @@
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
     const COMMUNITY_STRATEGY_NOTES_MAX = 360;
+    const COMMUNITY_DIFFICULTIES = [
+      ["", "Not rated"],
+      ["very_easy", "Very easy"],
+      ["easy", "Easy"],
+      ["medium", "Medium"],
+      ["hard", "Hard"],
+      ["very_hard", "Very hard"],
+    ];
+    const COMMUNITY_DIFFICULTY_LABELS = new Map(COMMUNITY_DIFFICULTIES);
     const VISIT_COUNT_KEY = "builderVisitCount:v1";
     const undoEl = document.getElementById("undo");
     const passiveHintEl = document.getElementById("passiveHint");
@@ -2704,6 +2788,16 @@
         .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
         .trim()
         .slice(0, COMMUNITY_STRATEGY_NOTES_MAX);
+    }
+
+    function sanitizeCommunityDifficulty(value) {
+      const raw = String(value ?? "").trim();
+      return COMMUNITY_DIFFICULTY_LABELS.has(raw) ? raw : "";
+    }
+
+    function communityDifficultyLabel(value) {
+      const difficulty = sanitizeCommunityDifficulty(value);
+      return difficulty ? COMMUNITY_DIFFICULTY_LABELS.get(difficulty) : "";
     }
 
     function youtubeVideoIdFromUrl(value) {
@@ -3810,6 +3904,7 @@
         targetValue: metadata.targetValue ?? null,
         targetLabel: metadata.targetLabel || "",
         power: metadata.power ?? null,
+        difficulty: metadata.difficulty || "",
         videoUrl: metadata.videoUrl || "",
         strategyNotes: metadata.strategyNotes || "",
         slots: slots.map((s) => ({ ...s })),
@@ -3890,7 +3985,7 @@
       return Number.isFinite(value) && Number.isInteger(value) ? value : null;
     }
 
-    function readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl, strategyNotesEl) {
+    function readCommunityMetadata(targetInputEl, difficultyInputEl, powerInputEl, videoInputEl, strategyNotesEl) {
       const mode = modeEl.value;
       const cfg = communityTargetConfig(mode);
       const targetValue = readIntegerInput(targetInputEl);
@@ -3924,6 +4019,7 @@
         targetValue,
         targetLabel: communityTargetLabel(mode, targetValue),
         power,
+        difficulty: sanitizeCommunityDifficulty(difficultyInputEl?.value),
         videoUrl,
         strategyNotes: sanitizeStrategyNotes(strategyNotesEl?.value),
       };
@@ -3946,6 +4042,10 @@
       return sanitizePowerText(value);
     }
 
+    function buildDifficulty(build) {
+      return sanitizeCommunityDifficulty(build?.difficulty ?? build?.state?.difficulty ?? "");
+    }
+
     function buildVideoUrl(build) {
       return String(build?.videoUrl ?? build?.state?.videoUrl ?? "").trim().slice(0, 240);
     }
@@ -3954,10 +4054,38 @@
       return sanitizeStrategyNotes(build?.strategyNotes ?? build?.state?.strategyNotes ?? "");
     }
 
+    function communityBuildTargetPreview(build, modeId) {
+      const difficulty = buildDifficulty(build);
+      const difficultyChip = difficulty
+        ? `<span class="community-difficulty-chip">${escapeHtml(communityDifficultyLabel(difficulty))}</span>`
+        : "";
+      const targetValue = buildTargetValue(build);
+      const targetLabel = buildTargetLabel(build);
+      if (modeId === "stage" && targetValue) {
+        const [src, ...fallbacks] = communityStageBossAssetCandidates(targetValue);
+        if (src) {
+          return `
+            <span class="community-card-target-preview" title="${escapeHtml(targetLabel || `Stage ${formatNumber(targetValue)} boss`)}">
+              <img src="${escapeHtml(src)}" data-fallbacks="${escapeHtml(JSON.stringify(fallbacks))}" alt="${escapeHtml(targetLabel || `Stage ${formatNumber(targetValue)} boss`)}" loading="lazy" decoding="async" onerror="communityStageBossImageError(this)" />
+              ${difficultyChip}
+            </span>
+          `;
+        }
+      }
+      if (!difficulty) return "";
+      return `
+        <span class="community-card-target-preview" title="${escapeHtml(targetLabel || modeLabel(modeId))}">
+          <span class="community-card-target-preview-text">${escapeHtml(targetLabel || modeLabel(modeId))}</span>
+          ${difficultyChip}
+        </span>
+      `;
+    }
+
     async function publishCurrentCommunityBuild(
       nameEl = communityBuildNameEl,
       authorEl = communityBuildAuthorEl,
       targetInputEl = communityTargetValueEl,
+      difficultyInputEl = communityDifficultyEl,
       powerInputEl = communityPowerEl,
       videoInputEl = communityVideoUrlEl,
       strategyNotesEl = communityStrategyNotesEl
@@ -3966,7 +4094,7 @@
         showPassiveHint("Create a build before publishing it.");
         return;
       }
-      const metadata = readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl, strategyNotesEl);
+      const metadata = readCommunityMetadata(targetInputEl, difficultyInputEl, powerInputEl, videoInputEl, strategyNotesEl);
       if (!metadata) return;
       const ch = currentCharacter();
       const mode = modeEl.value;
@@ -3985,6 +4113,7 @@
         targetValue: metadata.targetValue,
         targetLabel: metadata.targetLabel,
         power: metadata.power,
+        difficulty: metadata.difficulty,
         videoUrl: metadata.videoUrl,
         strategyNotes: metadata.strategyNotes,
         state,
@@ -4000,6 +4129,7 @@
         targetValue: metadata.targetValue,
         targetLabel: metadata.targetLabel,
         power: metadata.power,
+        difficulty: metadata.difficulty,
         videoUrl: metadata.videoUrl,
         strategyNotes: metadata.strategyNotes,
         votes: 0,
@@ -4018,6 +4148,7 @@
           saveCommunityBuilds(builds);
           if (nameEl) nameEl.value = "";
           if (targetInputEl) targetInputEl.value = "";
+          if (difficultyInputEl) difficultyInputEl.value = "";
           if (powerInputEl) powerInputEl.value = "";
           if (videoInputEl) videoInputEl.value = "";
           if (strategyNotesEl) strategyNotesEl.value = "";
@@ -4034,6 +4165,7 @@
       saveCommunityBuilds(builds);
       if (nameEl) nameEl.value = "";
       if (targetInputEl) targetInputEl.value = "";
+      if (difficultyInputEl) difficultyInputEl.value = "";
       if (powerInputEl) powerInputEl.value = "";
       if (videoInputEl) videoInputEl.value = "";
       if (strategyNotesEl) strategyNotesEl.value = "";
@@ -4188,13 +4320,16 @@
           : "";
         const targetLabel = buildTargetLabel(b);
         const power = buildPower(b);
+        const difficulty = buildDifficulty(b);
         const videoUrl = buildVideoUrl(b);
         const strategyNotes = buildStrategyNotes(b);
         const videoEmbed = communityVideoEmbedHtml(videoUrl);
         const videoAction = communityVideoActionHtml(videoUrl);
+        const targetPreview = communityBuildTargetPreview(b, mode);
         const progression = [
           targetLabel ? escapeHtml(targetLabel) : "",
           power !== null ? `Power ${escapeHtml(power)}` : "",
+          difficulty ? `Difficulty ${escapeHtml(communityDifficultyLabel(difficulty))}` : "",
         ].filter(Boolean);
         const progressionMeta = progression.length ? ` · ${progression.join(" · ")}` : "";
         card.innerHTML = `
@@ -4205,7 +4340,7 @@
             </div>
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
-          <div class="community-build-preview">${communityBuildPreview(b.state)}</div>
+          <div class="community-build-preview">${targetPreview}${communityBuildPreview(b.state)}</div>
           ${strategyNotes ? `<div class="community-build-notes">${escapeHtml(strategyNotes)}</div>` : ""}
           ${videoEmbed}
           <div class="community-build-actions">
@@ -4225,6 +4360,7 @@
           builderCommunityBuildNameEl,
           builderCommunityBuildAuthorEl,
           builderCommunityTargetValueEl,
+          builderCommunityDifficultyEl,
           builderCommunityPowerEl,
           builderCommunityVideoUrlEl,
           builderCommunityStrategyNotesEl
@@ -4235,6 +4371,7 @@
           communityBuildNameEl,
           communityBuildAuthorEl,
           communityTargetValueEl,
+          communityDifficultyEl,
           communityPowerEl,
           communityVideoUrlEl,
           communityStrategyNotesEl
