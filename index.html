@@ -3447,15 +3447,16 @@
 
     function communityPowerCapOptions() {
       const mode = communityBrowsingMode();
+      const step = 50_000;
       const maxPublishedPower = loadCommunityBuilds()
         .filter((build) => communityBuildMatchesCharacter(build) && build.mode === mode)
         .reduce((max, build) => {
           const power = parsePowerValue(buildPower(build));
           return power === null ? max : Math.max(max, power);
         }, 0);
-      const maxCap = Math.max(1_000_000, Math.ceil(maxPublishedPower / 100_000) * 100_000, communityPowerFilter || 0);
+      const maxCap = Math.max(1_000_000, Math.ceil(maxPublishedPower / step) * step, communityPowerFilter || 0);
       const caps = [];
-      for (let cap = 100_000; cap <= maxCap; cap += 100_000) caps.push(cap);
+      for (let cap = step; cap <= maxCap; cap += step) caps.push(cap);
       return caps;
     }
 
