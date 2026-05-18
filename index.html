@@ -900,7 +900,7 @@
       justify-content: center;
     }
     .picker-panel--skills .icon-palette {
-      gap: 0.3rem;
+      gap: 0.35rem;
     }
     .icon-pick {
       width: 56px;
@@ -957,13 +957,14 @@
       pointer-events: none;
     }
     .picker-panel--skills .icon-pick {
-      width: 50px;
-      height: 50px;
-      border-radius: 13px;
+      width: 54px;
+      height: 54px;
+      padding: 2px;
+      border-radius: 14px;
     }
     .picker-panel--skills .icon-pick .ico-wrap {
-      width: 43px;
-      height: 43px;
+      width: 48px;
+      height: 48px;
     }
     .icon-strip {
       display: flex;
@@ -1439,9 +1440,10 @@
     .community-progress-legend {
       display: flex;
       flex-wrap: wrap;
+      flex: 0 1 auto;
       gap: 0.35rem;
       align-items: center;
-      margin-top: 0.12rem;
+      margin-left: auto;
       color: var(--muted);
       font-size: 0.72rem;
       line-height: 1.1;
@@ -1454,6 +1456,12 @@
     }
     .community-filter-bar {
       display: contents;
+    }
+    @media (max-width: 560px) {
+      .community-progress-legend {
+        flex: 1 1 100%;
+        margin-left: 0;
+      }
     }
     .community-stage-boss {
       display: flex;
@@ -4726,12 +4734,12 @@
               })
               .join("")}
           </select>
-          <span class="community-progress-legend" aria-label="Progression build status">
-            <span class="has-build">● build</span>
-            <span class="no-build">● none</span>
-            <span>${targetCounts.size}/${values.length}</span>
-          </span>
         </div>
+        <span class="community-progress-legend" aria-label="Progression build status">
+          <span class="has-build">● build</span>
+          <span class="no-build">● none</span>
+          <span>${targetCounts.size}/${values.length}</span>
+        </span>
       `;
     }
 
