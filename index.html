@@ -2174,10 +2174,20 @@
     <section class="community-builds" aria-label="Community builds">
       <h2>Community builds</h2>
       <p class="hint">
-        Create your build in the Build tab, publish it from there, then vote. The highest score moves to the top for the selected character and mode.
+        Create your build in the Build tab, publish it from there, then vote. The highest score moves to the top for the selected filters.
       </p>
       <p id="communityHint" class="hint" aria-live="polite"></p>
       <div class="community-controls" aria-label="Community filters">
+        <div class="community-control">
+          <label for="communityCharacter">Character</label>
+          <select id="communityCharacter" aria-label="Community character">
+            <option value="">All characters</option>
+            <option value="nox">Nox</option>
+            <option value="vel">Vel</option>
+            <option value="zen">Zen</option>
+            <option value="shu">Shu</option>
+          </select>
+        </div>
         <div class="community-control">
           <label for="communityMode">Community mode</label>
           <select id="communityMode" aria-label="Community mode">
@@ -2753,6 +2763,7 @@
     const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
     const builderCommunityStrategyNotesEl = document.getElementById("builderCommunityStrategyNotes");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
+    const communityCharacterEl = document.getElementById("communityCharacter");
     const communityModeEl = document.getElementById("communityMode");
     const communityFiltersEl = document.getElementById("communityFilters");
     const communityStageBossEl = document.getElementById("communityStageBoss");
@@ -2799,6 +2810,7 @@
     let focusField = "passive";
     let communityBuildCache = null;
     let communityFetchInFlight = null;
+    let communityCharacterFilter = "";
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
     let lastAppliedBuildNameSuggestionKey = "";
@@ -3392,9 +3404,32 @@
       return MODE_CONFIG[communityModeFilter] ? communityModeFilter : modeEl?.value || "stage";
     }
 
+    function communityBrowsingCharacter() {
+      return CHARACTERS.find((character) => character.id === communityCharacterFilter) || null;
+    }
+
+    function communityBuildCharacterId(build) {
+      return build?.character || build?.state?.character || "";
+    }
+
+    function communityBuildMatchesCharacter(build) {
+      const ch = communityBrowsingCharacter();
+      return !ch || communityBuildCharacterId(build) === ch.id;
+    }
+
+    function communityCharacterScopeLabel() {
+      return communityBrowsingCharacter()?.label || "all characters";
+    }
+
     function syncCommunityModeControl() {
       if (communityModeEl && communityModeEl.value !== communityBrowsingMode()) {
         communityModeEl.value = communityBrowsingMode();
+      }
+    }
+
+    function syncCommunityCharacterControl() {
+      if (communityCharacterEl && communityCharacterEl.value !== (communityBrowsingCharacter()?.id || "")) {
+        communityCharacterEl.value = communityBrowsingCharacter()?.id || "";
       }
     }
 
@@ -4810,22 +4845,23 @@
 
     function renderCommunityFilters() {
       if (!communityFiltersEl) return;
+      syncCommunityCharacterControl();
       syncCommunityModeControl();
       const mode = communityBrowsingMode();
+      const characterScope = communityCharacterScopeLabel();
       const values = communityFilterValues(mode);
       if (!values.length) {
         communityTargetFilter = null;
-        communityFiltersEl.innerHTML = '<span class="tag">Boss builds are sorted by votes, then lower Power, then Boss damage.</span>';
+        communityFiltersEl.innerHTML = `<span class="tag">Boss builds for ${escapeHtml(characterScope)} are sorted by votes, then lower Power, then Boss damage.</span>`;
         return;
       }
       const cfg = communityTargetConfig(mode);
       if (communityTargetFilter !== null && !values.includes(communityTargetFilter)) {
         communityTargetFilter = null;
       }
-      const ch = currentCharacter();
       const targetCounts = new Map();
       loadCommunityBuilds()
-        .filter((b) => b.character === ch.id && b.mode === mode)
+        .filter((b) => communityBuildMatchesCharacter(b) && b.mode === mode)
         .forEach((build) => {
           const target = buildTargetValue(build);
           if (!values.includes(target)) return;
@@ -4854,6 +4890,7 @@
         <span class="community-progress-legend" aria-label="Progression build status">
           <span class="has-build">● build</span>
           <span class="no-build">● none</span>
+          <span>${escapeHtml(characterScope)}</span>
           <span>${targetCounts.size}/${values.length}</span>
         </span>
       `;
@@ -4887,18 +4924,18 @@
         refreshCommunityBuildsFromServer();
         return;
       }
-      const ch = currentCharacter();
       const mode = communityBrowsingMode();
       const builds = loadCommunityBuilds()
-        .filter((b) => b.character === ch.id && b.mode === mode)
+        .filter((b) => communityBuildMatchesCharacter(b) && b.mode === mode)
         .filter((b) => {
           if (communityTargetFilter === null) return true;
           return buildTargetValue(b) === communityTargetFilter;
         })
         .sort((a, b) => compareCommunityBuilds(a, b, mode));
       if (!builds.length) {
+        const characterScope = communityCharacterScopeLabel();
         communityBuildsEl.innerHTML =
-          '<p class="community-empty">No builds published for this character, mode, and filter yet.</p>';
+          `<p class="community-empty">No builds published for ${escapeHtml(characterScope)}, this mode, and this filter yet.</p>`;
         return;
       }
       communityBuildsEl.innerHTML = "";
@@ -4919,6 +4956,7 @@
         const videoEmbed = communityVideoEmbedHtml(videoUrl);
         const videoAction = communityVideoActionHtml(videoUrl);
         const targetPreview = communityBuildTargetPreview(b, mode);
+        const buildCharacterLabel = characterLabel(communityBuildCharacterId(b));
         const progression = [
           targetLabel ? escapeHtml(targetLabel) : "",
           power !== null ? `Power ${escapeHtml(power)}` : "",
@@ -4929,7 +4967,7 @@
           <div class="community-build-head">
             <div>
               <div class="community-build-title">${escapeHtml(b.title)}</div>
-              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(currentCharacter().label)} ${modeLabel(mode)}${progressionMeta}</div>
+              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(buildCharacterLabel)} ${modeLabel(mode)}${progressionMeta}</div>
             </div>
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
@@ -4965,6 +5003,10 @@
       communityModeEl?.addEventListener("change", () => {
         communityModeFilter = communityModeEl.value;
         communityTargetFilter = null;
+        renderCommunityBuilds();
+      });
+      communityCharacterEl?.addEventListener("change", () => {
+        communityCharacterFilter = communityCharacterEl.value;
         renderCommunityBuilds();
       });
       communityFiltersEl?.addEventListener("change", (ev) => {
