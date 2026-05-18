@@ -398,7 +398,8 @@
       margin: 0;
       gap: 0.5rem;
     }
-    .community-form.builder-publish input {
+    .community-form.builder-publish input,
+    .community-form.builder-publish textarea {
       flex: 0 0 auto;
       min-width: 0;
       width: 100%;
@@ -409,7 +410,8 @@
     }
     .community-form.builder-publish .community-target-field,
     .community-form.builder-publish .community-power-input,
-    .community-form.builder-publish .community-video-input {
+    .community-form.builder-publish .community-video-input,
+    .community-form.builder-publish .community-strategy-input {
       flex: 0 0 auto;
       min-width: 0;
       width: 100%;
@@ -963,6 +965,7 @@
     }
     .community-form input,
     .community-form select,
+    .community-form textarea,
     .community-controls select {
       min-width: 10rem;
       flex: 1 1 12rem;
@@ -995,6 +998,13 @@
     .community-form .community-video-input {
       flex: 1 1 13rem;
       min-width: 11rem;
+    }
+    .community-form .community-strategy-input {
+      flex: 1 0 100%;
+      min-width: 0;
+      min-height: 4.4rem;
+      resize: vertical;
+      line-height: 1.35;
     }
     .community-controls {
       display: flex;
@@ -1157,6 +1167,17 @@
     }
     .community-build-preview .best-build-slot {
       padding: 0.3rem 0.4rem;
+    }
+    .community-build-notes {
+      margin: 0 0 0.5rem;
+      padding: 0.5rem 0.6rem;
+      border: 1px solid rgba(189, 246, 213, 0.18);
+      border-radius: 9px;
+      background: rgba(0, 0, 0, 0.16);
+      color: #d8ffe8;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      white-space: pre-wrap;
     }
     .community-build-actions {
       display: flex;
@@ -1632,6 +1653,7 @@
           </div>
           <input id="builderCommunityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
           <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
+          <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
           <button type="button" id="builderSaveCommunityBuild">Publish current build</button>
         </div>
       </aside>
@@ -1658,6 +1680,7 @@
         </div>
         <input id="communityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
         <input id="communityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
+        <textarea id="communityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
         <button type="button" id="saveCommunityBuild">Publish current build</button>
       </div>
       <div class="community-controls" aria-label="Community filters">
@@ -2232,6 +2255,7 @@
     let builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
     const builderCommunityPowerEl = document.getElementById("builderCommunityPower");
     const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
+    const builderCommunityStrategyNotesEl = document.getElementById("builderCommunityStrategyNotes");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
     const communityBuildNameEl = document.getElementById("communityBuildName");
     const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
@@ -2239,6 +2263,7 @@
     let communityTargetValueEl = document.getElementById("communityTargetValue");
     const communityPowerEl = document.getElementById("communityPower");
     const communityVideoUrlEl = document.getElementById("communityVideoUrl");
+    const communityStrategyNotesEl = document.getElementById("communityStrategyNotes");
     const communityModeEl = document.getElementById("communityMode");
     const saveCommunityBuildEl = document.getElementById("saveCommunityBuild");
     const communityFiltersEl = document.getElementById("communityFilters");
@@ -2250,6 +2275,7 @@
     const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
+    const COMMUNITY_STRATEGY_NOTES_MAX = 360;
     const VISIT_COUNT_KEY = "builderVisitCount:v1";
     const undoEl = document.getElementById("undo");
     const passiveHintEl = document.getElementById("passiveHint");
@@ -2670,6 +2696,14 @@
 
     function sanitizePowerText(value) {
       return String(value ?? "").trim().slice(0, 48);
+    }
+
+    function sanitizeStrategyNotes(value) {
+      return String(value ?? "")
+        .replace(/\r\n?/g, "\n")
+        .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+        .trim()
+        .slice(0, COMMUNITY_STRATEGY_NOTES_MAX);
     }
 
     function youtubeVideoIdFromUrl(value) {
@@ -3777,6 +3811,7 @@
         targetLabel: metadata.targetLabel || "",
         power: metadata.power ?? null,
         videoUrl: metadata.videoUrl || "",
+        strategyNotes: metadata.strategyNotes || "",
         slots: slots.map((s) => ({ ...s })),
         evoPool: evoPool.map((e) => ({ ...e })),
         consumedEvo: Array.from(consumedEvo),
@@ -3855,7 +3890,7 @@
       return Number.isFinite(value) && Number.isInteger(value) ? value : null;
     }
 
-    function readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl) {
+    function readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl, strategyNotesEl) {
       const mode = modeEl.value;
       const cfg = communityTargetConfig(mode);
       const targetValue = readIntegerInput(targetInputEl);
@@ -3890,6 +3925,7 @@
         targetLabel: communityTargetLabel(mode, targetValue),
         power,
         videoUrl,
+        strategyNotes: sanitizeStrategyNotes(strategyNotesEl?.value),
       };
     }
 
@@ -3914,18 +3950,23 @@
       return String(build?.videoUrl ?? build?.state?.videoUrl ?? "").trim().slice(0, 240);
     }
 
+    function buildStrategyNotes(build) {
+      return sanitizeStrategyNotes(build?.strategyNotes ?? build?.state?.strategyNotes ?? "");
+    }
+
     async function publishCurrentCommunityBuild(
       nameEl = communityBuildNameEl,
       authorEl = communityBuildAuthorEl,
       targetInputEl = communityTargetValueEl,
       powerInputEl = communityPowerEl,
-      videoInputEl = communityVideoUrlEl
+      videoInputEl = communityVideoUrlEl,
+      strategyNotesEl = communityStrategyNotesEl
     ) {
       if (!currentBuildHasContent()) {
         showPassiveHint("Create a build before publishing it.");
         return;
       }
-      const metadata = readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl);
+      const metadata = readCommunityMetadata(targetInputEl, powerInputEl, videoInputEl, strategyNotesEl);
       if (!metadata) return;
       const ch = currentCharacter();
       const mode = modeEl.value;
@@ -3945,6 +3986,7 @@
         targetLabel: metadata.targetLabel,
         power: metadata.power,
         videoUrl: metadata.videoUrl,
+        strategyNotes: metadata.strategyNotes,
         state,
       };
       const builds = loadCommunityBuilds();
@@ -3959,6 +4001,7 @@
         targetLabel: metadata.targetLabel,
         power: metadata.power,
         videoUrl: metadata.videoUrl,
+        strategyNotes: metadata.strategyNotes,
         votes: 0,
         createdAt: Date.now(),
         state,
@@ -3977,6 +4020,7 @@
           if (targetInputEl) targetInputEl.value = "";
           if (powerInputEl) powerInputEl.value = "";
           if (videoInputEl) videoInputEl.value = "";
+          if (strategyNotesEl) strategyNotesEl.value = "";
           showPassiveHint("Build published online. Vote sorting updated.");
           renderCommunityBuilds();
           return;
@@ -3992,6 +4036,7 @@
       if (targetInputEl) targetInputEl.value = "";
       if (powerInputEl) powerInputEl.value = "";
       if (videoInputEl) videoInputEl.value = "";
+      if (strategyNotesEl) strategyNotesEl.value = "";
       showPassiveHint("Build published locally. Vote sorting updated.");
       renderCommunityBuilds();
     }
@@ -4144,6 +4189,7 @@
         const targetLabel = buildTargetLabel(b);
         const power = buildPower(b);
         const videoUrl = buildVideoUrl(b);
+        const strategyNotes = buildStrategyNotes(b);
         const videoEmbed = communityVideoEmbedHtml(videoUrl);
         const videoAction = communityVideoActionHtml(videoUrl);
         const progression = [
@@ -4160,6 +4206,7 @@
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
           <div class="community-build-preview">${communityBuildPreview(b.state)}</div>
+          ${strategyNotes ? `<div class="community-build-notes">${escapeHtml(strategyNotes)}</div>` : ""}
           ${videoEmbed}
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}">Vote</button>
@@ -4179,7 +4226,8 @@
           builderCommunityBuildAuthorEl,
           builderCommunityTargetValueEl,
           builderCommunityPowerEl,
-          builderCommunityVideoUrlEl
+          builderCommunityVideoUrlEl,
+          builderCommunityStrategyNotesEl
         )
       );
       saveCommunityBuildEl?.addEventListener("click", () =>
@@ -4188,7 +4236,8 @@
           communityBuildAuthorEl,
           communityTargetValueEl,
           communityPowerEl,
-          communityVideoUrlEl
+          communityVideoUrlEl,
+          communityStrategyNotesEl
         )
       );
       communityModeEl?.addEventListener("change", () => {

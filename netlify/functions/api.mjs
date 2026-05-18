@@ -5,6 +5,7 @@ const DB_KEY = "db";
 const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
 const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
 const GETGEMS_TIMEOUT_MS = 6500;
+const COMMUNITY_STRATEGY_NOTES_MAX = 360;
 
 function json(statusCode, body) {
   return {
@@ -30,6 +31,14 @@ function sanitizeNumber(value) {
 
 function sanitizePowerText(value) {
   return String(value ?? "").trim().slice(0, 48);
+}
+
+function sanitizeStrategyNotes(value) {
+  return String(value ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "")
+    .trim()
+    .slice(0, COMMUNITY_STRATEGY_NOTES_MAX);
 }
 
 const DIRECT_DISCORD_VIDEO_HOSTS = new Set([
@@ -203,6 +212,7 @@ export async function handler(event) {
         targetLabel: sanitizeText(body.targetLabel, 64),
         power: sanitizePowerText(body.power),
         videoUrl,
+        strategyNotes: sanitizeStrategyNotes(body.strategyNotes),
         votes: 0,
         createdAt: Date.now(),
         state: body.state || {},
