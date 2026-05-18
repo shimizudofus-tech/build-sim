@@ -28,6 +28,88 @@
       line-height: 1.45;
       min-height: 100vh;
     }
+    .profile-widget {
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 30;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.45rem;
+    }
+    .profile-button {
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      border-radius: 13px;
+      border: 1px solid rgba(110, 168, 254, 0.45);
+      background: rgba(21, 26, 36, 0.92);
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+    }
+    .profile-button img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .profile-initial {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      color: #d7e6ff;
+      font-weight: 800;
+      background: linear-gradient(135deg, rgba(110, 168, 254, 0.32), rgba(62, 207, 142, 0.22));
+    }
+    .profile-menu {
+      width: min(19rem, calc(100vw - 4.5rem));
+      padding: 0.7rem;
+      border: 1px solid rgba(110, 168, 254, 0.32);
+      border-radius: 16px;
+      background: rgba(21, 26, 36, 0.97);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+    }
+    .profile-menu[hidden] {
+      display: none;
+    }
+    .profile-name {
+      margin: 0 0 0.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .profile-meta,
+    .profile-status {
+      margin: 0 0 0.55rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .profile-actions {
+      display: grid;
+      gap: 0.45rem;
+    }
+    .profile-actions button,
+    .profile-upload-label {
+      width: 100%;
+      padding: 0.42rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--elev);
+      color: var(--text);
+      font-size: 0.84rem;
+      text-align: center;
+      cursor: pointer;
+    }
+    .profile-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .profile-upload-label:hover {
+      filter: brightness(1.06);
+    }
+    .profile-file {
+      display: none;
+    }
     .support-banner {
       text-align: center;
       padding: 0.55rem 1rem;
@@ -1589,6 +1671,14 @@
       color: var(--muted);
       font-size: 0.8rem;
     }
+    .community-author-avatar {
+      width: 18px;
+      height: 18px;
+      margin-right: 0.25rem;
+      border-radius: 5px;
+      vertical-align: -0.25rem;
+      object-fit: cover;
+    }
     .community-build-preview {
       display: flex;
       flex-wrap: wrap;
@@ -1940,6 +2030,18 @@
     <symbol id="mythic-buldak-red" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="#ffe566" stroke-width="2"/><path fill="#9b7bd6" d="M10 10h12v12H10z" opacity=".7"/></symbol>
     <symbol id="mythic-prism_shell" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-red)"/><path fill="#dff6ff" stroke="#7ecbff" d="M16 8l4 8h8l-6 5 2 9-8-5-8 5 2-9-6-5h8z"/></symbol>
   </svg>
+  <aside class="profile-widget" aria-label="Profile">
+    <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" title="Profile">
+      <span class="profile-initial">?</span>
+    </button>
+    <div id="profileMenu" class="profile-menu" hidden>
+      <p id="profileName" class="profile-name">Not signed in</p>
+      <p id="profileMeta" class="profile-meta">Sign in to publish, vote, delete, or upload an avatar.</p>
+      <div id="profileActions" class="profile-actions"></div>
+      <input id="profileAvatarInput" class="profile-file" type="file" accept="image/png,image/jpeg,image/webp" />
+      <p id="profileStatus" class="profile-status" aria-live="polite"></p>
+    </div>
+  </aside>
   <aside class="support-banner" aria-label="Support">
     <p>
       If this builder helps you a little, feel free to send a small coffee
@@ -2829,6 +2931,13 @@
     const communityHintEl = document.getElementById("communityHint");
     const visitCounterEl = document.getElementById("visitCounter");
     const buildLevelCounterEl = document.getElementById("buildLevelCounter");
+    const profileButtonEl = document.getElementById("profileButton");
+    const profileMenuEl = document.getElementById("profileMenu");
+    const profileNameEl = document.getElementById("profileName");
+    const profileMetaEl = document.getElementById("profileMeta");
+    const profileActionsEl = document.getElementById("profileActions");
+    const profileAvatarInputEl = document.getElementById("profileAvatarInput");
+    const profileStatusEl = document.getElementById("profileStatus");
     const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
@@ -2872,6 +2981,8 @@
     let communityPowerFilter = null;
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
+    let currentUser = null;
+    let authProviders = { discord: false, google: false, telegram: false };
     let lastAppliedBuildNameSuggestionKey = "";
     const plannerSelectedChoices = new Set();
     let plannerGeneratedSlots = [];
@@ -2923,6 +3034,137 @@
         throw err;
       }
       return data;
+    }
+
+    function userAvatarUrl(user = currentUser) {
+      return user?.customAvatarUrl || user?.avatarUrl || "";
+    }
+
+    function renderProfile() {
+      if (!profileButtonEl || !profileActionsEl) return;
+      const avatarUrl = userAvatarUrl();
+      const displayName = currentUser?.displayName || "Guest";
+      profileButtonEl.innerHTML = avatarUrl
+        ? `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(displayName)} avatar" />`
+        : `<span class="profile-initial">${escapeHtml((displayName || "?").slice(0, 1).toUpperCase())}</span>`;
+      profileButtonEl.title = currentUser ? `Signed in as ${displayName}` : "Sign in";
+      if (profileNameEl) profileNameEl.textContent = currentUser ? displayName : "Not signed in";
+      if (profileMetaEl) {
+        profileMetaEl.textContent = currentUser
+          ? `${currentUser.provider || "account"} account`
+          : "Sign in to publish, vote, delete, or upload an avatar.";
+      }
+      if (profileStatusEl) profileStatusEl.textContent = "";
+      if (currentUser) {
+        profileActionsEl.innerHTML = `
+          <label class="profile-upload-label" for="profileAvatarInput">Upload avatar</label>
+          <button type="button" data-auth-action="logout">Logout</button>
+        `;
+      } else {
+        profileActionsEl.innerHTML = `
+          <button type="button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>Sign in with Discord${authProviders.discord ? "" : " (not configured)"}</button>
+          <button type="button" data-auth-provider="google"${authProviders.google ? "" : " disabled"}>Sign in with Google${authProviders.google ? "" : " (not configured)"}</button>
+          <button type="button" data-auth-provider="telegram" disabled>Telegram login widget not enabled</button>
+        `;
+      }
+      if (builderSaveCommunityBuildEl) {
+        builderSaveCommunityBuildEl.textContent = API_ENABLED && !currentUser ? "Sign in to publish" : "Publish current build";
+      }
+    }
+
+    function openProfileMenu(message = "") {
+      if (!profileMenuEl) return;
+      profileMenuEl.hidden = false;
+      profileButtonEl?.setAttribute("aria-expanded", "true");
+      if (message && profileStatusEl) profileStatusEl.textContent = message;
+    }
+
+    function requireSignedIn(action) {
+      if (!API_ENABLED || currentUser) return true;
+      const message = `Sign in to ${action}.`;
+      showPassiveHint(message);
+      openProfileMenu(message);
+      return false;
+    }
+
+    async function loadAuthState() {
+      if (!API_ENABLED) {
+        renderProfile();
+        return;
+      }
+      try {
+        const data = await apiRequest("/api/auth/me");
+        currentUser = data.user || null;
+        authProviders = { ...authProviders, ...(data.providers || {}) };
+      } catch {
+        currentUser = null;
+      }
+      renderProfile();
+      renderCommunityBuilds();
+    }
+
+    async function logoutProfile() {
+      try {
+        await apiRequest("/api/auth/logout", { method: "POST", body: "{}" });
+      } catch {}
+      currentUser = null;
+      renderProfile();
+      renderCommunityBuilds();
+      showPassiveHint("Signed out.");
+    }
+
+    async function uploadProfileAvatar(file) {
+      if (!file || !requireSignedIn("upload an avatar")) return;
+      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+        showPassiveHint("Avatar must be PNG, JPG, or WebP.");
+        return;
+      }
+      if (file.size > 1024 * 1024) {
+        showPassiveHint("Avatar must be 1 MB or smaller.");
+        return;
+      }
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("Unable to read avatar."));
+        reader.readAsDataURL(file);
+      });
+      const data = await apiRequest("/api/profile/avatar", {
+        method: "POST",
+        body: JSON.stringify({ dataUrl }),
+      });
+      currentUser = data.user || currentUser;
+      renderProfile();
+      renderCommunityBuilds();
+      showPassiveHint("Avatar updated.");
+    }
+
+    function bindProfileMenu() {
+      profileButtonEl?.addEventListener("click", () => {
+        const isHidden = profileMenuEl?.hidden;
+        if (profileMenuEl) profileMenuEl.hidden = !isHidden;
+        profileButtonEl.setAttribute("aria-expanded", String(Boolean(isHidden)));
+      });
+      profileActionsEl?.addEventListener("click", (ev) => {
+        const providerBtn = ev.target.closest("[data-auth-provider]");
+        if (providerBtn && !providerBtn.disabled) {
+          location.href = `/api/auth/login/${providerBtn.dataset.authProvider}`;
+          return;
+        }
+        const actionBtn = ev.target.closest("[data-auth-action]");
+        if (actionBtn?.dataset.authAction === "logout") logoutProfile();
+      });
+      profileAvatarInputEl?.addEventListener("change", (ev) => {
+        const file = ev.target.files?.[0];
+        uploadProfileAvatar(file).catch((err) => showPassiveHint(err.message || "Avatar upload failed."));
+        ev.target.value = "";
+      });
+      document.addEventListener("click", (ev) => {
+        if (!profileMenuEl || profileMenuEl.hidden) return;
+        if (ev.target.closest(".profile-widget")) return;
+        profileMenuEl.hidden = true;
+        profileButtonEl?.setAttribute("aria-expanded", "false");
+      });
     }
 
     async function updateVisitCounter() {
@@ -4593,6 +4835,7 @@
 
     function canDeleteCommunityBuild(build) {
       if (!build) return false;
+      if (API_ENABLED && build.userId) return Boolean(currentUser && build.userId === currentUser.id);
       return (
         ownedCommunityBuildIds().has(build.id) ||
         Boolean(build.ownerKey && build.ownerKey === communityOwnerKey())
@@ -4797,6 +5040,7 @@
       videoInputEl = builderCommunityVideoUrlEl,
       strategyNotesEl = builderCommunityStrategyNotesEl
     ) {
+      if (API_ENABLED && !requireSignedIn("publish")) return;
       if (!currentBuildHasContent()) {
         showPassiveHint("Create a build before publishing it.");
         return;
@@ -4809,7 +5053,7 @@
       const title =
         nameEl?.value.trim() ||
         `${ch.label} ${modeLabel(mode)} build`;
-      const author = authorEl?.value.trim() || "Anonymous";
+      const author = authorEl?.value.trim() || currentUser?.displayName || "Anonymous";
       const state = snapshotCurrentBuild(metadata);
       const payload = {
         title,
@@ -4862,7 +5106,13 @@
           showPassiveHint("Build published online. Vote sorting updated.");
           renderCommunityBuilds();
           return;
-        } catch {
+        } catch (err) {
+          if (err.status === 401) {
+            currentUser = null;
+            renderProfile();
+            requireSignedIn("publish");
+            return;
+          }
           showPassiveHint("Online publish failed. Build saved locally.");
         }
       }
@@ -4881,6 +5131,7 @@
     }
 
     async function voteCommunityBuild(id) {
+      if (API_ENABLED && !requireSignedIn("vote")) return;
       const builds = loadCommunityBuilds();
       const b = builds.find((x) => x.id === id);
       if (!b) return;
@@ -4903,6 +5154,12 @@
           renderCommunityBuilds();
           return;
         } catch (err) {
+          if (err.status === 401) {
+            currentUser = null;
+            renderProfile();
+            requireSignedIn("vote");
+            return;
+          }
           if (err.duplicate || err.status === 409) {
             if (err.data?.build) Object.assign(b, err.data.build);
             rememberVotedCommunityBuild(id);
@@ -4923,6 +5180,7 @@
     }
 
     async function deleteCommunityBuild(id) {
+      if (API_ENABLED && !requireSignedIn("delete")) return;
       const builds = loadCommunityBuilds();
       const build = builds.find((x) => x.id === id);
       if (!build) return;
@@ -4937,6 +5195,12 @@
             body: JSON.stringify({ ownerKey: communityOwnerKey() }),
           });
         } catch (err) {
+          if (err.status === 401) {
+            currentUser = null;
+            renderProfile();
+            requireSignedIn("delete");
+            return;
+          }
           showPassiveHint(err.message || "Online delete failed.");
           return;
         }
@@ -5054,10 +5318,15 @@
         const card = document.createElement("article");
         card.className = "community-build-card";
         const voted = hasVotedCommunityBuild(b.id);
-        const voteButtonText = voted ? "Voted" : "Vote";
+        const voteButtonText = API_ENABLED && !currentUser ? "Sign in to vote" : voted ? "Voted" : "Vote";
         const voteDisabled = voted ? " disabled aria-disabled=\"true\"" : "";
         const deleteButton = canDeleteCommunityBuild(b)
           ? `<button type="button" class="community-delete" data-community-action="delete" data-build-id="${escapeHtml(b.id)}">Delete</button>`
+          : "";
+        const authorAvatar = userAvatarUrl(b.authorProfile);
+        const authorName = b.authorProfile?.displayName || b.author || "Anonymous";
+        const authorHtml = authorAvatar
+          ? `<img class="community-author-avatar" src="${escapeHtml(authorAvatar)}" alt="" loading="lazy" decoding="async" />`
           : "";
         const targetLabel = buildTargetLabel(b);
         const power = buildPower(b);
@@ -5078,7 +5347,7 @@
           <div class="community-build-head">
             <div>
               <div class="community-build-title">${escapeHtml(b.title)}</div>
-              <div class="community-build-meta">by ${escapeHtml(b.author || "Anonymous")} · ${escapeHtml(buildCharacterLabel)} ${modeLabel(mode)}${progressionMeta}</div>
+              <div class="community-build-meta">by ${authorHtml}${escapeHtml(authorName)} · ${escapeHtml(buildCharacterLabel)} ${modeLabel(mode)}${progressionMeta}</div>
             </div>
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
@@ -6311,10 +6580,12 @@
         resetBuildSlots();
         bindAppTabs();
         bindSupportCopy();
+        bindProfileMenu();
         bindCommunityBuilds();
         bindPlanner();
         bindPickerClicks();
         bindStarClicks();
+        loadAuthState();
         renderBestBuilds();
         renderSlots();
         onUpdate();

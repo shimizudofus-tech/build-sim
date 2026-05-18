@@ -2,18 +2,23 @@ import crypto from "node:crypto";
 import { connectLambda, getStore } from "@netlify/blobs";
 
 const DB_KEY = "db";
+const SESSION_COOKIE = "builder_session";
+const OAUTH_STATE_COOKIE = "builder_oauth_state";
+const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const AVATAR_MAX_BYTES = 1024 * 1024;
 const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
 const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
 const GETGEMS_TIMEOUT_MS = 6500;
 const COMMUNITY_STRATEGY_NOTES_MAX = 360;
 const COMMUNITY_DIFFICULTIES = new Set(["", "very_easy", "easy", "medium", "hard", "very_hard"]);
 
-function json(statusCode, body) {
+function json(statusCode, body, extraHeaders = {}) {
   return {
     statusCode,
     headers: {
       "content-type": "application/json; charset=utf-8",
       "cache-control": "no-store",
+      ...extraHeaders,
     },
     body: JSON.stringify(body),
   };
@@ -135,6 +140,189 @@ function publicBuild(build) {
   return safe;
 }
 
+function base64url(input) {
+  return Buffer.from(input).toString("base64url");
+}
+
+function hmac(value, secret) {
+  return crypto.createHmac("sha256", secret).update(value).digest("base64url");
+}
+
+function parseCookies(event) {
+  const header = event.headers?.cookie || event.headers?.Cookie || "";
+  return Object.fromEntries(
+    header
+      .split(";")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .map((part) => {
+        const eq = part.indexOf("=");
+        return eq === -1 ? [part, ""] : [part.slice(0, eq), decodeURIComponent(part.slice(eq + 1))];
+      })
+  );
+}
+
+function secureCookie(event) {
+  const proto = event.headers?.["x-forwarded-proto"] || "";
+  return proto === "https" || String(process.env.PUBLIC_SITE_URL || process.env.URL || "").startsWith("https://");
+}
+
+function cookieHeader(name, value, event, maxAge = SESSION_MAX_AGE_SECONDS, httpOnly = true) {
+  return [
+    `${name}=${encodeURIComponent(value)}`,
+    "Path=/",
+    `Max-Age=${maxAge}`,
+    "SameSite=Lax",
+    httpOnly ? "HttpOnly" : "",
+    secureCookie(event) ? "Secure" : "",
+  ]
+    .filter(Boolean)
+    .join("; ");
+}
+
+function clearCookieHeader(name, event) {
+  return cookieHeader(name, "", event, 0);
+}
+
+function signEnvelope(payload, secret) {
+  const encoded = base64url(JSON.stringify(payload));
+  return `${encoded}.${hmac(encoded, secret)}`;
+}
+
+function verifyEnvelope(value, secret) {
+  if (!value || !secret) return null;
+  const [encoded, sig] = String(value).split(".");
+  if (!encoded || !sig) return null;
+  const expected = hmac(encoded, secret);
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+    if (payload.exp && payload.exp < Date.now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeUsers(users) {
+  if (Array.isArray(users)) return Object.fromEntries(users.filter((u) => u?.id).map((u) => [u.id, u]));
+  return users && typeof users === "object" ? users : {};
+}
+
+function publicUser(user) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    provider: user.provider,
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl || "",
+    customAvatarUrl: user.customAvatarUrl || "",
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+  };
+}
+
+function providerStatus() {
+  return {
+    discord: Boolean(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET),
+    google: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
+    telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+  };
+}
+
+function siteOrigin(event) {
+  const configured = process.env.PUBLIC_SITE_URL || process.env.URL || process.env.DEPLOY_PRIME_URL;
+  if (configured) return configured.replace(/\/+$/, "");
+  const rawUrl = event.rawUrl || `https://${event.headers?.host || "localhost"}${event.path || ""}`;
+  return new URL(rawUrl).origin;
+}
+
+function sessionUser(event, db) {
+  const session = verifyEnvelope(parseCookies(event)[SESSION_COOKIE], process.env.SESSION_SECRET);
+  return session?.uid ? db.users[session.uid] || null : null;
+}
+
+function upsertUser(db, profile) {
+  const existing = db.users[profile.id] || {};
+  const now = Date.now();
+  const user = {
+    ...existing,
+    ...profile,
+    customAvatarUrl: existing.customAvatarUrl || profile.customAvatarUrl || "",
+    createdAt: existing.createdAt || now,
+    updatedAt: now,
+  };
+  db.users[user.id] = user;
+  return user;
+}
+
+async function exchangeOAuthCode(provider, code, redirectUri) {
+  const isDiscord = provider === "discord";
+  const clientId = process.env[isDiscord ? "DISCORD_CLIENT_ID" : "GOOGLE_CLIENT_ID"];
+  const clientSecret = process.env[isDiscord ? "DISCORD_CLIENT_SECRET" : "GOOGLE_CLIENT_SECRET"];
+  const tokenUrl = isDiscord ? "https://discord.com/api/oauth2/token" : "https://oauth2.googleapis.com/token";
+  const response = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
+    body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, code, grant_type: "authorization_code", redirect_uri: redirectUri }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.error || `${provider} token exchange failed`);
+  return data.access_token;
+}
+
+async function fetchOAuthProfile(provider, accessToken) {
+  const response = await fetch(
+    provider === "discord" ? "https://discord.com/api/users/@me" : "https://www.googleapis.com/oauth2/v3/userinfo",
+    { headers: { authorization: `Bearer ${accessToken}`, accept: "application/json" } }
+  );
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error_description || data.message || `${provider} profile fetch failed`);
+  if (provider === "discord") {
+    return {
+      id: `discord:${data.id}`,
+      provider,
+      displayName: data.global_name || data.username || "Discord user",
+      avatarUrl: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=128` : "",
+    };
+  }
+  return { id: `google:${data.sub}`, provider, displayName: data.name || data.email || "Google user", avatarUrl: data.picture || "" };
+}
+
+function validateTelegramPayload(payload) {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) throw new Error("Telegram login is not configured.");
+  const { hash, ...rest } = payload || {};
+  if (!hash) throw new Error("Missing Telegram hash.");
+  const dataCheckString = Object.keys(rest)
+    .filter((key) => rest[key] !== undefined && rest[key] !== null && rest[key] !== "")
+    .sort()
+    .map((key) => `${key}=${rest[key]}`)
+    .join("\n");
+  const secret = crypto.createHash("sha256").update(token).digest();
+  const expected = crypto.createHmac("sha256", secret).update(dataCheckString).digest("hex");
+  if (hash.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expected))) {
+    throw new Error("Invalid Telegram login.");
+  }
+  const authDate = Number(rest.auth_date) || 0;
+  if (!authDate || Date.now() / 1000 - authDate > 86400) throw new Error("Telegram login expired.");
+  return {
+    id: `telegram:${rest.id}`,
+    provider: "telegram",
+    displayName: [rest.first_name, rest.last_name].filter(Boolean).join(" ") || rest.username || "Telegram user",
+    avatarUrl: rest.photo_url || "",
+  };
+}
+
+function validateAvatarDataUrl(dataUrl) {
+  const match = String(dataUrl || "").match(/^data:image\/(png|jpeg|jpg|webp);base64,([a-z0-9+/=]+)$/i);
+  if (!match) throw new Error("Avatar must be a PNG, JPG, or WebP image.");
+  const ext = match[1].toLowerCase() === "jpg" ? "jpeg" : match[1].toLowerCase();
+  const bytes = Buffer.from(match[2], "base64");
+  if (!bytes.length || bytes.length > AVATAR_MAX_BYTES) throw new Error("Avatar must be 1 MB or smaller.");
+  return `data:image/${ext};base64,${bytes.toString("base64")}`;
+}
+
 async function fetchJsonWithTimeout(url, timeoutMs = GETGEMS_TIMEOUT_MS, headers = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -193,6 +381,7 @@ function apiPath(event) {
 async function readBody(event) {
   if (!event.body) return {};
   const raw = event.isBase64Encoded ? Buffer.from(event.body, "base64").toString("utf8") : event.body;
+  if (raw.length > 1_500_000) throw new Error("Body too large");
   return JSON.parse(raw);
 }
 
@@ -201,6 +390,7 @@ async function readDb(store) {
   return {
     visits: Number(db.visits) || 0,
     builds: Array.isArray(db.builds) ? db.builds : [],
+    users: normalizeUsers(db.users),
   };
 }
 
@@ -216,6 +406,108 @@ export async function handler(event) {
   const path = apiPath(event);
 
   try {
+    if (path === "/api/auth/me" && event.httpMethod === "GET") {
+      const db = await readDb(store);
+      return json(200, { user: publicUser(sessionUser(event, db)), providers: providerStatus() });
+    }
+
+    if (path === "/api/auth/logout" && event.httpMethod === "POST") {
+      return json(200, { ok: true }, { "set-cookie": clearCookieHeader(SESSION_COOKIE, event) });
+    }
+
+    const loginMatch = path.match(/^\/api\/auth\/login\/(discord|google|telegram)$/);
+    if (loginMatch && event.httpMethod === "GET") {
+      const provider = loginMatch[1];
+      const providers = providerStatus();
+      if (provider === "telegram") {
+        return json(501, {
+          error: "Telegram Login Widget is not wired into this UI yet. Use POST /api/auth/telegram with a validated widget payload.",
+          providers,
+        });
+      }
+      if (!process.env.SESSION_SECRET) return json(503, { error: "SESSION_SECRET is required for login.", providers });
+      if (!providers[provider]) return json(503, { error: `${provider} login is not configured.`, providers });
+      const origin = siteOrigin(event);
+      const redirectUri = `${origin}/api/auth/callback/${provider}`;
+      const state = signEnvelope(
+        { provider, nonce: crypto.randomBytes(16).toString("hex"), exp: Date.now() + 10 * 60 * 1000 },
+        process.env.SESSION_SECRET
+      );
+      const authUrl =
+        provider === "discord"
+          ? new URL("https://discord.com/api/oauth2/authorize")
+          : new URL("https://accounts.google.com/o/oauth2/v2/auth");
+      authUrl.searchParams.set("client_id", process.env[provider === "discord" ? "DISCORD_CLIENT_ID" : "GOOGLE_CLIENT_ID"]);
+      authUrl.searchParams.set("redirect_uri", redirectUri);
+      authUrl.searchParams.set("response_type", "code");
+      authUrl.searchParams.set("scope", provider === "discord" ? "identify" : "openid profile email");
+      authUrl.searchParams.set("state", state);
+      return {
+        statusCode: 302,
+        headers: {
+          location: authUrl.href,
+          "set-cookie": cookieHeader(OAUTH_STATE_COOKIE, state, event, 10 * 60),
+          "cache-control": "no-store",
+        },
+        body: "",
+      };
+    }
+
+    const callbackMatch = path.match(/^\/api\/auth\/callback\/(discord|google)$/);
+    if (callbackMatch && event.httpMethod === "GET") {
+      const provider = callbackMatch[1];
+      const rawUrl = event.rawUrl || `https://local${event.path || ""}`;
+      const callbackUrl = new URL(rawUrl);
+      const code = callbackUrl.searchParams.get("code");
+      const state = callbackUrl.searchParams.get("state");
+      const cookies = parseCookies(event);
+      const statePayload = verifyEnvelope(state, process.env.SESSION_SECRET);
+      if (!code || !statePayload || statePayload.provider !== provider || cookies[OAUTH_STATE_COOKIE] !== state) {
+        return json(400, { error: "Invalid OAuth callback." });
+      }
+      const db = await readDb(store);
+      const redirectUri = `${siteOrigin(event)}/api/auth/callback/${provider}`;
+      const accessToken = await exchangeOAuthCode(provider, code, redirectUri);
+      const profile = await fetchOAuthProfile(provider, accessToken);
+      const user = upsertUser(db, profile);
+      await writeDb(store, db);
+      const session = signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, process.env.SESSION_SECRET);
+      return {
+        statusCode: 302,
+        headers: { location: `${siteOrigin(event)}/`, "cache-control": "no-store" },
+        multiValueHeaders: {
+          "set-cookie": [
+            cookieHeader(SESSION_COOKIE, session, event),
+            clearCookieHeader(OAUTH_STATE_COOKIE, event),
+          ],
+        },
+        body: "",
+      };
+    }
+
+    if (path === "/api/auth/telegram" && event.httpMethod === "POST") {
+      if (!process.env.SESSION_SECRET) return json(503, { error: "SESSION_SECRET is required for login." });
+      const body = await readBody(event);
+      const profile = validateTelegramPayload(body);
+      const db = await readDb(store);
+      const user = upsertUser(db, profile);
+      await writeDb(store, db);
+      const session = signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, process.env.SESSION_SECRET);
+      return json(200, { user: publicUser(user) }, { "set-cookie": cookieHeader(SESSION_COOKIE, session, event) });
+    }
+
+    if (path === "/api/profile/avatar" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const body = await readBody(event);
+      user.customAvatarUrl = validateAvatarDataUrl(body.dataUrl);
+      user.updatedAt = Date.now();
+      db.users[user.id] = user;
+      await writeDb(store, db);
+      return json(200, { user: publicUser(user) });
+    }
+
     if (path === "/api/market/getgems-collection" && event.httpMethod === "GET") {
       const rawUrl = event.rawUrl || `https://local${event.path || ""}`;
       return json(200, await getGetgemsCollectionMarket(new URL(rawUrl).searchParams.get("address")));
@@ -236,6 +528,8 @@ export async function handler(event) {
     if (path === "/api/community-builds" && event.httpMethod === "POST") {
       const body = await readBody(event);
       const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
       const videoUrl = sanitizeCommunityVideoUrl(body.videoUrl);
       if (videoUrl === null) {
         return json(400, { error: "Video link must be YouTube, X/Twitter, or Discord." });
@@ -243,7 +537,9 @@ export async function handler(event) {
       const build = {
         id: `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`,
         title: sanitizeText(body.title, 48) || "Anonymous build",
-        author: sanitizeText(body.author, 32) || "Anonymous",
+        author: sanitizeText(body.author, 32) || sanitizeText(user.displayName, 32) || "Anonymous",
+        userId: user.id,
+        authorProfile: publicUser(user),
         ownerKey: sanitizeText(body.ownerKey, 120),
         character: sanitizeText(body.character, 24),
         mode: sanitizeText(body.mode, 24),
@@ -267,9 +563,11 @@ export async function handler(event) {
     if (voteMatch && event.httpMethod === "POST") {
       const body = await readBody(event);
       const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
       const build = db.builds.find((b) => b.id === decodeURIComponent(voteMatch[1]));
       if (!build) return json(404, { error: "Build not found" });
-      const voteKey = requestVoteKey(event, body);
+      const voteKey = `user:${user.id}`;
       if (!voteKey) return json(400, { error: "Voter key is required" });
       const voteKeys = buildVoteKeys(build);
       if (voteKeys.includes(voteKey)) {
@@ -289,10 +587,13 @@ export async function handler(event) {
     if (deleteMatch && event.httpMethod === "DELETE") {
       const body = await readBody(event);
       const db = await readDb(store);
+      const user = sessionUser(event, db);
       const id = decodeURIComponent(deleteMatch[1]);
       const build = db.builds.find((b) => b.id === id);
       if (!build) return json(404, { error: "Build not found" });
-      if (!build.ownerKey || build.ownerKey !== sanitizeText(body.ownerKey, 120)) {
+      const ownerKeyMatches = build.ownerKey && build.ownerKey === sanitizeText(body.ownerKey, 120);
+      if (!user && !ownerKeyMatches) return json(401, { error: "Sign in required." });
+      if (build.userId ? build.userId !== user?.id : !ownerKeyMatches) {
         return json(403, { error: "Only the author can delete this build" });
       }
       db.builds = db.builds.filter((b) => b.id !== id);

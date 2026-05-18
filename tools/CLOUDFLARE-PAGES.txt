@@ -31,3 +31,24 @@ Expected response:
 
 If you see "Missing Cloudflare KV binding: BUILDER_KV", the Function is deployed
 but the KV binding is not configured yet.
+
+Authentication
+--------------
+The builder stays usable without login, but online publish, vote, delete, and
+avatar upload require a signed session.
+
+Set these Cloudflare Pages environment variables:
+- PUBLIC_SITE_URL=https://YOUR-CLOUDFLARE-DOMAIN
+- SESSION_SECRET=a long random secret, at least 32 characters
+- DISCORD_CLIENT_ID=from the Discord developer portal
+- DISCORD_CLIENT_SECRET=from the Discord developer portal
+- GOOGLE_CLIENT_ID=from Google Cloud Console
+- GOOGLE_CLIENT_SECRET=from Google Cloud Console
+- TELEGRAM_BOT_TOKEN=from BotFather, only needed once the Telegram Login Widget is added
+
+OAuth redirect URLs to register externally:
+- Discord: https://YOUR-CLOUDFLARE-DOMAIN/api/auth/callback/discord
+- Google: https://YOUR-CLOUDFLARE-DOMAIN/api/auth/callback/google
+
+Telegram support currently validates Telegram Login Widget payloads at
+POST /api/auth/telegram, but the page does not render the Telegram widget yet.
