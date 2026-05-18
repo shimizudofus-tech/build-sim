@@ -228,7 +228,7 @@
       }
     }
     .live-chat {
-      --live-chat-top: 11.75rem;
+      --live-chat-top: 12.75rem;
       position: fixed;
       top: var(--live-chat-top);
       left: 0.75rem;
@@ -653,19 +653,29 @@
     }
     .market-header {
       display: grid;
-      grid-template-columns: minmax(12rem, 1fr) auto minmax(12rem, 1fr);
-      align-items: start;
+      grid-template-columns: minmax(0, 1fr) minmax(16rem, auto);
+      align-items: center;
       gap: 0.85rem;
     }
     .market-header .header-row {
-      justify-content: center;
+      justify-content: flex-start;
       align-self: center;
+      min-width: 0;
+    }
+    .market-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 0.65rem;
+      min-width: 0;
+      justify-self: end;
     }
     .market-widget {
       display: flex;
       align-items: center;
       gap: 0.58rem;
       min-width: 0;
+      flex: 1 1 17rem;
       max-width: 21rem;
       padding: 0.48rem 0.62rem;
       border: 1px solid rgba(110, 168, 254, 0.28);
@@ -680,7 +690,6 @@
       filter: brightness(1.05);
     }
     .market-widget.is-right {
-      justify-self: end;
       border-color: rgba(62, 207, 142, 0.28);
       background: linear-gradient(135deg, rgba(62, 207, 142, 0.11), rgba(110, 168, 254, 0.08));
     }
@@ -872,12 +881,15 @@
     }
     @media (max-width: 980px) {
       .market-header {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
       }
       .market-header .header-row {
-        grid-column: 1 / -1;
-        grid-row: 2;
         justify-content: center;
+      }
+      .market-cluster {
+        width: 100%;
+        justify-content: center;
+        justify-self: stretch;
       }
       .market-widget {
         max-width: none;
@@ -891,10 +903,13 @@
         display: flex;
         flex-direction: column;
       }
+      .market-cluster {
+        flex-direction: column;
+        width: 100%;
+      }
       .market-widget,
       .market-widget.is-right {
         width: 100%;
-        justify-self: stretch;
       }
       .market-header .header-row {
         width: 100%;
@@ -2510,32 +2525,6 @@
   </aside>
   <header>
     <div class="market-header">
-      <a
-        class="market-widget"
-        id="collectionMarketWidget"
-        href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Open Getgems collection"
-      >
-        <img
-          id="collectionMarketImage"
-          class="market-image"
-          src="assets/getgems-collection.png"
-          alt="Getgems collection"
-          width="42"
-          height="42"
-        />
-        <span class="market-copy">
-          <span class="market-title"><span class="market-live" aria-hidden="true"></span>Getgems collection</span>
-          <span class="market-line">Floor: <strong id="collectionFloorPrice">Loading...</strong></span>
-          <span class="market-line">
-            Supply: <strong id="collectionSupply">Loading...</strong>
-            / Owners: <strong id="collectionOwners">Loading...</strong>
-          </span>
-          <span class="market-updated" id="collectionMarketUpdated">Live</span>
-        </span>
-      </a>
       <div class="header-row">
         <h1>BUILDER</h1>
         <div id="visitCounter" class="visit-counter" aria-label="Site visit counter">Visits: 0</div>
@@ -2599,26 +2588,54 @@
           </button>
         </nav>
       </div>
-      <a
-        class="market-widget is-right"
-        id="astarMarketWidget"
-        href="https://coinmarketcap.com/fr/currencies/astar/"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Open Astar on CoinMarketCap"
-      >
-        <span class="market-copy">
-          <span class="market-title"><span class="market-live" aria-hidden="true"></span>Astar market</span>
-          <span class="market-line">ASTR: <strong id="astarPrice">Loading...</strong></span>
-          <span class="market-line">
-            24h <span id="astarChange24h" class="market-change">--</span>
-            / 7d <span id="astarChange7d" class="market-change">--</span>
-            / 1m <span id="astarChange30d" class="market-change">--</span>
+      <div class="market-cluster" aria-label="Market widgets">
+        <a
+          class="market-widget"
+          id="collectionMarketWidget"
+          href="https://getgems.io/collection/EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open Getgems collection"
+        >
+          <img
+            id="collectionMarketImage"
+            class="market-image"
+            src="assets/getgems-collection.png"
+            alt="Getgems collection"
+            width="42"
+            height="42"
+          />
+          <span class="market-copy">
+            <span class="market-title"><span class="market-live" aria-hidden="true"></span>Getgems collection</span>
+            <span class="market-line">Floor: <strong id="collectionFloorPrice">Loading...</strong></span>
+            <span class="market-line">
+              Supply: <strong id="collectionSupply">Loading...</strong>
+              / Owners: <strong id="collectionOwners">Loading...</strong>
+            </span>
+            <span class="market-updated" id="collectionMarketUpdated">Live</span>
           </span>
-          <span class="market-line"><strong>$SPEK: TBA</strong></span>
-          <span class="market-updated" id="astarMarketUpdated">Live</span>
-        </span>
-      </a>
+        </a>
+        <a
+          class="market-widget is-right"
+          id="astarMarketWidget"
+          href="https://coinmarketcap.com/fr/currencies/astar/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open Astar on CoinMarketCap"
+        >
+          <span class="market-copy">
+            <span class="market-title"><span class="market-live" aria-hidden="true"></span>Astar market</span>
+            <span class="market-line">ASTR: <strong id="astarPrice">Loading...</strong></span>
+            <span class="market-line">
+              24h <span id="astarChange24h" class="market-change">--</span>
+              / 7d <span id="astarChange7d" class="market-change">--</span>
+              / 1m <span id="astarChange30d" class="market-change">--</span>
+            </span>
+            <span class="market-line"><strong>$SPEK: TBA</strong></span>
+            <span class="market-updated" id="astarMarketUpdated">Live</span>
+          </span>
+        </a>
+      </div>
     </div>
   </header>
   <main id="panelBuild">
