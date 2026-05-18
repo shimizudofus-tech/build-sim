@@ -335,34 +335,40 @@
         0 10px 22px rgba(0, 0, 0, 0.18);
       transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s, filter 0.16s;
     }
-    .app-nav button::before {
-      content: "";
+    .app-nav-icon {
+      display: grid;
+      place-items: center;
       width: 2rem;
       height: 2rem;
-      border: 1px solid rgba(110, 168, 254, 0.4);
+      border: 1px solid var(--nav-icon-border, rgba(110, 168, 254, 0.4));
       border-radius: 10px;
       background:
-        linear-gradient(90deg, transparent 45%, rgba(255, 255, 255, 0.16) 45% 55%, transparent 55%),
-        linear-gradient(0deg, transparent 45%, rgba(255, 255, 255, 0.16) 45% 55%, transparent 55%),
-        radial-gradient(circle at 50% 50%, rgba(110, 168, 254, 0.36), transparent 62%),
-        rgba(110, 168, 254, 0.12);
+        radial-gradient(circle at 50% 35%, var(--nav-icon-glow, rgba(110, 168, 254, 0.34)), transparent 66%),
+        var(--nav-icon-bg, rgba(110, 168, 254, 0.12));
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      color: var(--nav-icon-color, #aecdff);
     }
-    .app-nav button[data-app-tab="community"]::before {
-      border-color: rgba(62, 207, 142, 0.42);
-      background:
-        radial-gradient(circle at 35% 38%, rgba(255, 255, 255, 0.9) 0 8%, transparent 9%),
-        radial-gradient(circle at 65% 38%, rgba(255, 255, 255, 0.75) 0 8%, transparent 9%),
-        radial-gradient(circle at 50% 65%, rgba(255, 255, 255, 0.55) 0 10%, transparent 11%),
-        radial-gradient(circle at 50% 50%, rgba(62, 207, 142, 0.34), transparent 64%),
-        rgba(62, 207, 142, 0.11);
+    .app-nav-icon svg {
+      width: 1.28rem;
+      height: 1.28rem;
+      display: block;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
-    .app-nav button[data-app-tab="book"]::before {
-      border-color: rgba(240, 193, 77, 0.46);
-      background:
-        linear-gradient(90deg, rgba(255, 255, 255, 0.18) 48%, rgba(0, 0, 0, 0.22) 49% 51%, rgba(255, 255, 255, 0.12) 52%),
-        linear-gradient(180deg, rgba(240, 193, 77, 0.3), rgba(240, 193, 77, 0.06)),
-        rgba(240, 193, 77, 0.11);
+    .app-nav button[data-app-tab="community"] {
+      --nav-icon-border: rgba(62, 207, 142, 0.42);
+      --nav-icon-bg: rgba(62, 207, 142, 0.11);
+      --nav-icon-glow: rgba(62, 207, 142, 0.34);
+      --nav-icon-color: #9df2c9;
+    }
+    .app-nav button[data-app-tab="book"] {
+      --nav-icon-border: rgba(240, 193, 77, 0.46);
+      --nav-icon-bg: rgba(240, 193, 77, 0.11);
+      --nav-icon-glow: rgba(240, 193, 77, 0.32);
+      --nav-icon-color: #ffe0a0;
     }
     .app-nav button:hover:not(:disabled) {
       transform: translateY(-1px);
@@ -1989,18 +1995,42 @@
         <div id="visitCounter" class="visit-counter" aria-label="Site visit counter">Visits: 0</div>
         <nav class="app-nav" aria-label="Navigation">
           <button type="button" class="is-active" data-app-tab="build" aria-current="page">
+            <span class="app-nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <rect x="4" y="4" width="6" height="6" rx="1.4"></rect>
+                <rect x="14" y="4" width="6" height="6" rx="1.4"></rect>
+                <rect x="4" y="14" width="6" height="6" rx="1.4"></rect>
+                <path d="M14 17h6"></path>
+                <path d="M17 14v6"></path>
+              </svg>
+            </span>
             <span class="app-nav-copy">
               <span class="app-nav-main">Build</span>
               <span class="app-nav-sub">Simulator</span>
             </span>
           </button>
           <button type="button" data-app-tab="community">
+            <span class="app-nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+                <path d="M16 12a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2z"></path>
+                <path d="M3.8 19.2c.5-3 2-4.7 4.2-4.7s3.7 1.7 4.2 4.7"></path>
+                <path d="M13.6 18.8c.4-2.2 1.6-3.4 3.3-3.4 1.8 0 3 1.2 3.4 3.4"></path>
+              </svg>
+            </span>
             <span class="app-nav-copy">
               <span class="app-nav-main">Community</span>
               <span class="app-nav-sub">Rankings</span>
             </span>
           </button>
           <button type="button" data-app-tab="book">
+            <span class="app-nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M5 5.5c1.7-.9 3.6-.9 5.3 0 .7.4 1.1 1 1.1 1.8v11.2c0-.8-.4-1.4-1.1-1.8-1.7-.9-3.6-.9-5.3 0V5.5z"></path>
+                <path d="M19 5.5c-1.7-.9-3.6-.9-5.3 0-.7.4-1.1 1-1.1 1.8v11.2c0-.8.4-1.4 1.1-1.8 1.7-.9 3.6-.9 5.3 0V5.5z"></path>
+                <path d="M12 7.4v11.1"></path>
+              </svg>
+            </span>
             <span class="app-nav-copy">
               <span class="app-nav-main">Book</span>
               <span class="app-nav-sub">Recipes</span>
