@@ -2113,7 +2113,8 @@
             <span class="publish-community-title">Publish to Community</span>
             <span class="publish-community-hint">This posts your current build to the Community tab.</span>
           </div>
-          <input id="builderCommunityBuildName" type="text" maxlength="48" placeholder="Build name" />
+          <input id="builderCommunityBuildName" type="text" maxlength="48" placeholder="Build name" list="builderCommunityBuildNames" />
+          <datalist id="builderCommunityBuildNames"></datalist>
           <input id="builderCommunityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
           <div class="community-target-field">
             <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue">Cleared level</label>
@@ -2713,6 +2714,7 @@
     const plannerMythicsEl = document.getElementById("plannerMythics");
     const plannerResultEl = document.getElementById("plannerResult");
     const builderCommunityBuildNameEl = document.getElementById("builderCommunityBuildName");
+    const builderCommunityBuildNamesEl = document.getElementById("builderCommunityBuildNames");
     const builderCommunityBuildAuthorEl = document.getElementById("builderCommunityBuildAuthor");
     const builderCommunityTargetLabelEl = document.getElementById("builderCommunityTargetLabel");
     let builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
@@ -3029,8 +3031,28 @@
       return inputEl;
     }
 
+    function renderPublishedBuildNameOptions() {
+      if (!builderCommunityBuildNamesEl) return;
+      const ch = currentCharacter();
+      const mode = modeEl?.value || "stage";
+      const builds = loadCommunityBuilds();
+      const scoped = builds.filter((build) => build.character === ch.id && build.mode === mode);
+      const source = scoped.length ? scoped : builds;
+      const names = Array.from(
+        new Set(
+          source
+            .map((build) => String(build?.title || "").trim())
+            .filter(Boolean)
+        )
+      ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+      builderCommunityBuildNamesEl.innerHTML = names
+        .map((name) => `<option value="${escapeHtml(name)}"></option>`)
+        .join("");
+    }
+
     function updateCommunityPublishFields() {
       builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
+      renderPublishedBuildNameOptions();
     }
 
     function communityFilterValues(modeId = modeEl?.value) {
