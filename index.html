@@ -370,6 +370,12 @@
       --nav-icon-glow: rgba(240, 193, 77, 0.32);
       --nav-icon-color: #ffe0a0;
     }
+    .app-nav button[data-app-tab="mini-games"] {
+      --nav-icon-border: rgba(186, 133, 255, 0.46);
+      --nav-icon-bg: rgba(186, 133, 255, 0.11);
+      --nav-icon-glow: rgba(186, 133, 255, 0.32);
+      --nav-icon-color: #d8c1ff;
+    }
     .app-nav button:hover:not(:disabled) {
       transform: translateY(-1px);
       border-color: rgba(110, 168, 254, 0.6);
@@ -1320,6 +1326,26 @@
       font-size: 0.95rem;
       color: #bdf6d5;
     }
+    .mini-games-placeholder {
+      margin: 0.95rem 0;
+      padding: 1.25rem;
+      border: 1px solid rgba(186, 133, 255, 0.34);
+      border-radius: 14px;
+      background:
+        radial-gradient(360px 180px at 20% 0%, rgba(186, 133, 255, 0.16), transparent 72%),
+        linear-gradient(180deg, rgba(70, 42, 120, 0.16), rgba(0, 0, 0, 0.1));
+      text-align: center;
+    }
+    .mini-games-placeholder h2 {
+      margin: 0 0 0.4rem;
+      color: #d8c1ff;
+      font-size: 1.1rem;
+    }
+    .mini-games-placeholder p {
+      max-width: 34rem;
+      margin: 0 auto;
+      color: var(--muted);
+    }
     .community-form {
       display: flex;
       flex-wrap: wrap;
@@ -2036,6 +2062,21 @@
               <span class="app-nav-sub">Recipes</span>
             </span>
           </button>
+          <button type="button" data-app-tab="mini-games">
+            <span class="app-nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <path d="M6.5 9.5h11a3.5 3.5 0 0 1 3.4 2.7l.8 3.5a2.4 2.4 0 0 1-4.1 2.1l-1.7-1.8H8.1l-1.7 1.8a2.4 2.4 0 0 1-4.1-2.1l.8-3.5a3.5 3.5 0 0 1 3.4-2.7z"></path>
+                <path d="M8 12.2v3"></path>
+                <path d="M6.5 13.7h3"></path>
+                <path d="M15.5 13.2h.01"></path>
+                <path d="M18 15h.01"></path>
+              </svg>
+            </span>
+            <span class="app-nav-copy">
+              <span class="app-nav-main">Mini Games</span>
+              <span class="app-nav-sub">Soon</span>
+            </span>
+          </button>
         </nav>
       </div>
       <a
@@ -2217,6 +2258,13 @@
     <section class="book-section">
       <h2>Mythics — EVO pairs</h2>
       <div id="mythicRecipesRef" class="ref-grid"></div>
+    </section>
+  </main>
+
+  <main id="panelMiniGames" class="app-panel" hidden>
+    <section class="mini-games-placeholder" aria-label="Mini games">
+      <h2>Coming soon</h2>
+      <p>This area will host small community tools and mini games in future updates.</p>
     </section>
   </main>
 
@@ -2614,6 +2662,7 @@
     const panelBuild = document.getElementById("panelBuild");
     const panelCommunity = document.getElementById("panelCommunity");
     const panelBook = document.getElementById("panelBook");
+    const panelMiniGames = document.getElementById("panelMiniGames");
     let bookRendered = false;
 
     function renderBook() {
@@ -2645,9 +2694,11 @@
       const isBuild = tab === "build";
       const isCommunity = tab === "community";
       const isBook = tab === "book";
+      const isMiniGames = tab === "mini-games";
       if (panelBuild) panelBuild.hidden = !isBuild;
       if (panelCommunity) panelCommunity.hidden = !isCommunity;
       if (panelBook) panelBook.hidden = !isBook;
+      if (panelMiniGames) panelMiniGames.hidden = !isMiniGames;
       document.querySelectorAll("[data-app-tab]").forEach((btn) => {
         const active = btn.dataset.appTab === tab;
         btn.classList.toggle("is-active", active);
