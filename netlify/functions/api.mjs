@@ -225,7 +225,6 @@ function publicUser(user) {
 function providerStatus() {
   return {
     discord: Boolean(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET),
-    google: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
     telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN),
   };
 }
@@ -257,11 +256,9 @@ function upsertUser(db, profile) {
 }
 
 async function exchangeOAuthCode(provider, code, redirectUri) {
-  const isDiscord = provider === "discord";
-  const clientId = process.env[isDiscord ? "DISCORD_CLIENT_ID" : "GOOGLE_CLIENT_ID"];
-  const clientSecret = process.env[isDiscord ? "DISCORD_CLIENT_SECRET" : "GOOGLE_CLIENT_SECRET"];
-  const tokenUrl = isDiscord ? "https://discord.com/api/oauth2/token" : "https://oauth2.googleapis.com/token";
-  const response = await fetch(tokenUrl, {
+  const clientId = process.env.DISCORD_CLIENT_ID;
+  const clientSecret = process.env.DISCORD_CLIENT_SECRET;
+  const response = await fetch("https://discord.com/api/oauth2/token", {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded", accept: "application/json" },
     body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, code, grant_type: "authorization_code", redirect_uri: redirectUri }),
@@ -272,21 +269,17 @@ async function exchangeOAuthCode(provider, code, redirectUri) {
 }
 
 async function fetchOAuthProfile(provider, accessToken) {
-  const response = await fetch(
-    provider === "discord" ? "https://discord.com/api/users/@me" : "https://www.googleapis.com/oauth2/v3/userinfo",
-    { headers: { authorization: `Bearer ${accessToken}`, accept: "application/json" } }
-  );
+  const response = await fetch("https://discord.com/api/users/@me", {
+    headers: { authorization: `Bearer ${accessToken}`, accept: "application/json" },
+  });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error_description || data.message || `${provider} profile fetch failed`);
-  if (provider === "discord") {
-    return {
-      id: `discord:${data.id}`,
-      provider,
-      displayName: data.global_name || data.username || "Discord user",
-      avatarUrl: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=128` : "",
-    };
-  }
-  return { id: `google:${data.sub}`, provider, displayName: data.name || data.email || "Google user", avatarUrl: data.picture || "" };
+  return {
+    id: `discord:${data.id}`,
+    provider,
+    displayName: data.global_name || data.username || "Discord user",
+    avatarUrl: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png?size=128` : "",
+  };
 }
 
 function validateTelegramPayload(payload) {
@@ -415,7 +408,7 @@ export async function handler(event) {
       return json(200, { ok: true }, { "set-cookie": clearCookieHeader(SESSION_COOKIE, event) });
     }
 
-    const loginMatch = path.match(/^\/api\/auth\/login\/(discord|google|telegram)$/);
+    const loginMatch = path.match(/^\/api\/auth\/login\/(discord|telegram)$/);
     if (loginMatch && event.httpMethod === "GET") {
       const provider = loginMatch[1];
       const providers = providerStatus();
@@ -433,14 +426,11 @@ export async function handler(event) {
         { provider, nonce: crypto.randomBytes(16).toString("hex"), exp: Date.now() + 10 * 60 * 1000 },
         process.env.SESSION_SECRET
       );
-      const authUrl =
-        provider === "discord"
-          ? new URL("https://discord.com/api/oauth2/authorize")
-          : new URL("https://accounts.google.com/o/oauth2/v2/auth");
-      authUrl.searchParams.set("client_id", process.env[provider === "discord" ? "DISCORD_CLIENT_ID" : "GOOGLE_CLIENT_ID"]);
+      const authUrl = new URL("https://discord.com/api/oauth2/authorize");
+      authUrl.searchParams.set("client_id", process.env.DISCORD_CLIENT_ID);
       authUrl.searchParams.set("redirect_uri", redirectUri);
       authUrl.searchParams.set("response_type", "code");
-      authUrl.searchParams.set("scope", provider === "discord" ? "identify" : "openid profile email");
+      authUrl.searchParams.set("scope", "identify");
       authUrl.searchParams.set("state", state);
       return {
         statusCode: 302,
@@ -453,7 +443,7 @@ export async function handler(event) {
       };
     }
 
-    const callbackMatch = path.match(/^\/api\/auth\/callback\/(discord|google)$/);
+    const callbackMatch = path.match(/^\/api\/auth\/callback\/(discord)$/);
     if (callbackMatch && event.httpMethod === "GET") {
       const provider = callbackMatch[1];
       const rawUrl = event.rawUrl || `https://local${event.path || ""}`;

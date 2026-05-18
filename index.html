@@ -2982,7 +2982,7 @@
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
     let currentUser = null;
-    let authProviders = { discord: false, google: false, telegram: false };
+    let authProviders = { discord: false, telegram: false };
     let lastAppliedBuildNameSuggestionKey = "";
     const plannerSelectedChoices = new Set();
     let plannerGeneratedSlots = [];
@@ -3063,8 +3063,7 @@
       } else {
         profileActionsEl.innerHTML = `
           <button type="button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>Sign in with Discord${authProviders.discord ? "" : " (not configured)"}</button>
-          <button type="button" data-auth-provider="google"${authProviders.google ? "" : " disabled"}>Sign in with Google${authProviders.google ? "" : " (not configured)"}</button>
-          <button type="button" data-auth-provider="telegram" disabled>Telegram login widget not enabled</button>
+          <button type="button" data-auth-provider="telegram" disabled>Telegram login widget pending</button>
         `;
       }
       if (builderSaveCommunityBuildEl) {
