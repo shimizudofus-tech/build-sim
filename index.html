@@ -5206,10 +5206,11 @@
 
     function plannerPlansAfterResourceConsumption(plan, currentPlans) {
       const componentEvos = plannerMythicComponentEvos(plan);
-      if (!componentEvos.size) return currentPlans;
-
       const consumedPassives = new Set();
       const consumedSkills = new Set();
+      plannerPlanPassives(plan).forEach((passive) => consumedPassives.add(passive));
+      plannerPlanSkillIds(plan).forEach((skill) => consumedSkills.add(skill));
+
       for (const component of plan.components || []) {
         if (component.passive) consumedPassives.add(component.passive);
         if (component.skill) consumedSkills.add(component.skill);
@@ -5515,14 +5516,28 @@
         passive: "damage",
         components: [],
       };
+      const currentBatSkill = {
+        type: "skill",
+        key: "sanity-current-skill:bat",
+        id: "bat",
+        label: skillLabel("bat"),
+        skill: "bat",
+        skillStars: 1,
+        components: [],
+      };
+      const currentPassiveUnlocksEvo = canUseSelectablePlannerPlan(
+        batEvo,
+        [currentBatSkill, currentBatPassive],
+        nox
+      );
       const selectedEvoCanUpgrade = canUseSelectablePlannerPlan(batMythic, [batEvo], nox);
       const currentEvoCanUpgrade = canUseSelectablePlannerPlan(
         batMythic,
         [batEvo, currentBatPassive],
         nox
       );
-      if (!selectedEvoCanUpgrade || !currentEvoCanUpgrade) {
-        console.warn("Planner sanity check failed: Bat EVO should keep Bat red available.");
+      if (!currentPassiveUnlocksEvo || !selectedEvoCanUpgrade || !currentEvoCanUpgrade) {
+        console.warn("Planner sanity check failed: current Bat resources should keep Bat EVO/red available.");
       }
 
       const shu = CHARACTERS.find((character) => character.id === "shu") || CHARACTERS[0];
@@ -5564,6 +5579,45 @@
       const cuttingBlade = mythicPlanOptions().find((plan) => plan.id === "chronos_blue");
       if (!cuttingBlade || cuttingBlade.label !== "Cutting blade") {
         console.warn("Planner sanity check failed: chronos_blue should display as Cutting blade.");
+      }
+      const currentChronosResources = [
+        {
+          type: "passive",
+          key: "sanity-current-passive:crit",
+          id: "crit",
+          label: passiveLabel("crit"),
+          passive: "crit",
+          components: [],
+        },
+        {
+          type: "passive",
+          key: "sanity-current-passive:haste",
+          id: "haste",
+          label: passiveLabel("haste"),
+          passive: "haste",
+          components: [],
+        },
+        {
+          type: "skill",
+          key: "sanity-current-skill:cutting-blades",
+          id: "cutting-blades",
+          label: skillLabel("cutting-blades"),
+          skill: "cutting-blades",
+          skillStars: 1,
+          components: [],
+        },
+        {
+          type: "skill",
+          key: "sanity-current-skill:razor",
+          id: "razor",
+          label: skillLabel("razor"),
+          skill: "razor",
+          skillStars: 1,
+          components: [],
+        },
+      ];
+      if (cuttingBlade && !canUseSelectablePlannerPlan(cuttingBlade, currentChronosResources, zen)) {
+        console.warn("Planner sanity check failed: current Cutting blades/Razor resources should unlock Cutting blade.");
       }
       const zenStagePlan = selectBestBuildForCap(bestBuildCandidateSlots(zen, "stage"), zen, "stage");
       if (!zenStagePlan.some((plan) => plan.id === "chronos_blue")) {
