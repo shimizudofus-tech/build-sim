@@ -859,7 +859,7 @@
     .slot-arrow { color: var(--muted); font-size: 0.85rem; font-weight: 700; padding: 0 0.1rem; user-select: none; }
     .picker-layout {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
       gap: 0.85rem;
       margin-top: 1rem;
     }
@@ -881,6 +881,7 @@
       box-shadow: 0 0 0 1px rgba(62, 207, 142, 0.32);
     }
     .picker-panel--skills {
+      padding-inline: 0.55rem;
       border-top: 3px solid var(--skill-accent);
       background:
         radial-gradient(460px 110px at 50% 0%, rgba(110, 168, 254, 0.12), transparent 72%),
@@ -897,6 +898,9 @@
       flex-wrap: wrap;
       gap: 0.45rem;
       justify-content: center;
+    }
+    .picker-panel--skills .icon-palette {
+      gap: 0.3rem;
     }
     .icon-pick {
       width: 56px;
@@ -951,6 +955,15 @@
       width: 48px;
       height: 48px;
       pointer-events: none;
+    }
+    .picker-panel--skills .icon-pick {
+      width: 50px;
+      height: 50px;
+      border-radius: 13px;
+    }
+    .picker-panel--skills .icon-pick .ico-wrap {
+      width: 43px;
+      height: 43px;
     }
     .icon-strip {
       display: flex;
@@ -1187,6 +1200,20 @@
       flex-wrap: wrap;
       gap: 0.45rem;
     }
+    .planner-choice-group.is-evo .planner-choice-list {
+      flex-wrap: nowrap;
+      gap: 0.3rem;
+      overflow-x: auto;
+      padding-bottom: 0.18rem;
+      scrollbar-width: thin;
+    }
+    .planner-choice-group.is-evo .planner-choice-list::-webkit-scrollbar {
+      height: 6px;
+    }
+    .planner-choice-group.is-evo .planner-choice-list::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(196, 168, 255, 0.28);
+    }
     .planner-choice-empty {
       margin: 0;
       color: var(--muted);
@@ -1226,11 +1253,19 @@
       box-shadow: 0 0 0 2px rgba(255, 224, 138, 0.12);
     }
     .planner-mythic.is-evo {
+      flex: 0 0 auto;
+      min-width: 3.45rem;
+      min-height: 3.5rem;
+      padding: 0.34rem;
       border-color: rgba(186, 133, 255, 0.82);
       background:
         radial-gradient(circle at 50% 18%, rgba(196, 168, 255, 0.24), transparent 56%),
         linear-gradient(180deg, rgba(112, 63, 190, 0.26), rgba(31, 17, 56, 0.34));
       box-shadow: 0 0 0 1px rgba(196, 168, 255, 0.14), 0 0 14px rgba(155, 123, 214, 0.16);
+    }
+    .planner-mythic.is-evo .ico-wrap--evo {
+      width: 32px !important;
+      height: 32px !important;
     }
     .planner-mythic.is-evo.is-selected {
       border-color: #d6b7ff;
