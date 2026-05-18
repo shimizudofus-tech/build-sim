@@ -2350,6 +2350,8 @@
     const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
+    const COMMUNITY_VOTER_KEY = "builderCommunityVoter:v1";
+    const COMMUNITY_VOTED_IDS_KEY = "builderCommunityVotedIds:v1";
     const COMMUNITY_STRATEGY_NOTES_MAX = 360;
     const COMMUNITY_DIFFICULTIES = [
       ["", "Not rated"],
@@ -2428,7 +2430,13 @@
         ...options,
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
+      if (!res.ok) {
+        const err = new Error(data.error || `API error ${res.status}`);
+        err.status = res.status;
+        err.data = data;
+        err.duplicate = Boolean(data.duplicate);
+        throw err;
+      }
       return data;
     }
 
@@ -3863,6 +3871,22 @@
       }
     }
 
+    function communityVoterKey() {
+      try {
+        let key = localStorage.getItem(COMMUNITY_VOTER_KEY);
+        if (!key) {
+          key =
+            typeof globalThis.crypto?.randomUUID === "function"
+              ? globalThis.crypto.randomUUID()
+              : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+          localStorage.setItem(COMMUNITY_VOTER_KEY, key);
+        }
+        return key;
+      } catch {
+        return "";
+      }
+    }
+
     function ownedCommunityBuildIds() {
       try {
         const ids = JSON.parse(localStorage.getItem(COMMUNITY_OWNED_IDS_KEY) || "[]");
@@ -3887,6 +3911,28 @@
         ids.delete(id);
         localStorage.setItem(COMMUNITY_OWNED_IDS_KEY, JSON.stringify(Array.from(ids)));
       } catch {}
+    }
+
+    function votedCommunityBuildIds() {
+      try {
+        const ids = JSON.parse(localStorage.getItem(COMMUNITY_VOTED_IDS_KEY) || "[]");
+        return new Set(Array.isArray(ids) ? ids : []);
+      } catch {
+        return new Set();
+      }
+    }
+
+    function rememberVotedCommunityBuild(id) {
+      if (!id) return;
+      try {
+        const ids = votedCommunityBuildIds();
+        ids.add(id);
+        localStorage.setItem(COMMUNITY_VOTED_IDS_KEY, JSON.stringify(Array.from(ids)));
+      } catch {}
+    }
+
+    function hasVotedCommunityBuild(id) {
+      return votedCommunityBuildIds().has(id);
     }
 
     function canDeleteCommunityBuild(build) {
@@ -4177,22 +4223,39 @@
       const builds = loadCommunityBuilds();
       const b = builds.find((x) => x.id === id);
       if (!b) return;
+      if (hasVotedCommunityBuild(id)) {
+        showPassiveHint("You already voted for this build.");
+        renderCommunityBuilds();
+        return;
+      }
+      const voterKey = communityVoterKey();
       if (API_ENABLED) {
         try {
           const data = await apiRequest(`/api/community-builds/${encodeURIComponent(id)}/vote`, {
             method: "POST",
-            body: "{}",
+            body: JSON.stringify({ voterKey }),
           });
           Object.assign(b, data.build);
+          rememberVotedCommunityBuild(id);
           communityBuildCache = builds;
           saveCommunityBuilds(builds);
           renderCommunityBuilds();
           return;
-        } catch {
+        } catch (err) {
+          if (err.duplicate || err.status === 409) {
+            if (err.data?.build) Object.assign(b, err.data.build);
+            rememberVotedCommunityBuild(id);
+            communityBuildCache = builds;
+            saveCommunityBuilds(builds);
+            showPassiveHint("You already voted for this build.");
+            renderCommunityBuilds();
+            return;
+          }
           showPassiveHint("Online vote failed. Vote saved locally.");
         }
       }
       b.votes = (Number(b.votes) || 0) + 1;
+      rememberVotedCommunityBuild(id);
       communityBuildCache = builds;
       saveCommunityBuilds(builds);
       renderCommunityBuilds();
@@ -4315,6 +4378,9 @@
       for (const b of builds) {
         const card = document.createElement("article");
         card.className = "community-build-card";
+        const voted = hasVotedCommunityBuild(b.id);
+        const voteButtonText = voted ? "Voted" : "Vote";
+        const voteDisabled = voted ? " disabled aria-disabled=\"true\"" : "";
         const deleteButton = canDeleteCommunityBuild(b)
           ? `<button type="button" class="community-delete" data-community-action="delete" data-build-id="${escapeHtml(b.id)}">Delete</button>`
           : "";
@@ -4344,8 +4410,8 @@
           ${strategyNotes ? `<div class="community-build-notes">${escapeHtml(strategyNotes)}</div>` : ""}
           ${videoEmbed}
           <div class="community-build-actions">
-            <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}">Vote</button>
-            <button type="button" data-community-action="apply" data-build-id="${escapeHtml(b.id)}">Apply</button>
+            <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}"${voteDisabled}>${voteButtonText}</button>
+            <button type="button" data-community-action="apply" data-build-id="${escapeHtml(b.id)}">Apply this build</button>
             ${videoAction}
             ${deleteButton}
           </div>
@@ -4397,7 +4463,10 @@
         const build = loadCommunityBuilds().find((b) => b.id === id);
         if (!build) return;
         if (btn.dataset.communityAction === "vote") voteCommunityBuild(id);
-        if (btn.dataset.communityAction === "apply") applySerializedBuild(build.state);
+        if (btn.dataset.communityAction === "apply") {
+          applySerializedBuild(build.state);
+          setAppTab("build");
+        }
         if (btn.dataset.communityAction === "delete") deleteCommunityBuild(id);
       });
     }

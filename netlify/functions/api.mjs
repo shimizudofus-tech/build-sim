@@ -23,6 +23,39 @@ function sanitizeText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function hashText(value) {
+  return crypto.createHash("sha256").update(String(value || "")).digest("hex");
+}
+
+function sanitizeVoterKey(value) {
+  return sanitizeText(value, 160);
+}
+
+function requestVoteKey(event, body) {
+  const explicitKey = sanitizeVoterKey(body?.voterKey);
+  if (explicitKey) return `voter:${hashText(explicitKey)}`;
+  const headers = event.headers || {};
+  const fallback = [
+    headers["x-forwarded-for"] || headers["client-ip"] || event.requestContext?.http?.sourceIp || "",
+    headers["user-agent"] || "",
+  ].join("|");
+  return fallback.trim() ? `fallback:${hashText(fallback)}` : "";
+}
+
+function buildVoteKeys(build) {
+  const keys = Array.isArray(build.voteKeys)
+    ? build.voteKeys
+    : Array.isArray(build.voterKeys)
+      ? build.voterKeys
+      : Array.isArray(build.voters)
+        ? build.voters
+        : [];
+  build.voteKeys = keys.map(sanitizeVoterKey).filter(Boolean);
+  delete build.voterKeys;
+  delete build.voters;
+  return build.voteKeys;
+}
+
 function sanitizeNumber(value) {
   if (value === "" || value === null || value === undefined) return null;
   const number = Number(value);
@@ -98,7 +131,7 @@ function sanitizeCommunityVideoUrl(value) {
 }
 
 function publicBuild(build) {
-  const { ownerKey, ...safe } = build;
+  const { ownerKey, voteKeys, voterKeys, voters, ...safe } = build;
   return safe;
 }
 
@@ -221,6 +254,7 @@ export async function handler(event) {
         videoUrl,
         strategyNotes: sanitizeStrategyNotes(body.strategyNotes),
         votes: 0,
+        voteKeys: [],
         createdAt: Date.now(),
         state: body.state || {},
       };
@@ -231,9 +265,21 @@ export async function handler(event) {
 
     const voteMatch = path.match(/^\/api\/community-builds\/([^/]+)\/vote$/);
     if (voteMatch && event.httpMethod === "POST") {
+      const body = await readBody(event);
       const db = await readDb(store);
       const build = db.builds.find((b) => b.id === decodeURIComponent(voteMatch[1]));
       if (!build) return json(404, { error: "Build not found" });
+      const voteKey = requestVoteKey(event, body);
+      if (!voteKey) return json(400, { error: "Voter key is required" });
+      const voteKeys = buildVoteKeys(build);
+      if (voteKeys.includes(voteKey)) {
+        return json(409, {
+          error: "You already voted for this build.",
+          duplicate: true,
+          build: publicBuild(build),
+        });
+      }
+      voteKeys.push(voteKey);
       build.votes = (Number(build.votes) || 0) + 1;
       await writeDb(store, db);
       return json(200, { build: publicBuild(build) });
