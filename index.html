@@ -2561,7 +2561,7 @@
       ["carapace-mauve", "cutting-blades-purple", "blue-shell-crit-red", "Blue shell crit red"],
       ["boom-frog-pruple", "razor-purple", "boom-frog-razor-red", "Boom frog razor red"],
       ["boom-frog-pruple", "razor-purple", "blood_swarm", "Blood swarm"],
-      ["cutting-blades-purple", "razor-purple", "chronos_blue", "Chronos blue"],
+      ["cutting-blades-purple", "razor-purple", "chronos_blue", "Cutting blade"],
       ["buldak-purple", "fire-field-mauve", "buldak-red", "Buldak red"],
       ["thunderbolt-purple", "frost-field-purple", "prism_shell", "Prism shell"],
     ];
@@ -5559,6 +5559,16 @@
       if (!canUseSelectablePlannerPlan(familiarTempest, partialShuResources, shu)) {
         console.warn("Planner sanity check failed: Shu HP + familiar + tempest should unlock Familiar tempest red.");
       }
+
+      const zen = CHARACTERS.find((character) => character.id === "zen") || CHARACTERS[0];
+      const cuttingBlade = mythicPlanOptions().find((plan) => plan.id === "chronos_blue");
+      if (!cuttingBlade || cuttingBlade.label !== "Cutting blade") {
+        console.warn("Planner sanity check failed: chronos_blue should display as Cutting blade.");
+      }
+      const zenStagePlan = selectBestBuildForCap(bestBuildCandidateSlots(zen, "stage"), zen, "stage");
+      if (!zenStagePlan.some((plan) => plan.id === "chronos_blue")) {
+        console.warn("Planner sanity check failed: Zen Stage should propose Cutting blade.");
+      }
     }
 
     function renderPlanner() {
@@ -5767,7 +5777,7 @@
         },
         chronos: {
           id: "chronos_blue",
-          label: "Chronos blue",
+          label: "Cutting blade",
           components: [
             { evo: "cutting-blades-purple", skill: "cutting-blades", passive: "crit" },
             { evo: "razor-purple", skill: "razor", passive: "haste" },
@@ -5838,8 +5848,8 @@
           abyss: [M.vel, M.whip, M.frogRazor, M.buldakFrost, M.chronos, E.thunderbolt],
         },
         zen: {
-          stage: [M.zen, M.whip, M.blueCrit, M.familiarTempest],
-          boss: [M.zen, M.whip, M.blueCrit, M.familiarTempest],
+          stage: [M.zen, M.chronos, E.familiar, M.whip, M.blueCrit, M.familiarTempest],
+          boss: [M.zen, M.chronos, E.familiar, M.whip, M.blueCrit, M.familiarTempest],
           abyss: [M.zen, M.whip, M.blueCrit, M.familiarTempest, M.chronos, E.lightning],
         },
         shu: {
