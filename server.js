@@ -16,6 +16,8 @@ const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
 const GETGEMS_TIMEOUT_MS = 6500;
 const COMMUNITY_STRATEGY_NOTES_MAX = 360;
 const COMMUNITY_DIFFICULTIES = new Set(["", "very_easy", "easy", "medium", "hard", "very_hard"]);
+const CHAT_MESSAGE_MAX = 240;
+const CHAT_RETENTION_LIMIT = 200;
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -48,9 +50,10 @@ function readDb() {
       visits: Number(parsed.visits) || 0,
       builds: Array.isArray(parsed.builds) ? parsed.builds : [],
       users: normalizeUsers(parsed.users),
+      chatMessages: Array.isArray(parsed.chatMessages) ? parsed.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
     };
   } catch {
-    return { visits: 0, builds: [], users: {} };
+    return { visits: 0, builds: [], users: {}, chatMessages: [] };
   }
 }
 
@@ -91,6 +94,17 @@ function readBody(req) {
 function publicBuild(build) {
   const { ownerKey, voteKeys, voterKeys, voters, ...safe } = build;
   return safe;
+}
+
+function publicChatMessage(message) {
+  return {
+    id: message.id,
+    text: message.text,
+    userId: message.userId,
+    displayName: message.displayName,
+    avatarUrl: message.avatarUrl || "",
+    createdAt: Number(message.createdAt) || Date.now(),
+  };
 }
 
 function base64url(input) {
@@ -331,6 +345,14 @@ function sanitizeText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
 }
 
+function sanitizeChatText(value) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, CHAT_MESSAGE_MAX);
+}
+
 function hashText(value) {
   return crypto.createHash("sha256").update(String(value || "")).digest("hex");
 }
@@ -539,6 +561,31 @@ async function handleApi(req, res, url) {
     db.visits += 1;
     writeDb(db);
     return sendJson(res, 200, { visits: db.visits });
+  }
+
+  if (url.pathname === "/api/chat/messages" && req.method === "GET") {
+    const db = readDb();
+    return sendJson(res, 200, { messages: db.chatMessages.map(publicChatMessage) });
+  }
+
+  if (url.pathname === "/api/chat/messages" && req.method === "POST") {
+    const body = await readBody(req);
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const text = sanitizeChatText(body.text);
+    if (!text) return sendJson(res, 400, { error: "Message is required." });
+    const message = {
+      id: `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`,
+      text,
+      userId: user.id,
+      displayName: sanitizeText(user.displayName, 48) || "Community member",
+      avatarUrl: user.customAvatarUrl || user.avatarUrl || "",
+      createdAt: Date.now(),
+    };
+    db.chatMessages = [...db.chatMessages, message].slice(-CHAT_RETENTION_LIMIT);
+    writeDb(db);
+    return sendJson(res, 201, { message: publicChatMessage(message), messages: db.chatMessages.map(publicChatMessage) });
   }
 
   if (url.pathname === "/api/community-builds" && req.method === "GET") {

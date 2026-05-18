@@ -8,6 +8,8 @@ const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
 const GETGEMS_TIMEOUT_MS = 6500;
 const COMMUNITY_STRATEGY_NOTES_MAX = 360;
 const COMMUNITY_DIFFICULTIES = new Set(["", "very_easy", "easy", "medium", "hard", "very_hard"]);
+const CHAT_MESSAGE_MAX = 240;
+const CHAT_RETENTION_LIMIT = 200;
 
 function json(body, status = 200, extraHeaders = {}) {
   const headers = new Headers({
@@ -26,6 +28,14 @@ function json(body, status = 200, extraHeaders = {}) {
 
 function sanitizeText(value, maxLength) {
   return String(value || "").trim().slice(0, maxLength);
+}
+
+function sanitizeChatText(value) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, CHAT_MESSAGE_MAX);
 }
 
 async function hashText(value) {
@@ -139,6 +149,17 @@ function sanitizeCommunityVideoUrl(value) {
 function publicBuild(build) {
   const { ownerKey, voteKeys, voterKeys, voters, ...safe } = build;
   return safe;
+}
+
+function publicChatMessage(message) {
+  return {
+    id: message.id,
+    text: message.text,
+    userId: message.userId,
+    displayName: message.displayName,
+    avatarUrl: message.avatarUrl || "",
+    createdAt: Number(message.createdAt) || Date.now(),
+  };
 }
 
 function base64urlFromBytes(bytes) {
@@ -395,6 +416,7 @@ async function readDb(env) {
     visits: Number(db.visits) || 0,
     builds: Array.isArray(db.builds) ? db.builds : [],
     users: normalizeUsers(db.users),
+    chatMessages: Array.isArray(db.chatMessages) ? db.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
   };
 }
 
@@ -526,6 +548,31 @@ export async function onRequest(context) {
       db.visits += 1;
       await writeDb(env, db);
       return json({ visits: db.visits });
+    }
+
+    if (path === "/api/chat/messages" && method === "GET") {
+      const db = await readDb(env);
+      return json({ messages: db.chatMessages.map(publicChatMessage) });
+    }
+
+    if (path === "/api/chat/messages" && method === "POST") {
+      const body = await readBody(request);
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const text = sanitizeChatText(body.text);
+      if (!text) return json({ error: "Message is required." }, 400);
+      const message = {
+        id: randomId(),
+        text,
+        userId: user.id,
+        displayName: sanitizeText(user.displayName, 48) || "Community member",
+        avatarUrl: user.customAvatarUrl || user.avatarUrl || "",
+        createdAt: Date.now(),
+      };
+      db.chatMessages = [...db.chatMessages, message].slice(-CHAT_RETENTION_LIMIT);
+      await writeDb(env, db);
+      return json({ message: publicChatMessage(message), messages: db.chatMessages.map(publicChatMessage) }, 201);
     }
 
     if (path === "/api/community-builds" && method === "GET") {
