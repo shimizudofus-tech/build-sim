@@ -1726,36 +1726,9 @@
     <section class="community-builds" aria-label="Community builds">
       <h2>Community builds</h2>
       <p class="hint">
-        Create your build in the Build tab, publish it here, then vote. The highest score moves to the top for the selected character and mode.
+        Create your build in the Build tab, publish it from there, then vote. The highest score moves to the top for the selected character and mode.
       </p>
       <p id="communityHint" class="hint" aria-live="polite"></p>
-      <div class="community-form publish-community-box">
-        <div class="publish-community-copy">
-          <span class="publish-community-title">Publish to Community</span>
-          <span class="publish-community-hint">Save the current Build tab setup for others to browse and vote.</span>
-        </div>
-        <input id="communityBuildName" type="text" maxlength="48" placeholder="Build name" />
-        <input id="communityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
-        <div class="community-target-field">
-          <label id="communityTargetLabel" for="communityTargetValue">Cleared level</label>
-          <select id="communityTargetValue"></select>
-        </div>
-        <div class="community-difficulty-field">
-          <label for="communityDifficulty">Difficulty</label>
-          <select id="communityDifficulty" aria-label="Contextual boss difficulty">
-            <option value="">Not rated</option>
-            <option value="very_easy">Very easy</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-            <option value="very_hard">Very hard</option>
-          </select>
-        </div>
-        <input id="communityPower" class="community-power-input" type="text" maxlength="48" placeholder="Power (optional)" />
-        <input id="communityVideoUrl" class="community-video-input" type="url" maxlength="240" placeholder="Video link (optional)" />
-        <textarea id="communityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
-        <button type="button" id="saveCommunityBuild">Publish current build</button>
-      </div>
       <div class="community-controls" aria-label="Community filters">
         <div class="community-control">
           <label for="communityMode">Community mode</label>
@@ -2331,16 +2304,7 @@
     const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
     const builderCommunityStrategyNotesEl = document.getElementById("builderCommunityStrategyNotes");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
-    const communityBuildNameEl = document.getElementById("communityBuildName");
-    const communityBuildAuthorEl = document.getElementById("communityBuildAuthor");
-    const communityTargetLabelEl = document.getElementById("communityTargetLabel");
-    let communityTargetValueEl = document.getElementById("communityTargetValue");
-    const communityDifficultyEl = document.getElementById("communityDifficulty");
-    const communityPowerEl = document.getElementById("communityPower");
-    const communityVideoUrlEl = document.getElementById("communityVideoUrl");
-    const communityStrategyNotesEl = document.getElementById("communityStrategyNotes");
     const communityModeEl = document.getElementById("communityMode");
-    const saveCommunityBuildEl = document.getElementById("saveCommunityBuild");
     const communityFiltersEl = document.getElementById("communityFilters");
     const communityStageBossEl = document.getElementById("communityStageBoss");
     const communityBuildsEl = document.getElementById("communityBuilds");
@@ -2650,7 +2614,6 @@
 
     function updateCommunityPublishFields() {
       builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
-      communityTargetValueEl = applyCommunityTargetConfig(communityTargetLabelEl, communityTargetValueEl);
     }
 
     function communityFilterValues(modeId = modeEl?.value) {
@@ -4003,6 +3966,7 @@
         const evo = (state.evoPool || []).find(
           (e) => !consumed.has(e.instanceId) && e.skillSlotIndex === i
         );
+        if (!mythic && !evo && !slot.skill && !slot.passive) continue;
         let main = iconMarkup("", "", 32, "");
         let label = "Empty";
         if (mythic) {
@@ -4128,13 +4092,13 @@
     }
 
     async function publishCurrentCommunityBuild(
-      nameEl = communityBuildNameEl,
-      authorEl = communityBuildAuthorEl,
-      targetInputEl = communityTargetValueEl,
-      difficultyInputEl = communityDifficultyEl,
-      powerInputEl = communityPowerEl,
-      videoInputEl = communityVideoUrlEl,
-      strategyNotesEl = communityStrategyNotesEl
+      nameEl = builderCommunityBuildNameEl,
+      authorEl = builderCommunityBuildAuthorEl,
+      targetInputEl = builderCommunityTargetValueEl,
+      difficultyInputEl = builderCommunityDifficultyEl,
+      powerInputEl = builderCommunityPowerEl,
+      videoInputEl = builderCommunityVideoUrlEl,
+      strategyNotesEl = builderCommunityStrategyNotesEl
     ) {
       if (!currentBuildHasContent()) {
         showPassiveHint("Create a build before publishing it.");
@@ -4430,17 +4394,6 @@
           builderCommunityPowerEl,
           builderCommunityVideoUrlEl,
           builderCommunityStrategyNotesEl
-        )
-      );
-      saveCommunityBuildEl?.addEventListener("click", () =>
-        publishCurrentCommunityBuild(
-          communityBuildNameEl,
-          communityBuildAuthorEl,
-          communityTargetValueEl,
-          communityDifficultyEl,
-          communityPowerEl,
-          communityVideoUrlEl,
-          communityStrategyNotesEl
         )
       );
       communityModeEl?.addEventListener("change", () => {
