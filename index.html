@@ -2771,6 +2771,7 @@
     let communityFetchInFlight = null;
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
+    let lastAppliedBuildNameSuggestionKey = "";
     const plannerSelectedChoices = new Set();
     let plannerGeneratedSlots = [];
     let plannerLastError = "";
@@ -2929,6 +2930,10 @@
       return modeConfig(modeId).label;
     }
 
+    function characterLabel(characterId) {
+      return CHARACTERS.find((character) => character.id === characterId)?.label || characterId || "Unknown";
+    }
+
     function modeUsesUniqueSkills(modeId = modeEl?.value) {
       return modeConfig(modeId).uniqueSkills;
     }
@@ -3038,21 +3043,80 @@
       const builds = loadCommunityBuilds();
       const scoped = builds.filter((build) => build.character === ch.id && build.mode === mode);
       const source = scoped.length ? scoped : builds;
-      const names = Array.from(
-        new Set(
-          source
-            .map((build) => String(build?.title || "").trim())
-            .filter(Boolean)
-        )
-      ).sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+      const titleCounts = new Map();
+      source.forEach((build) => {
+        const title = String(build?.title || "").trim();
+        if (!title) return;
+        titleCounts.set(title, (titleCounts.get(title) || 0) + 1);
+      });
+      const names = Array.from(titleCounts.keys()).sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" })
+      );
       builderCommunityBuildNamesEl.innerHTML = names
-        .map((name) => `<option value="${escapeHtml(name)}"></option>`)
+        .map((name) => {
+          const duplicate = (titleCounts.get(name) || 0) > 1;
+          if (!duplicate) return `<option value="${escapeHtml(name)}"></option>`;
+          const matches = source
+            .filter((build) => String(build?.title || "").trim() === name)
+            .sort((a, b) => compareBuildNameSuggestionRelevance(a, b));
+          const labels = matches
+            .slice(0, 3)
+            .map((build) => `${characterLabel(build.character)} ${modeLabel(build.mode)}`)
+            .join(", ");
+          return `<option value="${escapeHtml(name)}" label="${escapeHtml(labels)}"></option>`;
+        })
         .join("");
     }
 
     function updateCommunityPublishFields() {
       builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
       renderPublishedBuildNameOptions();
+    }
+
+    function buildNameSuggestionScore(build) {
+      const ch = currentCharacter();
+      const mode = modeEl?.value || "stage";
+      return (
+        (build?.character === ch.id && build?.mode === mode ? 4 : 0) +
+        (build?.character === ch.id ? 2 : 0) +
+        (build?.mode === mode ? 1 : 0)
+      );
+    }
+
+    function compareBuildNameSuggestionRelevance(a, b) {
+      return (
+        buildNameSuggestionScore(b) - buildNameSuggestionScore(a) ||
+        (Number(b?.createdAt) || 0) - (Number(a?.createdAt) || 0)
+      );
+    }
+
+    function findBuildNameSuggestionMatch(title, builds = loadCommunityBuilds()) {
+      const exactTitle = String(title || "").trim();
+      if (!exactTitle) return null;
+      return builds
+        .filter((build) => String(build?.title || "").trim() === exactTitle && build?.state)
+        .sort((a, b) => compareBuildNameSuggestionRelevance(a, b))[0] || null;
+    }
+
+    async function applyBuildNameSuggestion() {
+      const title = builderCommunityBuildNameEl?.value.trim() || "";
+      if (!title) {
+        lastAppliedBuildNameSuggestionKey = "";
+        return;
+      }
+      const builds =
+        API_ENABLED && !communityBuildCache
+          ? await refreshCommunityBuildsFromServer()
+          : loadCommunityBuilds();
+      const build = findBuildNameSuggestionMatch(title, builds);
+      if (!build) {
+        lastAppliedBuildNameSuggestionKey = "";
+        return;
+      }
+      const suggestionKey = `${title}\0${build.id || build.createdAt || ""}`;
+      if (suggestionKey === lastAppliedBuildNameSuggestionKey) return;
+      lastAppliedBuildNameSuggestionKey = suggestionKey;
+      applySerializedBuild(build.state);
     }
 
     function communityFilterValues(modeId = modeEl?.value) {
@@ -4854,6 +4918,9 @@
     }
 
     function bindCommunityBuilds() {
+      builderCommunityBuildNameEl?.addEventListener("change", () => {
+        applyBuildNameSuggestion();
+      });
       builderSaveCommunityBuildEl?.addEventListener("click", () =>
         publishCurrentCommunityBuild(
           builderCommunityBuildNameEl,
