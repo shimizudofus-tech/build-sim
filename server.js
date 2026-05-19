@@ -906,7 +906,12 @@ function serveStatic(req, res, url) {
       res.writeHead(404);
       return res.end("Not found");
     }
-    res.writeHead(200, { "content-type": MIME[path.extname(filePath)] || "application/octet-stream" });
+    const normalized = path.normalize(safePath).replace(/\\/g, "/");
+    const headers = { "content-type": MIME[path.extname(filePath)] || "application/octet-stream" };
+    if (normalized.includes("/assets/favicon/")) {
+      headers["Cache-Control"] = "no-store";
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }
