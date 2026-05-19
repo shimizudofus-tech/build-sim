@@ -4040,7 +4040,7 @@
         });
         currentUser = data.user || currentUser;
         renderProfile();
-        showPassiveHint("Telegram linked to your account.");
+        showPassiveHint("Telegram linked. Any older separate login was merged into this profile.");
       } catch (err) {
         const message = err.message || "Telegram link failed.";
         if (profileStatusEl) profileStatusEl.textContent = message;
@@ -4383,8 +4383,8 @@
       const rest = params.toString();
       const nextUrl = `${location.pathname}${rest ? `?${rest}` : ""}${location.hash}`;
       history.replaceState({}, "", nextUrl);
-      if (linked === "discord") showPassiveHint("Discord linked to your account.");
-      else if (linked === "telegram") showPassiveHint("Telegram linked to your account.");
+      if (linked === "discord") showPassiveHint("Discord linked. Any older separate login was merged into this profile.");
+      else if (linked === "telegram") showPassiveHint("Telegram linked. Any older separate login was merged into this profile.");
     }
 
     async function logoutProfile() {
