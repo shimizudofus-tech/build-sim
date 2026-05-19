@@ -3914,8 +3914,10 @@
       return data;
     }
 
-    function userAvatarUrl(user = currentUser) {
-      return user?.customAvatarUrl || user?.avatarUrl || "";
+    function userAvatarUrl(user) {
+      const profile = arguments.length > 0 ? user : currentUser;
+      if (!profile) return "";
+      return profile.customAvatarUrl || profile.avatarUrl || "";
     }
 
     function profileAvatarInnerHtml(avatarUrl, displayName) {
