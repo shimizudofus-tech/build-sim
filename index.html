@@ -45,23 +45,6 @@
       max-width: none;
       width: 100%;
     }
-    .profile-header {
-      display: flex;
-      align-items: stretch;
-      gap: 0.42rem;
-    }
-    .profile-header .profile-button {
-      flex: 1;
-      min-width: 0;
-    }
-    .profile-header .profile-avatar-trigger {
-      min-width: 3.25rem;
-      min-height: 3.25rem;
-      align-self: stretch;
-    }
-    .profile-header .profile-avatar-trigger[hidden] {
-      display: none;
-    }
     .profile-button {
       min-width: 8.8rem;
       min-height: 3.25rem;
@@ -77,26 +60,27 @@
       gap: 0.58rem;
       text-align: left;
     }
-    .profile-avatar-trigger {
-      position: relative;
-      flex: 0 0 auto;
-      padding: 0;
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      cursor: pointer;
-      line-height: 0;
-    }
-    .profile-avatar-trigger img {
+    .profile-button img {
       width: 2.2rem;
       height: 2.2rem;
       object-fit: cover;
       display: block;
+      flex: 0 0 auto;
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.24);
     }
-    .profile-avatar-trigger .profile-initial,
-    .profile-avatar-trigger .profile-icon {
+    .profile-avatar-trigger {
+      position: relative;
+      flex: 0 0 auto;
+      display: inline-flex;
+      border-radius: 999px;
+      cursor: pointer;
+      line-height: 0;
+    }
+    .profile-avatar-trigger[hidden] {
+      display: none;
+    }
+    .profile-avatar-trigger .profile-initial {
       width: 2.2rem;
       height: 2.2rem;
     }
@@ -129,6 +113,9 @@
       color: #d7e6ff;
       font-weight: 800;
       background: linear-gradient(135deg, rgba(110, 168, 254, 0.32), rgba(62, 207, 142, 0.22));
+    }
+    .profile-icon[hidden] {
+      display: none;
     }
     .profile-menu-avatar-wrap {
       display: flex;
@@ -2757,16 +2744,14 @@
     <symbol id="mythic-prism_shell" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-red)"/><path fill="#dff6ff" stroke="#7ecbff" d="M16 8l4 8h8l-6 5 2 9-8-5-8 5 2-9-6-5h8z"/></symbol>
   </svg>
   <aside class="profile-widget" aria-label="Profile">
-    <div class="profile-header">
-      <button type="button" id="profileAvatarButton" class="profile-avatar-trigger" hidden aria-label="Change profile picture"></button>
-      <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" title="Profile">
-        <span id="profileButtonGuestIcon" class="profile-icon" aria-hidden="true">ID</span>
+    <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" title="Profile">
+      <span id="profileButtonAvatar" class="profile-avatar-trigger" data-profile-avatar hidden aria-label="Change profile picture"></span>
+      <span id="profileButtonGuestIcon" class="profile-icon" aria-hidden="true">ID</span>
         <span class="profile-button-copy">
           <span class="profile-button-main">Sign in</span>
           <span class="profile-button-sub">Community account</span>
         </span>
-      </button>
-    </div>
+    </button>
     <div class="player-progress player-progress--preview" aria-label="XP and energy preview (coming soon)">
       <div class="player-progress-head">
         <span class="player-progress-badge">Coming soon</span>
@@ -3799,7 +3784,7 @@
     const visitCounterEl = document.getElementById("visitCounter");
     const buildLevelCounterEl = document.getElementById("buildLevelCounter");
     const profileButtonEl = document.getElementById("profileButton");
-    const profileAvatarButtonEl = document.getElementById("profileAvatarButton");
+    const profileButtonAvatarEl = document.getElementById("profileButtonAvatar");
     const profileButtonGuestIconEl = document.getElementById("profileButtonGuestIcon");
     const profileMenuEl = document.getElementById("profileMenu");
     const profileMenuAvatarEl = document.getElementById("profileMenuAvatar");
@@ -4090,13 +4075,13 @@
       if (!profileButtonEl || !profileActionsEl) return;
       const avatarUrl = userAvatarUrl();
       const displayName = currentUser?.displayName || "Guest";
-      if (profileAvatarButtonEl) {
+      if (profileButtonAvatarEl) {
         if (currentUser) {
-          profileAvatarButtonEl.hidden = false;
-          profileAvatarButtonEl.innerHTML = profileAvatarInnerHtml(avatarUrl, displayName);
+          profileButtonAvatarEl.hidden = false;
+          profileButtonAvatarEl.innerHTML = profileAvatarInnerHtml(avatarUrl, displayName);
         } else {
-          profileAvatarButtonEl.hidden = true;
-          profileAvatarButtonEl.innerHTML = "";
+          profileButtonAvatarEl.hidden = true;
+          profileButtonAvatarEl.innerHTML = "";
         }
       }
       if (profileButtonGuestIconEl) profileButtonGuestIconEl.hidden = Boolean(currentUser);
@@ -4424,13 +4409,14 @@
     }
 
     function bindProfileMenu() {
-      profileAvatarButtonEl?.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        openProfileAvatarPicker();
-      });
-      profileButtonEl?.addEventListener("click", () => {
+      profileButtonEl?.addEventListener("click", (ev) => {
         if (!currentUser) {
           openAuthModal();
+          return;
+        }
+        if (ev.target.closest("[data-profile-avatar]")) {
+          ev.stopPropagation();
+          openProfileAvatarPicker();
           return;
         }
         const isHidden = profileMenuEl?.hidden;
