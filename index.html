@@ -3716,6 +3716,7 @@
     let currentUser = null;
     let authProviders = { discord: false, telegram: false, telegramBotUsername: "" };
     let telegramBotUsername = "";
+    let authStateReady = Promise.resolve();
     let chatMessages = [];
     let chatFetchInFlight = null;
     let chatPollTimer = 0;
@@ -3895,11 +3896,12 @@
       authModalBackdropEl.setAttribute("aria-hidden", "true");
     }
 
-    function openAuthModal(message = "") {
+    async function openAuthModal(message = "") {
       if (!authModalBackdropEl) {
         openProfileMenu(message);
         return;
       }
+      await authStateReady;
       renderProfile();
       mountTelegramLoginWidget();
       authModalBackdropEl.hidden = false;
@@ -4085,21 +4087,25 @@
       chatPollTimer = window.setInterval(() => refreshLiveChatMessages({ silent: true }), CHAT_POLL_MS);
     }
 
-    async function loadAuthState() {
+    function loadAuthState() {
       if (!API_ENABLED) {
+        authStateReady = Promise.resolve();
         renderProfile();
-        return;
+        return authStateReady;
       }
-      try {
-        const data = await apiRequest("/api/auth/me");
-        currentUser = data.user || null;
-        authProviders = { ...authProviders, ...(data.providers || {}) };
-        telegramBotUsername = authProviders.telegramBotUsername || "";
-      } catch {
-        currentUser = null;
-      }
-      renderProfile();
-      renderCommunityBuilds();
+      authStateReady = (async () => {
+        try {
+          const data = await apiRequest("/api/auth/me");
+          currentUser = data.user || null;
+          authProviders = { ...authProviders, ...(data.providers || {}) };
+          telegramBotUsername = authProviders.telegramBotUsername || "";
+        } catch {
+          currentUser = null;
+        }
+        renderProfile();
+        renderCommunityBuilds();
+      })();
+      return authStateReady;
     }
 
     async function logoutProfile() {
