@@ -3992,7 +3992,6 @@
       return `<div class="profile-linked">
         <p class="profile-linked-title">Linked accounts</p>
         ${rows.join("")}
-        <p class="profile-linked-hint">Link both to sign in with Discord or Telegram.</p>
       </div>`;
     }
 
@@ -4104,13 +4103,7 @@
         if (!currentUser) {
           profileMetaEl.textContent = "Sign in to publish, vote, delete, or set your avatar.";
         } else {
-          const links = userLinks();
-          const linked = [];
-          if (links.discord) linked.push("Discord");
-          if (links.telegram) linked.push("Telegram");
-          profileMetaEl.textContent = linked.length
-            ? `${linked.join(" + ")} linked — use either to sign in.`
-            : "Link Discord and Telegram below to use both login methods.";
+          profileMetaEl.textContent = "";
         }
       }
       if (profileStatusEl) profileStatusEl.textContent = "";
