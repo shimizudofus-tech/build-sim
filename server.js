@@ -826,7 +826,7 @@ async function handleApi(req, res, url) {
     const build = {
       id: `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`,
       title: sanitizeText(body.title, 48) || "Anonymous build",
-      author: sanitizeText(body.author, 32) || sanitizeText(user.displayName, 32) || "Anonymous",
+        author: sanitizeText(user.displayName, 32) || "Anonymous",
       userId: user.id,
       authorProfile: publicUser(user),
       ownerKey: sanitizeText(body.ownerKey, 120),

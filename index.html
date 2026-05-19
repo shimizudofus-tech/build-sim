@@ -3120,7 +3120,6 @@
           </div>
           <input id="builderCommunityBuildName" type="text" maxlength="48" placeholder="Build name" list="builderCommunityBuildNames" />
           <datalist id="builderCommunityBuildNames"></datalist>
-          <input id="builderCommunityBuildAuthor" type="text" maxlength="32" placeholder="Author (optional)" />
           <div class="community-target-field">
             <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue">Cleared level</label>
             <select id="builderCommunityTargetValue"></select>
@@ -3766,7 +3765,6 @@
     const plannerResultEl = document.getElementById("plannerResult");
     const builderCommunityBuildNameEl = document.getElementById("builderCommunityBuildName");
     const builderCommunityBuildNamesEl = document.getElementById("builderCommunityBuildNames");
-    const builderCommunityBuildAuthorEl = document.getElementById("builderCommunityBuildAuthor");
     const builderCommunityTargetLabelEl = document.getElementById("builderCommunityTargetLabel");
     let builderCommunityTargetValueEl = document.getElementById("builderCommunityTargetValue");
     const builderCommunityDifficultyEl = document.getElementById("builderCommunityDifficulty");
@@ -6325,9 +6323,17 @@
       `;
     }
 
+    function authorProfileSnapshot() {
+      if (!currentUser) return null;
+      return {
+        displayName: currentUser.displayName,
+        customAvatarUrl: currentUser.customAvatarUrl || "",
+        avatarUrl: currentUser.avatarUrl || "",
+      };
+    }
+
     async function publishCurrentCommunityBuild(
       nameEl = builderCommunityBuildNameEl,
-      authorEl = builderCommunityBuildAuthorEl,
       targetInputEl = builderCommunityTargetValueEl,
       difficultyInputEl = builderCommunityDifficultyEl,
       powerInputEl = builderCommunityPowerEl,
@@ -6347,11 +6353,9 @@
       const title =
         nameEl?.value.trim() ||
         `${ch.label} ${modeLabel(mode)} build`;
-      const author = authorEl?.value.trim() || currentUser?.displayName || "Anonymous";
       const state = snapshotCurrentBuild(metadata);
       const payload = {
         title,
-        author,
         ownerKey,
         character: ch.id,
         mode,
@@ -6367,7 +6371,8 @@
       const localBuild = {
         id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
         title,
-        author,
+        author: currentUser?.displayName || "Anonymous",
+        authorProfile: authorProfileSnapshot(),
         ownerKey,
         character: ch.id,
         mode,
@@ -6618,7 +6623,7 @@
           ? `<button type="button" class="community-delete" data-community-action="delete" data-build-id="${escapeHtml(b.id)}">Delete</button>`
           : "";
         const authorAvatar = userAvatarUrl(b.authorProfile);
-        const authorName = b.authorProfile?.displayName || b.author || "Anonymous";
+        const authorName = b.authorProfile?.displayName || "Anonymous";
         const authorHtml = authorAvatar
           ? `<img class="community-author-avatar" src="${escapeHtml(authorAvatar)}" alt="" loading="lazy" decoding="async" />`
           : "";
@@ -6666,7 +6671,6 @@
       builderSaveCommunityBuildEl?.addEventListener("click", () =>
         publishCurrentCommunityBuild(
           builderCommunityBuildNameEl,
-          builderCommunityBuildAuthorEl,
           builderCommunityTargetValueEl,
           builderCommunityDifficultyEl,
           builderCommunityPowerEl,
