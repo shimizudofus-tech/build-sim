@@ -45,6 +45,23 @@
       max-width: none;
       width: 100%;
     }
+    .profile-header {
+      display: flex;
+      align-items: stretch;
+      gap: 0.42rem;
+    }
+    .profile-header .profile-button {
+      flex: 1;
+      min-width: 0;
+    }
+    .profile-header .profile-avatar-trigger {
+      min-width: 3.25rem;
+      min-height: 3.25rem;
+      align-self: stretch;
+    }
+    .profile-header .profile-avatar-trigger[hidden] {
+      display: none;
+    }
     .profile-button {
       min-width: 8.8rem;
       min-height: 3.25rem;
@@ -60,14 +77,46 @@
       gap: 0.58rem;
       text-align: left;
     }
-    .profile-button img {
+    .profile-avatar-trigger {
+      position: relative;
+      flex: 0 0 auto;
+      padding: 0;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      line-height: 0;
+    }
+    .profile-avatar-trigger img {
       width: 2.2rem;
       height: 2.2rem;
       object-fit: cover;
       display: block;
-      flex: 0 0 auto;
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+    .profile-avatar-trigger .profile-initial,
+    .profile-avatar-trigger .profile-icon {
+      width: 2.2rem;
+      height: 2.2rem;
+    }
+    .profile-avatar-trigger::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: rgba(0, 0, 0, 0.42);
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+    }
+    .profile-avatar-trigger:hover::after,
+    .profile-avatar-trigger:focus-visible::after {
+      opacity: 1;
+    }
+    .profile-avatar-trigger:focus-visible {
+      outline: 2px solid rgba(110, 168, 254, 0.85);
+      outline-offset: 2px;
     }
     .profile-initial,
     .profile-icon {
@@ -80,6 +129,56 @@
       color: #d7e6ff;
       font-weight: 800;
       background: linear-gradient(135deg, rgba(110, 168, 254, 0.32), rgba(62, 207, 142, 0.22));
+    }
+    .profile-menu-avatar-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 0.55rem;
+    }
+    .profile-menu-avatar {
+      position: relative;
+      width: 4.5rem;
+      height: 4.5rem;
+      padding: 0;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      cursor: pointer;
+      line-height: 0;
+    }
+    .profile-menu-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: inherit;
+      border: 2px solid rgba(110, 168, 254, 0.45);
+    }
+    .profile-menu-avatar .profile-initial {
+      width: 100%;
+      height: 100%;
+      font-size: 1.45rem;
+    }
+    .profile-menu-avatar::after {
+      content: "✎";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      border-radius: inherit;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.1rem;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      pointer-events: none;
+    }
+    .profile-menu-avatar:hover::after,
+    .profile-menu-avatar:focus-visible::after {
+      opacity: 1;
+    }
+    .profile-menu-avatar:focus-visible {
+      outline: 2px solid rgba(110, 168, 254, 0.85);
+      outline-offset: 2px;
     }
     .profile-button-copy {
       display: grid;
@@ -122,8 +221,7 @@
       display: grid;
       gap: 0.45rem;
     }
-    .profile-actions button,
-    .profile-upload-label {
+    .profile-actions button {
       width: 100%;
       padding: 0.42rem 0.65rem;
       border-radius: 10px;
@@ -137,9 +235,6 @@
     .profile-actions button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-    }
-    .profile-upload-label:hover {
-      filter: brightness(1.06);
     }
     .profile-file {
       display: none;
@@ -2662,13 +2757,16 @@
     <symbol id="mythic-prism_shell" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-red)"/><path fill="#dff6ff" stroke="#7ecbff" d="M16 8l4 8h8l-6 5 2 9-8-5-8 5 2-9-6-5h8z"/></symbol>
   </svg>
   <aside class="profile-widget" aria-label="Profile">
-    <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" title="Profile">
-      <span class="profile-icon" aria-hidden="true">ID</span>
-      <span class="profile-button-copy">
-        <span class="profile-button-main">Sign in</span>
-        <span class="profile-button-sub">Community account</span>
-      </span>
-    </button>
+    <div class="profile-header">
+      <button type="button" id="profileAvatarButton" class="profile-avatar-trigger" hidden aria-label="Change profile picture"></button>
+      <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" title="Profile">
+        <span id="profileButtonGuestIcon" class="profile-icon" aria-hidden="true">ID</span>
+        <span class="profile-button-copy">
+          <span class="profile-button-main">Sign in</span>
+          <span class="profile-button-sub">Community account</span>
+        </span>
+      </button>
+    </div>
     <div class="player-progress player-progress--preview" aria-label="XP and energy preview (coming soon)">
       <div class="player-progress-head">
         <span class="player-progress-badge">Coming soon</span>
@@ -2700,8 +2798,9 @@
       </div>
     </div>
     <div id="profileMenu" class="profile-menu" hidden>
+      <div id="profileMenuAvatar" class="profile-menu-avatar-wrap" hidden></div>
       <p id="profileName" class="profile-name">Not signed in</p>
-      <p id="profileMeta" class="profile-meta">Sign in to publish, vote, delete, or upload an avatar.</p>
+      <p id="profileMeta" class="profile-meta">Sign in to publish, vote, delete, or set your avatar.</p>
       <div id="profileActions" class="profile-actions"></div>
       <input id="profileAvatarInput" class="profile-file" type="file" accept="image/png,image/jpeg,image/webp" />
       <p id="profileStatus" class="profile-status" aria-live="polite"></p>
@@ -2722,7 +2821,7 @@
         <li>Publish your current build to the Community tab.</li>
         <li>Vote for community builds and keep vote sorting fair.</li>
         <li>Delete your own published builds.</li>
-        <li>Upload a custom avatar for your profile.</li>
+        <li>Click your profile picture to set a custom avatar.</li>
       </ul>
       <div id="authModalActions" class="auth-modal-actions"></div>
       <p id="authModalStatus" class="auth-provider-note" aria-live="polite"></p>
@@ -3700,7 +3799,10 @@
     const visitCounterEl = document.getElementById("visitCounter");
     const buildLevelCounterEl = document.getElementById("buildLevelCounter");
     const profileButtonEl = document.getElementById("profileButton");
+    const profileAvatarButtonEl = document.getElementById("profileAvatarButton");
+    const profileButtonGuestIconEl = document.getElementById("profileButtonGuestIcon");
     const profileMenuEl = document.getElementById("profileMenu");
+    const profileMenuAvatarEl = document.getElementById("profileMenuAvatar");
     const profileNameEl = document.getElementById("profileName");
     const profileMetaEl = document.getElementById("profileMeta");
     const profileActionsEl = document.getElementById("profileActions");
@@ -3829,6 +3931,24 @@
 
     function userAvatarUrl(user = currentUser) {
       return user?.customAvatarUrl || user?.avatarUrl || "";
+    }
+
+    function profileAvatarInnerHtml(avatarUrl, displayName) {
+      return avatarUrl
+        ? `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(displayName)} avatar" />`
+        : `<span class="profile-initial">${escapeHtml((displayName || "?").slice(0, 1).toUpperCase())}</span>`;
+    }
+
+    function profileMenuAvatarHtml(avatarUrl, displayName) {
+      return `<button type="button" class="profile-menu-avatar" data-profile-avatar aria-label="Change profile picture">${profileAvatarInnerHtml(avatarUrl, displayName)}</button>`;
+    }
+
+    function openProfileAvatarPicker() {
+      if (!currentUser) {
+        openAuthModal("Sign in to change your profile picture.");
+        return;
+      }
+      profileAvatarInputEl?.click();
     }
 
     function authProviderButtonsHtml() {
@@ -3970,23 +4090,34 @@
       if (!profileButtonEl || !profileActionsEl) return;
       const avatarUrl = userAvatarUrl();
       const displayName = currentUser?.displayName || "Guest";
-      const identityHtml = currentUser && avatarUrl
-        ? `<img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(displayName)} avatar" />`
-        : currentUser
-          ? `<span class="profile-initial">${escapeHtml((displayName || "?").slice(0, 1).toUpperCase())}</span>`
-          : `<span class="profile-icon" aria-hidden="true">ID</span>`;
-      profileButtonEl.innerHTML = `
-        ${identityHtml}
-        <span class="profile-button-copy">
-          <span class="profile-button-main">${escapeHtml(currentUser ? displayName : "Sign in")}</span>
-          <span class="profile-button-sub">${escapeHtml(currentUser ? "Profile" : "Community account")}</span>
-        </span>
-      `;
+      if (profileAvatarButtonEl) {
+        if (currentUser) {
+          profileAvatarButtonEl.hidden = false;
+          profileAvatarButtonEl.innerHTML = profileAvatarInnerHtml(avatarUrl, displayName);
+        } else {
+          profileAvatarButtonEl.hidden = true;
+          profileAvatarButtonEl.innerHTML = "";
+        }
+      }
+      if (profileButtonGuestIconEl) profileButtonGuestIconEl.hidden = Boolean(currentUser);
+      const profileMainEl = profileButtonEl?.querySelector(".profile-button-main");
+      const profileSubEl = profileButtonEl?.querySelector(".profile-button-sub");
+      if (profileMainEl) profileMainEl.textContent = currentUser ? displayName : "Sign in";
+      if (profileSubEl) profileSubEl.textContent = currentUser ? "Profile" : "Community account";
       profileButtonEl.title = currentUser ? `Signed in as ${displayName}` : "Sign in";
+      if (profileMenuAvatarEl) {
+        if (currentUser) {
+          profileMenuAvatarEl.hidden = false;
+          profileMenuAvatarEl.innerHTML = profileMenuAvatarHtml(avatarUrl, displayName);
+        } else {
+          profileMenuAvatarEl.hidden = true;
+          profileMenuAvatarEl.innerHTML = "";
+        }
+      }
       if (profileNameEl) profileNameEl.textContent = currentUser ? displayName : "Not signed in";
       if (profileMetaEl) {
         if (!currentUser) {
-          profileMetaEl.textContent = "Sign in to publish, vote, delete, or upload an avatar.";
+          profileMetaEl.textContent = "Sign in to publish, vote, delete, or set your avatar.";
         } else {
           const links = userLinks();
           const linked = [];
@@ -4001,7 +4132,6 @@
       if (currentUser) {
         profileActionsEl.innerHTML = `
           ${profileLinkedAccountsHtml()}
-          <label class="profile-upload-label" for="profileAvatarInput">Upload avatar</label>
           <button type="button" data-auth-action="logout">Logout</button>
         `;
         mountTelegramLinkWidget();
@@ -4268,7 +4398,7 @@
     }
 
     async function uploadProfileAvatar(file) {
-      if (!file || !requireSignedIn("upload an avatar")) return;
+      if (!file || !requireSignedIn("change your profile picture")) return;
       if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
         showPassiveHint("Avatar must be PNG, JPG, or WebP.");
         return;
@@ -4294,6 +4424,10 @@
     }
 
     function bindProfileMenu() {
+      profileAvatarButtonEl?.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        openProfileAvatarPicker();
+      });
       profileButtonEl?.addEventListener("click", () => {
         if (!currentUser) {
           openAuthModal();
@@ -4302,6 +4436,11 @@
         const isHidden = profileMenuEl?.hidden;
         if (profileMenuEl) profileMenuEl.hidden = !isHidden;
         profileButtonEl.setAttribute("aria-expanded", String(Boolean(isHidden)));
+      });
+      profileMenuEl?.addEventListener("click", (ev) => {
+        if (ev.target.closest("[data-profile-avatar]")) {
+          openProfileAvatarPicker();
+        }
       });
       profileActionsEl?.addEventListener("click", (ev) => {
         const linkBtn = ev.target.closest("[data-auth-link]");
