@@ -454,6 +454,26 @@ function sanitizePowerText(value) {
   return String(value ?? "").trim().slice(0, 48);
 }
 
+function parsePowerValue(value) {
+  const raw = sanitizePowerText(value);
+  if (!raw) return null;
+  const compact = raw.replace(/\s+/g, "").toUpperCase();
+  const match = compact.match(/^([\d.,]+)([KMB])?$/);
+  if (!match) return null;
+  let numericText = match[1];
+  if (match[2]) {
+    numericText = numericText.replace(",", ".");
+  } else if (/^\d{1,3}(?:,\d{3})+$/.test(numericText)) {
+    numericText = numericText.replace(/,/g, "");
+  } else if (!numericText.includes(".")) {
+    numericText = numericText.replace(",", ".");
+  }
+  if (!/^\d+(?:\.\d+)?$/.test(numericText)) return null;
+  const multiplier = { K: 1_000, M: 1_000_000, B: 1_000_000_000 }[match[2]] || 1;
+  const number = Number(numericText) * multiplier;
+  return Number.isFinite(number) ? number : null;
+}
+
 function sanitizeStrategyNotes(value) {
   return String(value ?? "")
     .replace(/\r\n?/g, "\n")
@@ -823,6 +843,13 @@ async function handleApi(req, res, url) {
     if (videoUrl === null) {
       return sendJson(res, 400, { error: "Video link must be YouTube, X/Twitter, or Discord." });
     }
+    const power = sanitizePowerText(body.power);
+    if (!power) {
+      return sendJson(res, 400, { error: "Power (CP) is required." });
+    }
+    if (parsePowerValue(power) === null) {
+      return sendJson(res, 400, { error: "Invalid Power (CP) value." });
+    }
     const build = {
       id: `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`,
       title: sanitizeText(body.title, 48) || "Anonymous build",
@@ -834,7 +861,7 @@ async function handleApi(req, res, url) {
       mode: sanitizeText(body.mode, 24),
       targetValue: sanitizeNumber(body.targetValue),
       targetLabel: sanitizeText(body.targetLabel, 64),
-      power: sanitizePowerText(body.power),
+      power,
       difficulty: sanitizeCommunityDifficulty(body.difficulty),
       videoUrl,
       strategyNotes: sanitizeStrategyNotes(body.strategyNotes),

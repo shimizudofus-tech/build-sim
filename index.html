@@ -2295,7 +2295,8 @@
     }
     .community-form .community-target-field input,
     .community-form .community-target-field select,
-    .community-form .community-difficulty-field select {
+    .community-form .community-difficulty-field select,
+    .community-form .community-power-field select {
       flex: 0 0 auto;
       width: 100%;
       min-width: 0;
@@ -3238,7 +3239,17 @@
               <option value="very_hard" data-i18n="difficulty.veryHard">Very hard</option>
             </select>
           </div>
-          <input id="builderCommunityPower" class="community-power-input" type="text" maxlength="48" data-i18n-placeholder="builder.powerOptional" placeholder="Power (optional)" />
+          <div class="community-difficulty-field community-power-field">
+            <label for="builderCommunityPower" data-i18n="builder.powerCp">Power (CP)</label>
+            <select
+              id="builderCommunityPower"
+              class="community-power-input"
+              required
+              data-i18n-aria-label="builder.powerCpAria"
+            >
+              <option value="" data-i18n="community.selectCp">Select Power (CP)</option>
+            </select>
+          </div>
           <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" data-i18n-placeholder="builder.videoOptional" placeholder="Video link (optional)" />
           <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" data-i18n-placeholder="builder.strategyPlaceholder" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
           <button type="button" id="builderSaveCommunityBuild" data-i18n="builder.publish">Publish current build</button>
@@ -4809,6 +4820,7 @@
 
     function updateCommunityPublishFields() {
       builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
+      syncBuilderCommunityPowerControl();
     }
 
     function communityFilterValues(modeId = modeEl?.value) {
@@ -5098,19 +5110,29 @@
     }
 
     function communityPowerScopeLabel() {
-      return communityPowerFilter === null ? "all power" : `Power <= ${formatPowerCap(communityPowerFilter)}`;
+      return communityPowerFilter === null
+        ? t("community.allPower")
+        : t("community.cpFilterMax", { cap: formatPowerCap(communityPowerFilter) });
     }
 
-    function communityPowerCapOptions() {
-      const mode = communityBrowsingMode();
-      const step = 50_000;
+    const COMMUNITY_POWER_STEP = 50_000;
+
+    function communityPowerCapOptions(context = {}) {
+      const modeId = context.mode ?? communityBrowsingMode();
+      const characterId = context.character ?? communityBrowsingCharacter()?.id;
+      const minSelected = Number(context.minSelected) || communityPowerFilter || 0;
+      const step = COMMUNITY_POWER_STEP;
       const maxPublishedPower = loadCommunityBuilds()
-        .filter((build) => communityBuildMatchesCharacter(build) && build.mode === mode)
+        .filter((build) => {
+          if (characterId && build.character !== characterId) return false;
+          if (build.mode !== modeId) return false;
+          return true;
+        })
         .reduce((max, build) => {
           const power = parsePowerValue(buildPower(build));
           return power === null ? max : Math.max(max, power);
         }, 0);
-      const maxCap = Math.max(1_000_000, Math.ceil(maxPublishedPower / step) * step, communityPowerFilter || 0);
+      const maxCap = Math.max(1_000_000, Math.ceil(maxPublishedPower / step) * step, minSelected);
       const caps = [];
       for (let cap = step; cap <= maxCap; cap += step) caps.push(cap);
       return caps;
@@ -5120,11 +5142,30 @@
       if (!communityPowerEl) return;
       const selectedValue = communityPowerFilter === null ? "" : String(communityPowerFilter);
       communityPowerEl.innerHTML = [
-        `<option value=""${selectedValue === "" ? " selected" : ""}>All power</option>`,
-        ...communityPowerCapOptions().map(
+        `<option value="" data-i18n="community.allPower"${selectedValue === "" ? " selected" : ""}>${escapeHtml(t("community.allPower"))}</option>`,
+        ...communityPowerCapOptions({ mode: communityBrowsingMode(), character: communityBrowsingCharacter()?.id }).map(
           (cap) => `<option value="${cap}"${selectedValue === String(cap) ? " selected" : ""}>${formatPowerCap(cap)}</option>`
         ),
       ].join("");
+      window.I18n.applyDocument(communityPowerEl);
+    }
+
+    function syncBuilderCommunityPowerControl() {
+      if (!builderCommunityPowerEl) return;
+      const selectedValue = builderCommunityPowerEl.value;
+      const caps = communityPowerCapOptions({
+        mode: modeEl?.value || "stage",
+        character: currentCharacter()?.id,
+        minSelected: selectedValue ? Number(selectedValue) : 0,
+      });
+      builderCommunityPowerEl.innerHTML = [
+        `<option value="" data-i18n="community.selectCp"${selectedValue === "" ? " selected" : ""}>${escapeHtml(t("community.selectCp"))}</option>`,
+        ...caps.map(
+          (cap) =>
+            `<option value="${cap}"${selectedValue === String(cap) ? " selected" : ""}>${formatPowerCap(cap)}</option>`,
+        ),
+      ].join("");
+      window.I18n.applyDocument(builderCommunityPowerEl);
     }
 
     function communityCharacterScopeLabel() {
@@ -6323,7 +6364,19 @@
         targetInputEl?.focus();
         return null;
       }
-      const power = sanitizePowerText(powerInputEl?.value);
+      const powerRaw = powerInputEl?.value;
+      if (!powerRaw) {
+        showPassiveHint(t("community.powerRequired"));
+        powerInputEl?.focus();
+        return null;
+      }
+      const powerNum = Number(powerRaw);
+      if (!Number.isFinite(powerNum) || powerNum <= 0) {
+        showPassiveHint(t("community.powerRequired"));
+        powerInputEl?.focus();
+        return null;
+      }
+      const power = formatPowerCap(powerNum);
       const videoUrl = sanitizeVideoUrlInput(videoInputEl?.value);
       if (videoUrl === null) {
         showPassiveHint(t("community.videoInvalid"));
