@@ -13,6 +13,10 @@ await fs.cp(path.join(root, "assets"), path.join(dist, "assets"), {
   recursive: true,
   force: true,
 });
+await fs.cp(path.join(root, "locales"), path.join(dist, "locales"), {
+  recursive: true,
+  force: true,
+});
 
 for (const file of ["robots.txt", "sitemap.xml"]) {
   try {
