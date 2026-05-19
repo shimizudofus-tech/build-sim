@@ -229,6 +229,9 @@
       padding: 0.15rem 0;
     }
     .auth-telegram-login iframe {
+      display: block;
+      width: 100%;
+      min-height: 40px;
       border: 0;
       border-radius: 10px;
     }
@@ -3783,20 +3786,27 @@
       return `${discordBtn}${telegramBlock}`;
     }
 
+    function telegramLoginMountEl() {
+      return (
+        authModalActionsEl?.querySelector(".auth-telegram-login") ||
+        profileActionsEl?.querySelector(".auth-telegram-login")
+      );
+    }
+
     function mountTelegramLoginWidget() {
       if (!authProviders.telegram || !telegramBotUsername) return;
-      document.querySelectorAll(".auth-telegram-login").forEach((mount) => {
-        mount.replaceChildren();
-        const script = document.createElement("script");
-        script.async = true;
-        script.src = "https://telegram.org/js/telegram-widget.js?22";
-        script.setAttribute("data-telegram-login", telegramBotUsername);
-        script.setAttribute("data-size", "large");
-        script.setAttribute("data-userpic", "true");
-        script.setAttribute("data-request-access", "write");
-        script.setAttribute("data-onauth", "builderOnTelegramAuth(user)");
-        mount.appendChild(script);
-      });
+      const mount = telegramLoginMountEl();
+      if (!mount) return;
+      mount.replaceChildren();
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.setAttribute("data-telegram-login", telegramBotUsername);
+      script.setAttribute("data-size", "large");
+      script.setAttribute("data-userpic", "true");
+      script.setAttribute("data-request-access", "write");
+      script.setAttribute("data-onauth", "builderOnTelegramAuth(user)");
+      mount.appendChild(script);
     }
 
     window.builderOnTelegramAuth = async function builderOnTelegramAuth(user) {
@@ -3858,8 +3868,10 @@
           <label class="profile-upload-label" for="profileAvatarInput">Upload avatar</label>
           <button type="button" data-auth-action="logout">Logout</button>
         `;
-      } else {
+      } else if (profileActionsEl && !authModalActionsEl) {
         profileActionsEl.innerHTML = authProviderButtonsHtml();
+      } else if (profileActionsEl) {
+        profileActionsEl.innerHTML = "";
       }
       if (authModalActionsEl) authModalActionsEl.innerHTML = authProviderButtonsHtml();
       if (authModalStatusEl) {
@@ -3889,6 +3901,7 @@
         return;
       }
       renderProfile();
+      mountTelegramLoginWidget();
       authModalBackdropEl.hidden = false;
       authModalBackdropEl.setAttribute("aria-hidden", "false");
       if (message && authModalStatusEl) authModalStatusEl.textContent = message;
