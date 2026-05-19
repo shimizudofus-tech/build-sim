@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BUILDER — panneau test XP / énergie</title>
+    <style>
+      :root {
+        --bg: #0c1019;
+        --panel: #151d2e;
+        --border: #2a3a56;
+        --text: #e8eef9;
+        --muted: #8b9bb8;
+        --accent: #6ea8fe;
+        --gold: #ffe08a;
+        --energy: #9fd4ff;
+        --ok: #3ecf8e;
+        --err: #ff8a8a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, Segoe UI, sans-serif;
+        background: radial-gradient(1200px 600px at 20% 0%, #1a2844, var(--bg));
+        color: var(--text);
+        padding: 1.5rem;
+      }
+      .wrap {
+        max-width: 42rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.35rem;
+        color: var(--gold);
+      }
+      .sub {
+        margin: 0 0 1.25rem;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .sub a {
+        color: var(--accent);
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 1rem 1.1rem;
+        margin-bottom: 1rem;
+      }
+      .card h2 {
+        margin: 0 0 0.75rem;
+        font-size: 0.95rem;
+      }
+      .player-progress {
+        display: grid;
+        gap: 0.35rem;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid rgba(255, 224, 138, 0.35);
+        border-radius: 12px;
+        background: linear-gradient(145deg, rgba(255, 224, 138, 0.12), rgba(110, 168, 254, 0.08));
+      }
+      .meta {
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        font-size: 0.85rem;
+      }
+      .meta strong {
+        color: #fff4cf;
+      }
+      .energy {
+        color: var(--energy);
+      }
+      .bar {
+        height: 0.5rem;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.35);
+        overflow: hidden;
+      }
+      .fill-xp {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #6ea8fe, #ffe08a);
+        transition: width 0.25s ease;
+      }
+      .fill-energy {
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(90deg, #4f8fd4, #9fd4ff);
+        transition: width 0.25s ease;
+      }
+      .bar--energy {
+        height: 0.38rem;
+      }
+      .label {
+        margin: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        padding: 0.45rem 0.75rem;
+        background: #22324d;
+        color: var(--text);
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+      button:hover {
+        filter: brightness(1.08);
+      }
+      button.primary {
+        border-color: #3d5a8a;
+        background: linear-gradient(180deg, #2a3f63, #22324d);
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      pre {
+        margin: 0;
+        padding: 0.75rem;
+        border-radius: 10px;
+        background: #0a0e16;
+        border: 1px solid var(--border);
+        font-size: 0.75rem;
+        overflow: auto;
+        max-height: 14rem;
+        color: #c8d6f2;
+      }
+      .status {
+        margin: 0 0 0.75rem;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .status.ok {
+        color: var(--ok);
+      }
+      .status.err {
+        color: var(--err);
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.15rem 0.45rem;
+        border-radius: 999px;
+        background: rgba(186, 133, 255, 0.2);
+        border: 1px solid rgba(186, 133, 255, 0.45);
+        color: #dcc8ff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="badge">Test server only</p>
+      <h1>XP &amp; énergie — panneau de test</h1>
+      <p class="sub">
+        Lance avec <code>npm run test:server</code>. Retour au
+        <a href="/">simulateur</a>.
+      </p>
+
+      <section class="card" aria-label="Aperçu progression">
+        <h2>Progression (live API)</h2>
+        <div class="player-progress" id="preview">
+          <div class="meta">
+            <span>Lv <strong id="lv">—</strong></span>
+            <span class="energy">⚡ <span id="energy">—</span></span>
+          </div>
+          <div class="bar" aria-hidden="true"><div class="fill-xp" id="xpFill"></div></div>
+          <p class="label" id="xpLabel">Connecte-toi pour charger</p>
+          <div class="bar bar--energy" aria-hidden="true"><div class="fill-energy" id="energyFill"></div></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Session</h2>
+        <p class="status" id="status">Non connecté</p>
+        <div class="actions">
+          <button type="button" class="primary" id="btnLogin">Connexion test</button>
+          <button type="button" id="btnLogout">Déconnexion</button>
+          <button type="button" id="btnRefresh">Rafraîchir</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Actions XP / énergie</h2>
+        <div class="actions">
+          <button type="button" id="btnReset">Reset 30/30 + 0 XP</button>
+          <button type="button" id="btnXp25">+25 XP (test)</button>
+          <button type="button" id="btnSpend5">−5 énergie</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Dernière réponse API</h2>
+        <pre id="log">{}</pre>
+      </section>
+    </div>
+
+    <script>
+      const lvEl = document.getElementById("lv");
+      const energyEl = document.getElementById("energy");
+      const xpFillEl = document.getElementById("xpFill");
+      const energyFillEl = document.getElementById("energyFill");
+      const xpLabelEl = document.getElementById("xpLabel");
+      const statusEl = document.getElementById("status");
+      const logEl = document.getElementById("log");
+
+      function log(data) {
+        logEl.textContent = JSON.stringify(data, null, 2);
+      }
+
+      function setStatus(text, kind) {
+        statusEl.textContent = text;
+        statusEl.className = "status" + (kind ? ` ${kind}` : "");
+      }
+
+      function renderProgress(p) {
+        if (!p) return;
+        const pct = p.xpToNext > 0 ? Math.min(100, Math.round((p.xpInLevel / p.xpToNext) * 100)) : 100;
+        lvEl.textContent = String(p.level);
+        energyEl.textContent = `${p.energy}/${p.energyCap}`;
+        xpFillEl.style.width = `${pct}%`;
+        const energyPct =
+          p.energyCap > 0 ? Math.min(100, Math.round((p.energy / p.energyCap) * 100)) : 0;
+        energyFillEl.style.width = `${energyPct}%`;
+        xpLabelEl.textContent =
+          p.xpToNext > 0
+            ? `${p.xpInLevel} / ${p.xpToNext} XP (total ${p.totalXp})`
+            : `Max level (total ${p.totalXp})`;
+      }
+
+      async function api(path, options = {}) {
+        const res = await fetch(path, {
+          credentials: "same-origin",
+          headers: { "content-type": "application/json", ...(options.headers || {}) },
+          ...options,
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const err = new Error(data.error || res.statusText || "Request failed");
+          err.status = res.status;
+          err.data = data;
+          throw err;
+        }
+        return data;
+      }
+
+      async function refreshMe() {
+        const data = await api("/api/auth/me");
+        if (data.user) {
+          setStatus(`Connecté : ${data.user.displayName} (${data.user.provider})`, "ok");
+          const prog = await api("/api/profile/progress");
+          renderProgress(prog.progress);
+          log(prog);
+        } else {
+          setStatus("Non connecté — utilise « Connexion test »");
+          lvEl.textContent = "—";
+          energyEl.textContent = "—";
+          xpFillEl.style.width = "0%";
+          energyFillEl.style.width = "0%";
+          xpLabelEl.textContent = "Non connecté";
+        }
+      }
+
+      document.getElementById("btnLogin").addEventListener("click", async () => {
+        try {
+          const data = await api("/api/auth/test-login", {
+            method: "POST",
+            body: JSON.stringify({ displayName: "Test Player" }),
+          });
+          renderProgress(data.progress);
+          setStatus(`Connecté : ${data.user.displayName}`, "ok");
+          log(data);
+        } catch (e) {
+          setStatus(e.message, "err");
+          log(e.data || { error: e.message });
+        }
+      });
+
+      document.getElementById("btnLogout").addEventListener("click", async () => {
+        try {
+          await api("/api/auth/logout", { method: "POST", body: "{}" });
+          setStatus("Déconnecté");
+          log({ ok: true });
+          await refreshMe();
+        } catch (e) {
+          setStatus(e.message, "err");
+          log(e.data || { error: e.message });
+        }
+      });
+
+      document.getElementById("btnRefresh").addEventListener("click", () => {
+        refreshMe().catch((e) => {
+          setStatus(e.message, "err");
+          log(e.data || { error: e.message });
+        });
+      });
+
+      document.getElementById("btnReset").addEventListener("click", async () => {
+        try {
+          const data = await api("/api/test/progress/reset", { method: "POST", body: "{}" });
+          renderProgress(data.progress);
+          setStatus("Progression réinitialisée (30/30)", "ok");
+          log(data);
+        } catch (e) {
+          setStatus(e.message, "err");
+          log(e.data || { error: e.message });
+        }
+      });
+
+      document.getElementById("btnXp25").addEventListener("click", async () => {
+        try {
+          const data = await api("/api/profile/progress/xp", {
+            method: "POST",
+            body: JSON.stringify({ amount: 25, source: "test" }),
+          });
+          renderProgress(data.progress);
+          setStatus(data.leveledUp ? "Level up!" : "+25 XP", "ok");
+          log(data);
+        } catch (e) {
+          setStatus(e.message, "err");
+          log(e.data || { error: e.message });
+        }
+      });
+
+      document.getElementById("btnSpend5").addEventListener("click", async () => {
+        try {
+          const data = await api("/api/test/spend-energy", {
+            method: "POST",
+            body: JSON.stringify({ cost: 5 }),
+          });
+          renderProgress(data.progress);
+          setStatus(`−${data.spent} énergie`, "ok");
+          log(data);
+        } catch (e) {
+          setStatus(e.message, "err");
+          log(e.data || { error: e.message });
+        }
+      });
+
+      api("/api/test/info")
+        .then((info) => {
+          if (!info.testMode) {
+            setStatus("Ce panneau nécessite npm run test:server", "err");
+          }
+        })
+        .catch(() => {
+          setStatus("API indisponible — lance npm run test:server", "err");
+        });
+
+      refreshMe().catch(() => {});
+    </script>
+  </body>
+</html>

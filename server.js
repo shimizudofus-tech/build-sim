@@ -5,8 +5,12 @@ const crypto = require("crypto");
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
-const DB_FILE = path.join(DATA_DIR, "db.json");
+const TEST_MODE = process.env.BUILDER_TEST_MODE === "1";
+const DB_FILE = process.env.BUILDER_DB_FILE
+  ? path.resolve(process.env.BUILDER_DB_FILE)
+  : path.join(DATA_DIR, TEST_MODE ? "db.test.json" : "db.json");
 const PORT = Number(process.env.PORT || 8765);
+const TEST_USER_ID = "test:local";
 const SESSION_COOKIE = "builder_session";
 const OAUTH_STATE_COOKIE = "builder_oauth_state";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
@@ -18,6 +22,13 @@ const COMMUNITY_STRATEGY_NOTES_MAX = 360;
 const COMMUNITY_DIFFICULTIES = new Set(["", "very_easy", "easy", "medium", "hard", "very_hard"]);
 const CHAT_MESSAGE_MAX = 240;
 const CHAT_RETENTION_LIMIT = 200;
+const {
+  ensureUserProgress,
+  publicPlayerProgress,
+  grantXp,
+  spendEnergy,
+  normalizeStoredProgress,
+} = require("./lib/player-progress.cjs");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -62,13 +73,41 @@ function writeDb(db) {
   fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
 }
 
+function defaultTestProgress() {
+  return normalizeStoredProgress({
+    totalXp: 0,
+    energy: 30,
+    energyCap: 30,
+    energyUpdatedAt: Date.now(),
+  });
+}
+
+function seedTestDatabase() {
+  if (!TEST_MODE) return;
+  const db = readDb();
+  const existing = db.users[TEST_USER_ID];
+  const user = upsertUser(db, {
+    id: TEST_USER_ID,
+    provider: "test",
+    displayName: existing?.displayName || "Test Player",
+    avatarUrl: existing?.avatarUrl || "",
+  });
+  if (!existing?.progress) {
+    user.progress = defaultTestProgress();
+    db.users[TEST_USER_ID] = user;
+    writeDb(db);
+  }
+}
+
 function sendJson(res, status, body, headers = {}) {
+  if (res.headersSent) return true;
   res.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "no-store",
     ...headers,
   });
   res.end(JSON.stringify(body));
+  return true;
 }
 
 function readBody(req) {
@@ -224,6 +263,7 @@ function upsertUser(db, profile) {
     createdAt: existing.createdAt || now,
     updatedAt: now,
   };
+  ensureUserProgress(user);
   db.users[user.id] = user;
   return user;
 }
@@ -459,7 +499,83 @@ function sanitizeCommunityVideoUrl(value) {
   }
 }
 
+async function handleTestApi(req, res, url) {
+  if (!TEST_MODE) return false;
+
+  if (url.pathname === "/api/test/info" && req.method === "GET") {
+    return sendJson(res, 200, {
+      testMode: true,
+      dbFile: path.relative(ROOT, DB_FILE),
+      testUserId: TEST_USER_ID,
+      endpoints: [
+        "POST /api/auth/test-login",
+        "GET /api/profile/progress",
+        "POST /api/profile/progress/xp",
+        "POST /api/test/progress/reset",
+        "POST /api/test/spend-energy",
+      ],
+    });
+  }
+
+  if (url.pathname === "/api/auth/test-login" && req.method === "POST") {
+    if (!process.env.SESSION_SECRET) {
+      return sendJson(res, 503, { error: "SESSION_SECRET is required (set in .env.test or by test-server)." });
+    }
+    const body = await readBody(req);
+    const db = readDb();
+    const user = upsertUser(db, {
+      id: TEST_USER_ID,
+      provider: "test",
+      displayName: sanitizeText(body.displayName, 32) || "Test Player",
+      avatarUrl: "",
+    });
+    user.progress = defaultTestProgress();
+    db.users[user.id] = user;
+    writeDb(db);
+    const session = signEnvelope(
+      { uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 },
+      process.env.SESSION_SECRET
+    );
+    return sendJson(
+      res,
+      200,
+      { user: publicUser(user), progress: publicPlayerProgress(user.progress) },
+      { "set-cookie": cookieHeader(SESSION_COOKIE, session, req) }
+    );
+  }
+
+  if (url.pathname === "/api/test/progress/reset" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return true;
+    user.progress = defaultTestProgress();
+    user.updatedAt = Date.now();
+    db.users[user.id] = user;
+    writeDb(db);
+    return sendJson(res, 200, { progress: publicPlayerProgress(user.progress) });
+  }
+
+  if (url.pathname === "/api/test/spend-energy" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return true;
+    const body = await readBody(req);
+    ensureUserProgress(user);
+    const result = spendEnergy(user.progress, body.cost);
+    if (!result.ok) return sendJson(res, 400, { error: result.error, progress: publicPlayerProgress(result.progress) });
+    user.progress = result.progress;
+    user.updatedAt = Date.now();
+    db.users[user.id] = user;
+    writeDb(db);
+    return sendJson(res, 200, { spent: result.spent, progress: publicPlayerProgress(user.progress) });
+  }
+
+  return false;
+}
+
 async function handleApi(req, res, url) {
+  if (await handleTestApi(req, res, url)) return;
+
   if (url.pathname === "/api/auth/me" && req.method === "GET") {
     const db = readDb();
     return sendJson(res, 200, { user: publicUser(sessionUser(req, db)), providers: providerStatus() });
@@ -550,6 +666,36 @@ async function handleApi(req, res, url) {
     db.users[user.id] = user;
     writeDb(db);
     return sendJson(res, 200, { user: publicUser(user) });
+  }
+
+  if (url.pathname === "/api/profile/progress" && req.method === "GET") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    ensureUserProgress(user);
+    return sendJson(res, 200, { progress: publicPlayerProgress(user.progress), persisted: true });
+  }
+
+  if (url.pathname === "/api/profile/progress/xp" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const body = await readBody(req);
+    const source = String(body.source || "").slice(0, 32);
+    if (!["minigame", "test"].includes(source)) {
+      return sendJson(res, 400, { error: "Invalid XP source." });
+    }
+    const result = grantXp(user.progress, body.amount);
+    user.progress = result.progress;
+    user.updatedAt = Date.now();
+    db.users[user.id] = user;
+    writeDb(db);
+    return sendJson(res, 200, {
+      progress: result.after,
+      grant: result.grant,
+      leveledUp: result.leveledUp,
+      levelsGained: result.levelsGained,
+    });
   }
 
   if (url.pathname === "/api/market/getgems-collection" && req.method === "GET") {
@@ -696,11 +842,18 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/")) return await handleApi(req, res, url);
     return serveStatic(req, res, url);
   } catch (err) {
-    return sendJson(res, 500, { error: err.message || "Server error" });
+    if (!res.headersSent) return sendJson(res, 500, { error: err.message || "Server error" });
   }
 });
 
 server.listen(PORT, () => {
   ensureDb();
+  if (TEST_MODE) seedTestDatabase();
   console.log(`BUILDER server: http://localhost:${PORT}/`);
+  if (TEST_MODE) {
+    console.log(`TEST MODE — db: ${path.relative(ROOT, DB_FILE)}`);
+    console.log(`  Site:  http://localhost:${PORT}/`);
+    console.log(`  Panel: http://localhost:${PORT}/test/`);
+    console.log(`  Login: POST http://localhost:${PORT}/api/auth/test-login`);
+  }
 });

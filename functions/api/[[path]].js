@@ -1,3 +1,9 @@
+import {
+  ensureUserProgress,
+  publicPlayerProgress,
+  grantXp,
+} from "../../lib/player-progress.cjs";
+
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
 const OAUTH_STATE_COOKIE = "builder_oauth_state";
@@ -294,6 +300,7 @@ function upsertUser(db, profile) {
     createdAt: existing.createdAt || now,
     updatedAt: now,
   };
+  ensureUserProgress(user);
   db.users[user.id] = user;
   return user;
 }
@@ -537,6 +544,36 @@ export async function onRequest(context) {
       db.users[user.id] = user;
       await writeDb(env, db);
       return json({ user: publicUser(user) });
+    }
+
+    if (path === "/api/profile/progress" && method === "GET") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      ensureUserProgress(user);
+      return json({ progress: publicPlayerProgress(user.progress), persisted: true });
+    }
+
+    if (path === "/api/profile/progress/xp" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const body = await readBody(request);
+      const source = String(body.source || "").slice(0, 32);
+      if (!["minigame", "test"].includes(source)) {
+        return json({ error: "Invalid XP source." }, 400);
+      }
+      const result = grantXp(user.progress, body.amount);
+      user.progress = result.progress;
+      user.updatedAt = Date.now();
+      db.users[user.id] = user;
+      await writeDb(env, db);
+      return json({
+        progress: result.after,
+        grant: result.grant,
+        leveledUp: result.leveledUp,
+        levelsGained: result.levelsGained,
+      });
     }
 
     if (path === "/api/market/getgems-collection" && method === "GET") {

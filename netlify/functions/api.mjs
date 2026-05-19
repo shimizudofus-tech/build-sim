@@ -1,5 +1,10 @@
 import crypto from "node:crypto";
 import { connectLambda, getStore } from "@netlify/blobs";
+import {
+  ensureUserProgress,
+  publicPlayerProgress,
+  grantXp,
+} from "../../lib/player-progress.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -272,6 +277,7 @@ function upsertUser(db, profile) {
     createdAt: existing.createdAt || now,
     updatedAt: now,
   };
+  ensureUserProgress(user);
   db.users[user.id] = user;
   return user;
 }
@@ -518,6 +524,36 @@ export async function handler(event) {
       db.users[user.id] = user;
       await writeDb(store, db);
       return json(200, { user: publicUser(user) });
+    }
+
+    if (path === "/api/profile/progress" && event.httpMethod === "GET") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      ensureUserProgress(user);
+      return json(200, { progress: publicPlayerProgress(user.progress), persisted: true });
+    }
+
+    if (path === "/api/profile/progress/xp" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const body = await readBody(event);
+      const source = String(body.source || "").slice(0, 32);
+      if (!["minigame", "test"].includes(source)) {
+        return json(400, { error: "Invalid XP source." });
+      }
+      const result = grantXp(user.progress, body.amount);
+      user.progress = result.progress;
+      user.updatedAt = Date.now();
+      db.users[user.id] = user;
+      await writeDb(store, db);
+      return json(200, {
+        progress: result.after,
+        grant: result.grant,
+        leveledUp: result.leveledUp,
+        levelsGained: result.levelsGained,
+      });
     }
 
     if (path === "/api/market/getgems-collection" && event.httpMethod === "GET") {
