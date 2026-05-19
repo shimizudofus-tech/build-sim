@@ -224,10 +224,16 @@ function publicUser(user) {
   };
 }
 
+function telegramBotUsername() {
+  return String(process.env.TELEGRAM_BOT_USERNAME || "").replace(/^@/, "").trim();
+}
+
 function providerStatus() {
+  const botUsername = telegramBotUsername();
   return {
     discord: Boolean(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET),
-    telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+    telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN && botUsername),
+    telegramBotUsername: botUsername,
   };
 }
 
@@ -312,7 +318,11 @@ function validateTelegramPayload(payload) {
     .join("\n");
   const secret = crypto.createHash("sha256").update(token).digest();
   const expected = crypto.createHmac("sha256", secret).update(dataCheckString).digest("hex");
-  if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expected))) throw new Error("Invalid Telegram login.");
+  const hashBuf = Buffer.from(String(hash));
+  const expectedBuf = Buffer.from(expected);
+  if (hashBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(hashBuf, expectedBuf)) {
+    throw new Error("Invalid Telegram login.");
+  }
   const authDate = Number(rest.auth_date) || 0;
   if (!authDate || Date.now() / 1000 - authDate > 86400) throw new Error("Telegram login expired.");
   return {
@@ -591,7 +601,7 @@ async function handleApi(req, res, url) {
     const providers = providerStatus();
     if (provider === "telegram") {
       return sendJson(res, 501, {
-        error: "Telegram Login Widget is not wired into this UI yet. Use POST /api/auth/telegram with a validated widget payload.",
+        error: "Use the Telegram Login button in the site UI (Sign in menu).",
         providers,
       });
     }

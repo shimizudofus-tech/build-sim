@@ -221,6 +221,23 @@
       border-color: rgba(110, 168, 254, 0.72);
       background: linear-gradient(135deg, rgba(88, 101, 242, 0.44), rgba(42, 63, 99, 0.92));
     }
+    .auth-telegram-login {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 2.85rem;
+      padding: 0.15rem 0;
+    }
+    .auth-telegram-login iframe {
+      border: 0;
+      border-radius: 10px;
+    }
+    .auth-telegram-pending {
+      width: 100%;
+      min-height: 2.8rem;
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
     .auth-provider-note {
       margin: 0.7rem 0 0;
       color: var(--muted);
@@ -3694,7 +3711,8 @@
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
     let currentUser = null;
-    let authProviders = { discord: false, telegram: false };
+    let authProviders = { discord: false, telegram: false, telegramBotUsername: "" };
+    let telegramBotUsername = "";
     let chatMessages = [];
     let chatFetchInFlight = null;
     let chatPollTimer = 0;
@@ -3758,13 +3776,55 @@
     }
 
     function authProviderButtonsHtml() {
-      return `
-        <button type="button" class="auth-discord-button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>Sign in with Discord${authProviders.discord ? "" : " (not configured)"}</button>
-        <button type="button" data-auth-provider="telegram" disabled>Telegram login pending</button>
-      `;
+      const discordBtn = `<button type="button" class="auth-discord-button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>Sign in with Discord${authProviders.discord ? "" : " (not configured)"}</button>`;
+      const telegramBlock = authProviders.telegram
+        ? `<div class="auth-telegram-login" aria-label="Sign in with Telegram"></div>`
+        : `<button type="button" class="auth-telegram-pending" disabled>Telegram (not configured)</button>`;
+      return `${discordBtn}${telegramBlock}`;
     }
 
+    function mountTelegramLoginWidget() {
+      if (!authProviders.telegram || !telegramBotUsername) return;
+      document.querySelectorAll(".auth-telegram-login").forEach((mount) => {
+        mount.replaceChildren();
+        const script = document.createElement("script");
+        script.async = true;
+        script.src = "https://telegram.org/js/telegram-widget.js?22";
+        script.setAttribute("data-telegram-login", telegramBotUsername);
+        script.setAttribute("data-size", "large");
+        script.setAttribute("data-userpic", "true");
+        script.setAttribute("data-request-access", "write");
+        script.setAttribute("data-onauth", "builderOnTelegramAuth(user)");
+        mount.appendChild(script);
+      });
+    }
+
+    window.builderOnTelegramAuth = async function builderOnTelegramAuth(user) {
+      if (!API_ENABLED) {
+        showPassiveHint("Sign in requires the site server (not file://).");
+        return;
+      }
+      try {
+        if (authModalStatusEl) authModalStatusEl.textContent = "Connecting with Telegram...";
+        const data = await apiRequest("/api/auth/telegram", {
+          method: "POST",
+          body: JSON.stringify(user),
+        });
+        currentUser = data.user || null;
+        closeAuthModal();
+        if (profileMenuEl) profileMenuEl.hidden = true;
+        renderProfile();
+        renderCommunityBuilds();
+        showPassiveHint("Signed in with Telegram.");
+      } catch (err) {
+        const message = err.message || "Telegram sign-in failed.";
+        if (authModalStatusEl) authModalStatusEl.textContent = message;
+        showPassiveHint(message);
+      }
+    };
+
     function startAuthProvider(provider) {
+      if (provider === "telegram") return;
       if (!provider) return;
       location.href = `/api/auth/login/${provider}`;
     }
@@ -3803,10 +3863,14 @@
       }
       if (authModalActionsEl) authModalActionsEl.innerHTML = authProviderButtonsHtml();
       if (authModalStatusEl) {
-        authModalStatusEl.textContent = authProviders.discord
-          ? "Discord sign-in is available. Telegram login is not connected yet."
-          : "Discord sign-in is not configured yet. Telegram login is not connected yet.";
+        const parts = [];
+        if (authProviders.discord) parts.push("Discord sign-in is available.");
+        else parts.push("Discord is not configured on the server.");
+        if (authProviders.telegram) parts.push("Use the Telegram button below (domain must be set in @BotFather).");
+        else parts.push("Telegram needs TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_USERNAME.");
+        authModalStatusEl.textContent = parts.join(" ");
       }
+      mountTelegramLoginWidget();
       if (builderSaveCommunityBuildEl) {
         builderSaveCommunityBuildEl.textContent = API_ENABLED && !currentUser ? "Sign in to publish" : "Publish current build";
       }
@@ -4017,6 +4081,7 @@
         const data = await apiRequest("/api/auth/me");
         currentUser = data.user || null;
         authProviders = { ...authProviders, ...(data.providers || {}) };
+        telegramBotUsername = authProviders.telegramBotUsername || "";
       } catch {
         currentUser = null;
       }

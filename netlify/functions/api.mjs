@@ -248,10 +248,16 @@ function publicUser(user) {
   };
 }
 
+function telegramBotUsername() {
+  return String(process.env.TELEGRAM_BOT_USERNAME || "").replace(/^@/, "").trim();
+}
+
 function providerStatus() {
+  const botUsername = telegramBotUsername();
   return {
     discord: Boolean(process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET),
-    telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN),
+    telegram: Boolean(process.env.TELEGRAM_BOT_TOKEN && botUsername),
+    telegramBotUsername: botUsername,
   };
 }
 
@@ -442,7 +448,7 @@ export async function handler(event) {
       const providers = providerStatus();
       if (provider === "telegram") {
         return json(501, {
-          error: "Telegram Login Widget is not wired into this UI yet. Use POST /api/auth/telegram with a validated widget payload.",
+          error: "Use the Telegram Login button in the site UI (Sign in menu).",
           providers,
         });
       }

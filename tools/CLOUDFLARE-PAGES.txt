@@ -42,10 +42,12 @@ Set these Cloudflare Pages environment variables:
 - SESSION_SECRET=a long random secret, at least 32 characters
 - DISCORD_CLIENT_ID=from the Discord developer portal
 - DISCORD_CLIENT_SECRET=from the Discord developer portal
-- TELEGRAM_BOT_TOKEN=from BotFather, only needed once the Telegram Login Widget is added
+- TELEGRAM_BOT_TOKEN=from BotFather
+- TELEGRAM_BOT_USERNAME=bot username without @ (same bot as the token)
 
 OAuth redirect URLs to register externally:
 - Discord: https://YOUR-CLOUDFLARE-DOMAIN/api/auth/callback/discord
 
-Telegram support currently validates Telegram Login Widget payloads at
-POST /api/auth/telegram, but the page does not render the Telegram widget yet.
+Telegram (@BotFather):
+- /setdomain → YOUR-CLOUDFLARE-DOMAIN (e.g. build-sim.pages.dev)
+- Local test: set domain to localhost only if BotFather allows it; otherwise test on production
