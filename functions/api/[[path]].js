@@ -3,6 +3,12 @@ import {
   publicPlayerProgress,
   grantXp,
 } from "../../lib/player-progress.cjs";
+import {
+  ensureLinkedIds,
+  resolveAuthUser,
+  linkProviderAccount,
+  publicUserLinks,
+} from "../../lib/auth-accounts.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -264,6 +270,7 @@ function publicUser(user) {
     displayName: user.displayName,
     avatarUrl: user.avatarUrl || "",
     customAvatarUrl: user.customAvatarUrl || "",
+    links: publicUserLinks(user),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -307,6 +314,7 @@ function upsertUser(db, profile) {
     updatedAt: now,
   };
   ensureUserProgress(user);
+  ensureLinkedIds(user);
   db.users[user.id] = user;
   return user;
 }
@@ -520,10 +528,19 @@ export async function onRequest(context) {
       const redirectUri = `${siteOrigin(request, env)}/api/auth/callback/${provider}`;
       const accessToken = await exchangeOAuthCode(env, provider, code, redirectUri);
       const profile = await fetchOAuthProfile(provider, accessToken);
-      const user = upsertUser(db, profile);
+      const user =
+        statePayload.mode === "link"
+          ? (() => {
+              const primary = db.users[statePayload.uid];
+              if (!primary) throw new Error("Link session expired. Sign in again.");
+              linkProviderAccount(db, primary, profile);
+              return primary;
+            })()
+          : resolveAuthUser(db, profile, upsertUser);
       await writeDb(env, db);
       const session = await signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, env.SESSION_SECRET);
-      const headers = new Headers({ location: `${siteOrigin(request, env)}/`, "cache-control": "no-store" });
+      const linkQuery = statePayload.mode === "link" ? "?linked=discord" : "";
+      const headers = new Headers({ location: `${siteOrigin(request, env)}/${linkQuery}`, "cache-control": "no-store" });
       headers.append("set-cookie", cookieHeader(SESSION_COOKIE, session, request, env));
       headers.append("set-cookie", clearCookieHeader(OAUTH_STATE_COOKIE, request, env));
       return new Response(null, { status: 302, headers });
@@ -534,10 +551,61 @@ export async function onRequest(context) {
       const body = await readBody(request);
       const profile = await validateTelegramPayload(env, body);
       const db = await readDb(env);
-      const user = upsertUser(db, profile);
+      const user = resolveAuthUser(db, profile, upsertUser);
       await writeDb(env, db);
       const session = await signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, env.SESSION_SECRET);
       return json({ user: publicUser(user) }, 200, { "set-cookie": cookieHeader(SESSION_COOKIE, session, request, env) });
+    }
+
+    if (path === "/api/auth/link/telegram" && method === "POST") {
+      if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET is required." }, 503);
+      const db = await readDb(env);
+      const primary = await requireUser(request, env, db);
+      if (!primary) return json({ error: "Sign in required to link Telegram." }, 401);
+      try {
+        const body = await readBody(request);
+        const profile = await validateTelegramPayload(env, body);
+        linkProviderAccount(db, primary, profile);
+        await writeDb(env, db);
+        return json({ user: publicUser(primary), linked: "telegram" });
+      } catch (err) {
+        return json({ error: err.message || "Telegram link failed." }, 400);
+      }
+    }
+
+    if (path === "/api/auth/link/discord" && method === "GET") {
+      const providers = providerStatus(env);
+      if (!env.SESSION_SECRET) return json({ error: "SESSION_SECRET is required.", providers }, 503);
+      if (!providers.discord) return json({ error: "Discord login is not configured.", providers }, 503);
+      const db = await readDb(env);
+      const primary = await sessionUser(request, env, db);
+      if (!primary) return json({ error: "Sign in required to link Discord." }, 401);
+      const origin = siteOrigin(request, env);
+      const redirectUri = `${origin}/api/auth/callback/discord`;
+      const state = await signEnvelope(
+        {
+          provider: "discord",
+          mode: "link",
+          uid: primary.id,
+          nonce: crypto.randomUUID?.() || String(Date.now()),
+          exp: Date.now() + 10 * 60 * 1000,
+        },
+        env.SESSION_SECRET
+      );
+      const authUrl = new URL("https://discord.com/api/oauth2/authorize");
+      authUrl.searchParams.set("client_id", env.DISCORD_CLIENT_ID);
+      authUrl.searchParams.set("redirect_uri", redirectUri);
+      authUrl.searchParams.set("response_type", "code");
+      authUrl.searchParams.set("scope", "identify");
+      authUrl.searchParams.set("state", state);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          location: authUrl.href,
+          "set-cookie": cookieHeader(OAUTH_STATE_COOKIE, state, request, env, 10 * 60),
+          "cache-control": "no-store",
+        },
+      });
     }
 
     if (path === "/api/profile/avatar" && method === "POST") {

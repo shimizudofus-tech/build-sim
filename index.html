@@ -144,6 +144,58 @@
     .profile-file {
       display: none;
     }
+    .profile-linked {
+      display: grid;
+      gap: 0.45rem;
+      margin-bottom: 0.55rem;
+      padding: 0.55rem 0.6rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .profile-linked-title {
+      margin: 0;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .profile-linked-hint {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .profile-linked-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.84rem;
+    }
+    .profile-linked-row--telegram {
+      flex-wrap: wrap;
+    }
+    .profile-linked-badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #8fd99a;
+    }
+    .profile-linked-row button[data-auth-link] {
+      padding: 0.35rem 0.65rem;
+      border-radius: 10px;
+      border: 1px solid rgba(110, 168, 254, 0.55);
+      background: rgba(88, 101, 242, 0.25);
+      color: var(--text);
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .auth-telegram-login--link {
+      min-height: 2.35rem;
+      flex: 1 1 100%;
+      justify-content: flex-end;
+    }
     .auth-modal-backdrop {
       position: fixed;
       inset: 0;
@@ -3810,6 +3862,72 @@
       mount.appendChild(script);
     }
 
+    function userLinks() {
+      return currentUser?.links || { discord: false, telegram: false };
+    }
+
+    function profileLinkedAccountsHtml() {
+      const links = userLinks();
+      const rows = [];
+      if (authProviders.discord) {
+        rows.push(
+          links.discord
+            ? `<div class="profile-linked-row"><span>Discord</span><span class="profile-linked-badge">Linked</span></div>`
+            : `<div class="profile-linked-row"><span>Discord</span><button type="button" data-auth-link="discord">Link Discord</button></div>`
+        );
+      }
+      if (authProviders.telegram) {
+        rows.push(
+          links.telegram
+            ? `<div class="profile-linked-row"><span>Telegram</span><span class="profile-linked-badge">Linked</span></div>`
+            : `<div class="profile-linked-row profile-linked-row--telegram"><span>Telegram</span><div class="auth-telegram-login auth-telegram-login--link" data-telegram-link-mount aria-label="Link Telegram"></div></div>`
+        );
+      }
+      if (!rows.length) return "";
+      return `<div class="profile-linked">
+        <p class="profile-linked-title">Linked accounts</p>
+        ${rows.join("")}
+        <p class="profile-linked-hint">Link both to sign in with Discord or Telegram.</p>
+      </div>`;
+    }
+
+    function mountTelegramLinkWidget() {
+      if (!currentUser || !authProviders.telegram || !telegramBotUsername || userLinks().telegram) return;
+      const mount = profileActionsEl?.querySelector("[data-telegram-link-mount]");
+      if (!mount) return;
+      mount.replaceChildren();
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = "https://telegram.org/js/telegram-widget.js?22";
+      script.setAttribute("data-telegram-login", telegramBotUsername);
+      script.setAttribute("data-size", "medium");
+      script.setAttribute("data-userpic", "false");
+      script.setAttribute("data-request-access", "write");
+      script.setAttribute("data-onauth", "builderOnTelegramLink(user)");
+      mount.appendChild(script);
+    }
+
+    window.builderOnTelegramLink = async function builderOnTelegramLink(user) {
+      if (!API_ENABLED || !currentUser) {
+        showPassiveHint("Sign in first, then link Telegram.");
+        return;
+      }
+      try {
+        if (profileStatusEl) profileStatusEl.textContent = "Linking Telegram...";
+        const data = await apiRequest("/api/auth/link/telegram", {
+          method: "POST",
+          body: JSON.stringify(user),
+        });
+        currentUser = data.user || currentUser;
+        renderProfile();
+        showPassiveHint("Telegram linked to your account.");
+      } catch (err) {
+        const message = err.message || "Telegram link failed.";
+        if (profileStatusEl) profileStatusEl.textContent = message;
+        showPassiveHint(message);
+      }
+    };
+
     window.builderOnTelegramAuth = async function builderOnTelegramAuth(user) {
       if (!API_ENABLED) {
         showPassiveHint("Sign in requires the site server (not file://).");
@@ -3840,6 +3958,14 @@
       location.href = `/api/auth/login/${provider}`;
     }
 
+    function startAuthLink(provider) {
+      if (!provider || !currentUser) return;
+      if (provider === "discord") {
+        location.href = "/api/auth/link/discord";
+        return;
+      }
+    }
+
     function renderProfile() {
       if (!profileButtonEl || !profileActionsEl) return;
       const avatarUrl = userAvatarUrl();
@@ -3859,16 +3985,26 @@
       profileButtonEl.title = currentUser ? `Signed in as ${displayName}` : "Sign in";
       if (profileNameEl) profileNameEl.textContent = currentUser ? displayName : "Not signed in";
       if (profileMetaEl) {
-        profileMetaEl.textContent = currentUser
-          ? `${currentUser.provider || "account"} account`
-          : "Sign in to publish, vote, delete, or upload an avatar.";
+        if (!currentUser) {
+          profileMetaEl.textContent = "Sign in to publish, vote, delete, or upload an avatar.";
+        } else {
+          const links = userLinks();
+          const linked = [];
+          if (links.discord) linked.push("Discord");
+          if (links.telegram) linked.push("Telegram");
+          profileMetaEl.textContent = linked.length
+            ? `${linked.join(" + ")} linked — use either to sign in.`
+            : "Link Discord and Telegram below to use both login methods.";
+        }
       }
       if (profileStatusEl) profileStatusEl.textContent = "";
       if (currentUser) {
         profileActionsEl.innerHTML = `
+          ${profileLinkedAccountsHtml()}
           <label class="profile-upload-label" for="profileAvatarInput">Upload avatar</label>
           <button type="button" data-auth-action="logout">Logout</button>
         `;
+        mountTelegramLinkWidget();
       } else if (profileActionsEl && !authModalActionsEl) {
         profileActionsEl.innerHTML = authProviderButtonsHtml();
       } else if (profileActionsEl) {
@@ -4104,8 +4240,21 @@
         }
         renderProfile();
         renderCommunityBuilds();
+        consumeAccountLinkNotice();
       })();
       return authStateReady;
+    }
+
+    function consumeAccountLinkNotice() {
+      const params = new URLSearchParams(location.search);
+      const linked = params.get("linked");
+      if (!linked) return;
+      params.delete("linked");
+      const rest = params.toString();
+      const nextUrl = `${location.pathname}${rest ? `?${rest}` : ""}${location.hash}`;
+      history.replaceState({}, "", nextUrl);
+      if (linked === "discord") showPassiveHint("Discord linked to your account.");
+      else if (linked === "telegram") showPassiveHint("Telegram linked to your account.");
     }
 
     async function logoutProfile() {
@@ -4155,6 +4304,11 @@
         profileButtonEl.setAttribute("aria-expanded", String(Boolean(isHidden)));
       });
       profileActionsEl?.addEventListener("click", (ev) => {
+        const linkBtn = ev.target.closest("[data-auth-link]");
+        if (linkBtn) {
+          startAuthLink(linkBtn.dataset.authLink);
+          return;
+        }
         const providerBtn = ev.target.closest("[data-auth-provider]");
         if (providerBtn && !providerBtn.disabled) {
           startAuthProvider(providerBtn.dataset.authProvider);
