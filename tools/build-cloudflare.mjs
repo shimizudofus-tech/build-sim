@@ -14,4 +14,10 @@ await fs.cp(path.join(root, "assets"), path.join(dist, "assets"), {
   force: true,
 });
 
+for (const file of ["robots.txt", "sitemap.xml"]) {
+  try {
+    await fs.copyFile(path.join(root, file), path.join(dist, file));
+  } catch {}
+}
+
 console.log("Cloudflare Pages build ready in dist/");
