@@ -15,7 +15,31 @@ const outDir = path.join(root, "assets", "favicon");
 const PURPLE = { r: 124, g: 79, b: 196 }; // ~ #7c4fc4
 const BORDER = "#f0e8ff";
 
-const ZOOM = 1.2; // ~20% tighter crop on face
+/** Tighter = more face; 1.08–1.18 typical */
+const ZOOM = 1.12;
+
+/**
+ * Planche paysage (favicons + apple) : centre du gros cercle haut-gauche.
+ * Image seule ~carrée : crop central.
+ */
+function initialSquareCrop(w, h) {
+  const ratio = w / h;
+  if (ratio < 1.25) {
+    const side = Math.floor(Math.min(w, h) * 0.92);
+    const left = Math.floor((w - side) / 2);
+    const top = Math.floor((h - side) / 2);
+    return { left, top, width: side, height: side };
+  }
+  const cx = w * 0.195;
+  const cy = h * 0.29;
+  let side = Math.floor(Math.min(w * 0.33, h * 0.46));
+  side = Math.max(120, Math.min(side, w, h));
+  let left = Math.floor(cx - side / 2);
+  let top = Math.floor(cy - side / 2);
+  left = Math.max(0, Math.min(left, w - side));
+  top = Math.max(0, Math.min(top, h - side));
+  return { left, top, width: side, height: side };
+}
 
 async function squareWithBorder(buf, size, borderPx) {
   const inner = size - 2 * borderPx;
@@ -43,13 +67,10 @@ async function main() {
   const h = meta.height || 0;
   if (!w || !h) throw new Error("Could not read source dimensions");
 
-  // Source sheet is landscape (e.g. 1024×682): take top-left circular favicon cell.
-  let left = 0;
-  let top = 0;
-  let side = Math.min(Math.floor(w * 0.36), Math.floor(h * 0.52));
-  side = Math.max(64, side);
+  const crop = initialSquareCrop(w, h);
+  const side = crop.width;
 
-  let pipeline = sharp(src).extract({ left, top, width: side, height: side });
+  let pipeline = sharp(src).extract(crop);
 
   // Zoom in on center (~20%)
   const inner = Math.max(32, Math.floor(side / ZOOM));
