@@ -1547,7 +1547,6 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     .build-layout {
       display: grid;
-      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
       gap: 0.65rem;
       margin-bottom: 0.85rem;
       padding: 0.75rem;
@@ -1559,10 +1558,6 @@
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.03),
         0 14px 32px rgba(0, 0, 0, 0.22);
-      overflow-x: auto;
-      overflow-y: visible;
-      align-items: stretch;
-      scrollbar-width: thin;
     }
     @media (max-width: 980px) {
       .build-page-layout {
@@ -7081,7 +7076,13 @@
             character: characterLabel(communityBuildCharacterId(build)),
             mode: modeLabel(build.mode || "stage"),
           });
-          const meta = `${characterLabel(communityBuildCharacterId(build))} · ${modeLabel(build.mode || "stage")}`;
+          const targetMeta = buildTargetLabel(build);
+          const metaParts = [
+            characterLabel(communityBuildCharacterId(build)),
+            modeLabel(build.mode || "stage"),
+          ];
+          if (targetMeta) metaParts.push(targetMeta);
+          const meta = metaParts.join(" · ");
           return `
             <li class="recent-builds-item">
               <button type="button" class="recent-builds-link" data-recent-build-id="${escapeHtml(build.id)}" title="${escapeHtml(t("recentBuilds.open"))}">
