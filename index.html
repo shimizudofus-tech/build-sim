@@ -116,6 +116,92 @@
       text-transform: uppercase;
       color: #9eb6e8;
     }
+    .recent-builds-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+      min-width: 0;
+      padding: 0.38rem 0.45rem 0.42rem;
+      border: 1px solid rgba(110, 168, 254, 0.32);
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(42, 63, 99, 0.88), rgba(21, 26, 36, 0.94));
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+    .recent-builds-title {
+      margin: 0;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #9eb6e8;
+    }
+    .recent-builds-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+      max-height: 11.5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .recent-builds-item {
+      margin: 0;
+    }
+    .recent-builds-link {
+      width: 100%;
+      margin: 0;
+      padding: 0.32rem 0.38rem;
+      border: 1px solid rgba(110, 168, 254, 0.2);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .recent-builds-link:hover,
+    .recent-builds-link:focus-visible {
+      border-color: rgba(110, 168, 254, 0.5);
+      background: rgba(110, 168, 254, 0.12);
+      outline: none;
+    }
+    .recent-builds-link-title {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #e8f1ff;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .recent-builds-link-date {
+      display: block;
+      margin-top: 0.08rem;
+      font-size: 0.62rem;
+      line-height: 1.2;
+      color: #8ef0bf;
+    }
+    .recent-builds-link-meta {
+      display: block;
+      margin-top: 0.06rem;
+      font-size: 0.6rem;
+      line-height: 1.2;
+      color: #9eb6e8;
+    }
+    .recent-builds-empty {
+      margin: 0;
+      font-size: 0.68rem;
+      line-height: 1.3;
+      color: var(--muted);
+    }
+    .community-build-card.is-highlighted {
+      border-color: rgba(110, 168, 254, 0.75);
+      box-shadow: 0 0 0 1px rgba(110, 168, 254, 0.35), 0 0 18px rgba(110, 168, 254, 0.22);
+    }
     .profile-widget .player-progress {
       min-width: 0;
       max-width: none;
@@ -1384,6 +1470,12 @@
       position: sticky;
       top: 1rem;
       align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .build-publish-sidebar .recent-builds-panel {
+      box-shadow: none;
     }
     .builder-publish {
       flex-direction: column;
@@ -1455,6 +1547,7 @@
     button:disabled { opacity: 0.45; cursor: not-allowed; }
     .build-layout {
       display: grid;
+      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
       gap: 0.65rem;
       margin-bottom: 0.85rem;
       padding: 0.75rem;
@@ -1466,6 +1559,10 @@
       box-shadow:
         inset 0 0 0 1px rgba(255, 255, 255, 0.03),
         0 14px 32px rgba(0, 0, 0, 0.22);
+      overflow-x: auto;
+      overflow-y: visible;
+      align-items: stretch;
+      scrollbar-width: thin;
     }
     @media (max-width: 980px) {
       .build-page-layout {
@@ -1504,6 +1601,243 @@
       background:
         radial-gradient(480px 80px at 18% 0%, rgba(62, 207, 142, 0.12), transparent 72%),
         rgba(0, 0, 0, 0.18);
+    }
+    .function-skills-section {
+      margin-bottom: 0.85rem;
+      padding: 0.65rem 0.75rem 0.75rem;
+      border: 1px solid rgba(200, 160, 255, 0.28);
+      border-radius: 16px;
+      background:
+        radial-gradient(520px 120px at 12% 0%, rgba(168, 120, 255, 0.14), transparent 70%),
+        linear-gradient(180deg, rgba(28, 22, 42, 0.94), rgba(12, 15, 22, 0.9));
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    }
+    .function-skills-section.is-target {
+      border-color: rgba(200, 160, 255, 0.55);
+      box-shadow: 0 0 0 1px rgba(200, 160, 255, 0.28);
+    }
+    .function-skills-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.35rem 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+    .function-skills-head h3 {
+      margin: 0;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #e8d4ff;
+    }
+    .function-skills-hint {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .function-skills-slots {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(68px, 1fr));
+      gap: 0.45rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 0.15rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .function-skill-cell {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.2rem;
+      min-height: 96px;
+      padding: 0.35rem 0.28rem 0.42rem;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.12s ease;
+    }
+    .function-skill-cell.is-focus {
+      outline: 2px solid rgba(200, 160, 255, 0.75);
+      outline-offset: 2px;
+    }
+    .function-skill-cell--empty {
+      border-style: dashed;
+      opacity: 0.85;
+    }
+    .function-skill-cell--rarity-common,
+    .function-rarity-pick.function-skill-cell--rarity-common {
+      background: linear-gradient(160deg, rgba(120, 130, 148, 0.55), rgba(55, 62, 78, 0.92));
+    }
+    .function-skill-cell--rarity-magic,
+    .function-rarity-pick.function-skill-cell--rarity-magic {
+      background: linear-gradient(160deg, rgba(62, 207, 142, 0.45), rgba(22, 88, 58, 0.92));
+    }
+    .function-skill-cell--rarity-rare,
+    .function-rarity-pick.function-skill-cell--rarity-rare {
+      background: linear-gradient(160deg, rgba(110, 168, 254, 0.5), rgba(32, 58, 120, 0.94));
+    }
+    .function-skill-cell--rarity-epic,
+    .function-skill-cell--rarity-epic-1,
+    .function-skill-cell--rarity-epic-2,
+    .function-rarity-pick.function-skill-cell--rarity-epic,
+    .function-rarity-pick.function-skill-cell--rarity-epic-1,
+    .function-rarity-pick.function-skill-cell--rarity-epic-2 {
+      background: linear-gradient(160deg, rgba(192, 132, 252, 0.52), rgba(88, 36, 130, 0.94));
+    }
+    .function-skill-cell--rarity-legendary,
+    .function-skill-cell--rarity-legendary-1,
+    .function-skill-cell--rarity-legendary-2,
+    .function-rarity-pick.function-skill-cell--rarity-legendary,
+    .function-rarity-pick.function-skill-cell--rarity-legendary-1,
+    .function-rarity-pick.function-skill-cell--rarity-legendary-2 {
+      background: linear-gradient(160deg, rgba(255, 184, 77, 0.55), rgba(160, 72, 18, 0.94));
+    }
+    .function-skill-cell--rarity-mythic,
+    .function-skill-cell--rarity-mythic-1,
+    .function-skill-cell--rarity-mythic-2,
+    .function-rarity-pick.function-skill-cell--rarity-mythic,
+    .function-rarity-pick.function-skill-cell--rarity-mythic-1,
+    .function-rarity-pick.function-skill-cell--rarity-mythic-2 {
+      background: linear-gradient(160deg, rgba(255, 92, 108, 0.52), rgba(120, 22, 38, 0.94));
+    }
+    .function-skill-tier-badge {
+      position: absolute;
+      top: 0.2rem;
+      right: 0.22rem;
+      min-width: 1.15rem;
+      padding: 0.04rem 0.22rem;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #fff;
+      font-size: 0.58rem;
+      font-weight: 800;
+      line-height: 1.2;
+      text-align: center;
+    }
+    .function-skill-rarity-label {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.88);
+      text-align: center;
+      line-height: 1.1;
+    }
+    .picker-panel--function {
+      border-color: rgba(200, 160, 255, 0.35);
+      background:
+        radial-gradient(480px 100px at 20% 0%, rgba(168, 120, 255, 0.12), transparent 72%),
+        rgba(0, 0, 0, 0.2);
+    }
+    .picker-panel--function.is-target {
+      border-color: rgba(200, 160, 255, 0.55);
+      box-shadow: 0 0 0 1px rgba(200, 160, 255, 0.28);
+    }
+    .function-rarity-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 85;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: rgba(5, 8, 13, 0.78);
+      backdrop-filter: blur(8px);
+    }
+    .function-rarity-modal-backdrop[hidden] {
+      display: none;
+    }
+    .function-rarity-modal {
+      width: min(28rem, 100%);
+      max-height: min(90vh, 640px);
+      overflow: auto;
+      padding: 1rem 1.05rem 1.15rem;
+      border: 1px solid rgba(200, 160, 255, 0.42);
+      border-radius: 20px;
+      background:
+        radial-gradient(480px 180px at 30% 0%, rgba(168, 120, 255, 0.18), transparent 65%),
+        linear-gradient(180deg, rgba(28, 22, 42, 0.98), rgba(12, 15, 22, 0.98));
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+    }
+    .function-rarity-modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+    .function-rarity-modal-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #e8d4ff;
+      letter-spacing: 0.04em;
+    }
+    .function-rarity-modal-close {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      padding: 0;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.28);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+    .function-rarity-modal-skill-line {
+      margin: 0 0 0.65rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .function-rarity-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(52px, 1fr));
+      gap: 0.4rem;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 0.15rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+    }
+    .function-rarity-pick {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.12rem;
+      min-height: 78px;
+      padding: 0.28rem 0.2rem 0.32rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.12s ease, filter 0.12s ease;
+    }
+    .function-rarity-pick:hover,
+    .function-rarity-pick:focus-visible {
+      border-color: rgba(255, 255, 255, 0.45);
+      filter: brightness(1.06);
+      outline: none;
+    }
+    .function-rarity-pick .ico-wrap {
+      flex-shrink: 0;
+    }
+    .function-rarity-pick-label {
+      font-size: 0.5rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.9);
+      text-align: center;
+      line-height: 1.1;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .build-row-label {
       display: flex;
@@ -1756,13 +2090,40 @@
     }
     .slot-arrow { color: var(--muted); font-size: 0.85rem; font-weight: 700; padding: 0 0.1rem; user-select: none; }
     .picker-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
-      gap: 0.85rem;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 0.75rem;
       margin-top: 1rem;
+      align-items: stretch;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding-bottom: 0.2rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
     }
-    @media (max-width: 640px) {
-      .picker-layout { grid-template-columns: 1fr; }
+    .picker-layout > .picker-panel {
+      flex: 1 1 0;
+      min-width: min(280px, 92vw);
+      max-width: none;
+    }
+    .picker-panel-head {
+      margin: 0 0 0.45rem;
+    }
+    .picker-panel-title {
+      margin: 0;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      color: #dce8ff;
+    }
+    .picker-panel--passives .picker-panel-title {
+      color: #b8f5d9;
+    }
+    .picker-panel--function .picker-panel-title {
+      color: #e8d4ff;
     }
     .picker-panel {
       padding: 0.75rem 0.65rem;
@@ -3003,6 +3364,24 @@
       <p id="authModalStatus" class="auth-provider-note" aria-live="polite"></p>
     </section>
   </div>
+  <div id="functionRarityModalBackdrop" class="function-rarity-modal-backdrop" hidden aria-hidden="true">
+    <div class="function-rarity-modal" role="dialog" aria-modal="true" aria-labelledby="functionRarityModalTitle">
+      <div class="function-rarity-modal-head">
+        <h3 id="functionRarityModalTitle" class="function-rarity-modal-title" data-i18n="builder.functionRarityModalTitle">Choose rarity</h3>
+        <button
+          type="button"
+          id="functionRarityModalClose"
+          class="function-rarity-modal-close"
+          data-i18n-aria-label="builder.functionRarityModalClose"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+      <p id="functionRarityModalSkillLine" class="function-rarity-modal-skill-line"></p>
+      <div id="functionRarityModalGrid" class="function-rarity-modal-grid"></div>
+    </div>
+  </div>
   <aside id="liveChat" class="live-chat" data-i18n-aria-label="chat.aria" tabindex="0">
     <div class="live-chat-shell">
       <div class="live-chat-collapsed" aria-hidden="true">
@@ -3281,12 +3660,32 @@
           </section>
         </div>
 
+        <section id="functionSkillsSection" class="function-skills-section" data-i18n-aria-label="builder.functionSkillsAria" aria-label="Equipped function skills">
+          <div class="function-skills-head">
+            <h3 data-i18n="builder.functionSkillsTitle">Function skills</h3>
+            <p class="function-skills-hint" data-i18n="builder.functionSkillsHint">Equipped outside runs — each skill grants a passive by rarity (stats soon).</p>
+          </div>
+          <div id="functionSkillSlots" class="function-skills-slots"></div>
+        </section>
+
         <div class="picker-layout">
           <section id="pickerSkillsPanel" class="picker-panel picker-panel--skills" data-i18n-aria-label="builder.skillsAria" aria-label="Skills">
+            <div class="picker-panel-head">
+              <h4 class="picker-panel-title" data-i18n="builder.pickerSpellsTitle">Spells — pick</h4>
+            </div>
             <div id="pickerSkills" class="icon-palette"></div>
           </section>
           <section id="pickerPassivesPanel" class="picker-panel picker-panel--passives" data-i18n-aria-label="builder.passivesAria" aria-label="Passives">
+            <div class="picker-panel-head">
+              <h4 class="picker-panel-title" data-i18n="builder.pickerPassivesTitle">Passives — pick</h4>
+            </div>
             <div id="pickerPassives" class="icon-palette"></div>
+          </section>
+          <section id="pickerFunctionPanel" class="picker-panel picker-panel--function" data-i18n-aria-label="builder.functionPickerAria" aria-label="Function skill picker">
+            <div class="picker-panel-head">
+              <h4 class="picker-panel-title" data-i18n="builder.pickerFunctionTitle">Skills — pick</h4>
+            </div>
+            <div id="pickerFunctionSkills" class="icon-palette"></div>
           </section>
         </div>
 
@@ -3348,6 +3747,10 @@
           <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" data-i18n-placeholder="builder.strategyPlaceholder" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
           <button type="button" id="builderSaveCommunityBuild" data-i18n="builder.publish">Publish current build</button>
         </div>
+        <nav class="recent-builds-panel" data-i18n-aria-label="recentBuilds.aria" aria-label="Latest community builds">
+          <h3 class="recent-builds-title" data-i18n="recentBuilds.title">Latest builds</h3>
+          <ul id="recentBuildsList" class="recent-builds-list"></ul>
+        </nav>
       </aside>
     </div>
   </main>
@@ -3444,9 +3847,14 @@
       renderBestBuilds();
       updateLiveChatUi();
       renderCommunityStats();
+      renderRecentBuildsRail();
+      renderFunctionSkills();
       renderBuildLevel();
       syncBuilderCommunityTargetLabel();
       if (typeof updateCommunityPublishFields === "function") updateCommunityPublishFields();
+      if (functionRarityModalBackdropEl && !functionRarityModalBackdropEl.hidden && window.I18n?.applyDocument) {
+        window.I18n.applyDocument(functionRarityModalBackdropEl);
+      }
     }
     window.I18n.onChange(() => refreshI18nUi());
 
@@ -3812,11 +4220,8 @@
     ];
 
     const EVO_MAP = new Map();
-    /** @type {Map<string, string>} */
-    const SKILL_TO_PASSIVE = new Map();
     for (const [s, p, eid, elabel] of EVO_RECIPES) {
       EVO_MAP.set(`${s}|${p}`, { id: eid, label: elabel });
-      SKILL_TO_PASSIVE.set(s, p);
     }
 
     /** @type {Map<string, string>} */
@@ -3840,6 +4245,14 @@
 
     const pickerSkillsEl = document.getElementById("pickerSkills");
     const pickerPassivesEl = document.getElementById("pickerPassives");
+    const functionSkillsSectionEl = document.getElementById("functionSkillsSection");
+    const functionSkillSlotsEl = document.getElementById("functionSkillSlots");
+    const pickerFunctionPanelEl = document.getElementById("pickerFunctionPanel");
+    const pickerFunctionSkillsEl = document.getElementById("pickerFunctionSkills");
+    const functionRarityModalBackdropEl = document.getElementById("functionRarityModalBackdrop");
+    const functionRarityModalGridEl = document.getElementById("functionRarityModalGrid");
+    const functionRarityModalSkillLineEl = document.getElementById("functionRarityModalSkillLine");
+    const functionRarityModalCloseEl = document.getElementById("functionRarityModalClose");
     const panelBuild = document.getElementById("panelBuild");
     const panelCommunity = document.getElementById("panelCommunity");
     const panelBook = document.getElementById("panelBook");
@@ -4036,6 +4449,23 @@
     const liveChatOnlineCountEl = document.getElementById("liveChatOnlineCount");
     const linkedMembersValueEl = document.getElementById("linkedMembersValue");
     const linkedMembersCounterEl = document.getElementById("linkedMembersCounter");
+    const recentBuildsListEl = document.getElementById("recentBuildsList");
+    const FUNCTION_SKILL_SLOT_COUNT = 6;
+    const FUNCTION_SKILLS_STORAGE_KEY = "builderFunctionSkills:v1";
+    const FUNCTION_RARITIES = [
+      { id: "common", labelKey: "rarity.common", tier: 0 },
+      { id: "magic", labelKey: "rarity.magic", tier: 0 },
+      { id: "rare", labelKey: "rarity.rare", tier: 0 },
+      { id: "epic", labelKey: "rarity.epic", tier: 0 },
+      { id: "epic-1", labelKey: "rarity.epic", tier: 1 },
+      { id: "epic-2", labelKey: "rarity.epic", tier: 2 },
+      { id: "legendary", labelKey: "rarity.legendary", tier: 0 },
+      { id: "legendary-1", labelKey: "rarity.legendary", tier: 1 },
+      { id: "legendary-2", labelKey: "rarity.legendary", tier: 2 },
+      { id: "mythic", labelKey: "rarity.mythic", tier: 0 },
+      { id: "mythic-1", labelKey: "rarity.mythic", tier: 1 },
+      { id: "mythic-2", labelKey: "rarity.mythic", tier: 2 },
+    ];
     const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
@@ -4054,6 +4484,7 @@
       return new Map(COMMUNITY_DIFFICULTY_KEYS.map(([v, k]) => [v, t(k)]));
     }
     const COMMUNITY_DIFFICULTY_VALUES = new Set(COMMUNITY_DIFFICULTY_KEYS.map(([v]) => v));
+    const RECENT_BUILDS_LIMIT = 5;
     const CHAT_POLL_MS = 12000;
     const PRESENCE_PING_MS = 30000;
     const VISITOR_ID_KEY = "builder_visitor_id:v1";
@@ -4079,6 +4510,11 @@
     let focusSkillSlot = 1;
     let focusPassiveSlot = 0;
     let focusField = "passive";
+    let focusFunctionSlot = 0;
+    /** Skill id pending rarity choice in the function-skill modal (empty when closed). */
+    let functionRarityPickSkillId = "";
+    /** @type {Record<string, ({ skillId: string, rarity: string } | null)[]>} */
+    let functionSkillsByCharacter = {};
     let communityBuildCache = null;
     let communityFetchInFlight = null;
     let communityCharacterFilter = "";
@@ -4111,6 +4547,284 @@
 
     function passiveLabel(id) {
       return PASSIVES.find((p) => p.id === id)?.label ?? id;
+    }
+
+    function functionRarityDef(rarityId) {
+      return FUNCTION_RARITIES.find((r) => r.id === rarityId) || FUNCTION_RARITIES[0];
+    }
+
+    function functionRarityLabel(rarityId) {
+      const def = functionRarityDef(rarityId);
+      const base = t(def.labelKey);
+      if (def.tier === 1) return `${base} +1`;
+      if (def.tier === 2) return `${base} +2`;
+      return base;
+    }
+
+    function functionSkillAllowed(skillId) {
+      return !EXCLUSIVE_SKILL_OWNER.has(skillId);
+    }
+
+    function loadFunctionSkillsStore() {
+      try {
+        const raw = localStorage.getItem(FUNCTION_SKILLS_STORAGE_KEY);
+        const parsed = raw ? JSON.parse(raw) : {};
+        functionSkillsByCharacter =
+          parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+      } catch {
+        functionSkillsByCharacter = {};
+      }
+    }
+
+    function saveFunctionSkillsStore() {
+      try {
+        localStorage.setItem(FUNCTION_SKILLS_STORAGE_KEY, JSON.stringify(functionSkillsByCharacter));
+      } catch {}
+    }
+
+    function emptyFunctionSkillSlots() {
+      return Array.from({ length: FUNCTION_SKILL_SLOT_COUNT }, () => null);
+    }
+
+    function sanitizeFunctionSkillSlots(slots) {
+      let changed = false;
+      for (let i = 0; i < slots.length; i++) {
+        const entry = slots[i];
+        if (entry && !functionSkillAllowed(entry.skillId)) {
+          slots[i] = null;
+          changed = true;
+        }
+      }
+      return changed;
+    }
+
+    function getCharacterFunctionSlots(charId = currentCharacter().id) {
+      if (!functionSkillsByCharacter[charId]) {
+        functionSkillsByCharacter[charId] = emptyFunctionSkillSlots();
+      }
+      const slots = functionSkillsByCharacter[charId];
+      while (slots.length < FUNCTION_SKILL_SLOT_COUNT) slots.push(null);
+      if (slots.length > FUNCTION_SKILL_SLOT_COUNT) slots.length = FUNCTION_SKILL_SLOT_COUNT;
+      if (sanitizeFunctionSkillSlots(slots)) saveFunctionSkillsStore();
+      return slots;
+    }
+
+    function setFunctionSkillSlot(slotIndex, skillId, rarityId) {
+      if (!functionSkillAllowed(skillId)) return;
+      const slots = getCharacterFunctionSlots();
+      slots[slotIndex] = { skillId, rarity: rarityId };
+      saveFunctionSkillsStore();
+      renderFunctionSkills();
+    }
+
+    function clearFunctionSkillSlot(slotIndex) {
+      const slots = getCharacterFunctionSlots();
+      slots[slotIndex] = null;
+      saveFunctionSkillsStore();
+      renderFunctionSkills();
+    }
+
+    function advanceFunctionSkillSlotAfterEquip() {
+      const slots = getCharacterFunctionSlots();
+      let next = -1;
+      for (let j = focusFunctionSlot + 1; j < FUNCTION_SKILL_SLOT_COUNT; j++) {
+        if (!slots[j]) {
+          next = j;
+          break;
+        }
+      }
+      if (next === -1) {
+        for (let j = 0; j < focusFunctionSlot; j++) {
+          if (!slots[j]) {
+            next = j;
+            break;
+          }
+        }
+      }
+      if (next !== -1) {
+        focusFunctionSlot = next;
+        focusField = "function";
+      } else {
+        focusField = "passive";
+      }
+    }
+
+    function functionSkillUsedElsewhere(slotIndex, skillId) {
+      return getCharacterFunctionSlots().some(
+        (entry, i) => i !== slotIndex && entry?.skillId === skillId,
+      );
+    }
+
+    function functionSkillUsedInAnySlot(skillId) {
+      return getCharacterFunctionSlots().some((entry) => entry?.skillId === skillId);
+    }
+
+    function functionSkillSlotsAllFull() {
+      return getCharacterFunctionSlots().every(Boolean);
+    }
+
+    function closeFunctionRarityModal() {
+      functionRarityPickSkillId = "";
+      if (functionRarityModalBackdropEl) {
+        functionRarityModalBackdropEl.hidden = true;
+        functionRarityModalBackdropEl.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function renderFunctionRarityModalGrid(skillId) {
+      if (!functionRarityModalGridEl) return;
+      const label = skillLabel(skillId);
+      functionRarityModalGridEl.innerHTML = FUNCTION_RARITIES.map((r) => {
+        const def = functionRarityDef(r.id);
+        const tierBadge =
+          def.tier > 0
+            ? `<span class="function-skill-tier-badge" aria-hidden="true">+${def.tier}</span>`
+            : "";
+        const ic = iconMarkup("skill", skillId, 34, label);
+        const rTitle = escapeHtml(functionRarityLabel(r.id));
+        return `<button type="button" class="function-rarity-pick function-skill-cell--rarity-${escapeHtml(r.id)}" data-function-modal-rarity="${escapeHtml(r.id)}" title="${rTitle}">${tierBadge}${ic}<span class="function-rarity-pick-label">${rTitle}</span></button>`;
+      }).join("");
+    }
+
+    function openFunctionRarityModal(skillId) {
+      functionRarityPickSkillId = skillId;
+      if (functionRarityModalSkillLineEl) {
+        functionRarityModalSkillLineEl.textContent = skillLabel(skillId);
+      }
+      renderFunctionRarityModalGrid(skillId);
+      if (functionRarityModalBackdropEl) {
+        functionRarityModalBackdropEl.hidden = false;
+        functionRarityModalBackdropEl.setAttribute("aria-hidden", "false");
+      }
+      if (window.I18n?.applyDocument && functionRarityModalBackdropEl) {
+        window.I18n.applyDocument(functionRarityModalBackdropEl);
+      }
+    }
+
+    function renderFunctionSkillSlots() {
+      if (!functionSkillSlotsEl) return;
+      const slots = getCharacterFunctionSlots();
+      functionSkillSlotsEl.innerHTML = "";
+      for (let i = 0; i < FUNCTION_SKILL_SLOT_COUNT; i++) {
+        const entry = slots[i];
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className =
+          "function-skill-cell" +
+          (entry ? ` function-skill-cell--rarity-${entry.rarity}` : " function-skill-cell--empty") +
+          (focusField === "function" && focusFunctionSlot === i ? " is-focus" : "");
+        if (entry) {
+          const def = functionRarityDef(entry.rarity);
+          if (def.tier > 0) {
+            const badge = document.createElement("span");
+            badge.className = "function-skill-tier-badge";
+            badge.textContent = `+${def.tier}`;
+            cell.appendChild(badge);
+          }
+          cell.insertAdjacentHTML(
+            "beforeend",
+            iconMarkup("skill", entry.skillId, 44, skillLabel(entry.skillId)),
+          );
+          const rLab = document.createElement("span");
+          rLab.className = "function-skill-rarity-label";
+          rLab.textContent = functionRarityLabel(entry.rarity);
+          cell.appendChild(rLab);
+          cell.title = `${skillLabel(entry.skillId)} · ${functionRarityLabel(entry.rarity)}`;
+        } else {
+          cell.innerHTML = `<span class="function-skill-rarity-label">${escapeHtml(t("builder.functionSlotEmpty"))}</span>`;
+          cell.title = t("builder.functionSlotPick");
+        }
+        cell.addEventListener("click", () => {
+          if (entry) {
+            clearFunctionSkillSlot(i);
+            return;
+          }
+          focusFunctionSlot = i;
+          focusField = "function";
+          renderFunctionSkills();
+          renderPickers();
+        });
+        functionSkillSlotsEl.appendChild(cell);
+      }
+    }
+
+    function renderFunctionSkillPicker() {
+      if (!pickerFunctionSkillsEl) return;
+      const inFunction = focusField === "function";
+      const allFull = functionSkillSlotsAllFull();
+      pickerFunctionSkillsEl.innerHTML = SKILLS.filter((s) => functionSkillAllowed(s.id))
+        .map((s) => {
+          const usedConflict = inFunction
+            ? functionSkillUsedElsewhere(focusFunctionSlot, s.id)
+            : functionSkillUsedInAnySlot(s.id);
+          const disabled = allFull || usedConflict;
+          return pickButton("skill", s.id, s.label, disabled, false);
+        })
+        .join("");
+    }
+
+    function updateFunctionSkillPanels() {
+      if (functionSkillsSectionEl) {
+        functionSkillsSectionEl.classList.toggle("is-target", focusField === "function");
+      }
+      if (pickerFunctionPanelEl) {
+        pickerFunctionPanelEl.classList.toggle("is-target", focusField === "function");
+      }
+    }
+
+    function renderFunctionSkills() {
+      renderFunctionSkillSlots();
+      updateFunctionSkillPanels();
+      renderFunctionSkillPicker();
+    }
+
+    function bindFunctionSkills() {
+      functionRarityModalBackdropEl?.addEventListener("click", (ev) => {
+        if (ev.target === functionRarityModalBackdropEl) closeFunctionRarityModal();
+      });
+      functionRarityModalCloseEl?.addEventListener("click", () => closeFunctionRarityModal());
+      functionRarityModalGridEl?.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-function-modal-rarity]");
+        if (!btn) return;
+        const rarityId = btn.getAttribute("data-function-modal-rarity");
+        const skillId = functionRarityPickSkillId;
+        if (!rarityId || !skillId) return;
+        closeFunctionRarityModal();
+        setFunctionSkillSlot(focusFunctionSlot, skillId, rarityId);
+        advanceFunctionSkillSlotAfterEquip();
+        renderFunctionSkills();
+        renderPickers();
+        showPassiveHint(
+          t("builder.functionEquipped", {
+            skill: skillLabel(skillId),
+            rarity: functionRarityLabel(rarityId),
+          }),
+        );
+      });
+      pickerFunctionSkillsEl?.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-pick-type='skill']");
+        if (!btn || btn.disabled) return;
+        const skillId = btn.getAttribute("data-pick-id");
+        if (!skillId) return;
+        if (focusField !== "function") {
+          const fnSlots = getCharacterFunctionSlots();
+          const emptyIdx = fnSlots.findIndex((e) => !e);
+          if (emptyIdx === -1) {
+            showPassiveHint(t("builder.functionSlotsFull"));
+            return;
+          }
+          focusFunctionSlot = emptyIdx;
+          focusField = "function";
+          renderFunctionSkills();
+          renderPickers();
+        }
+        openFunctionRarityModal(skillId);
+      });
+      document.addEventListener("keydown", (ev) => {
+        if (ev.key !== "Escape") return;
+        if (!functionRarityModalBackdropEl || functionRarityModalBackdropEl.hidden) return;
+        closeFunctionRarityModal();
+      });
     }
 
     function clearPassiveHint() {
@@ -5909,6 +6623,7 @@
       if (pp) pp.classList.toggle("is-target", focusField === "passive");
       if (buildSkillsCol) buildSkillsCol.classList.toggle("is-target", focusField === "skill");
       if (buildPassivesCol) buildPassivesCol.classList.toggle("is-target", focusField === "passive");
+      updateFunctionSkillPanels();
     }
 
     function renderPickers() {
@@ -5931,10 +6646,12 @@
         const disabled = slots.some((sl, j) => j !== focusPassiveSlot && sl.passive === p.id);
         return pickButton("passive", p.id, p.label, disabled, false);
       }).join("");
+      renderFunctionSkillPicker();
       updatePickerPanels();
     }
     function bindPickerClicks() {
       if (!pickerSkillsEl || !pickerPassivesEl) return;
+      bindFunctionSkills();
       pickerSkillsEl.onclick = (ev) => {
         const btn = ev.target.closest("[data-pick-type='skill']");
         if (!btn || btn.disabled) return;
@@ -6297,6 +7014,95 @@
       onUpdate();
     }
 
+    function formatBuildPublishedAt(createdAt) {
+      const date = new Date(Number(createdAt) || Date.now());
+      return date.toLocaleString(localeTag(), {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    function latestCommunityBuilds(limit = RECENT_BUILDS_LIMIT) {
+      return [...loadCommunityBuilds()]
+        .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0))
+        .slice(0, limit);
+    }
+
+    function scrollToCommunityBuildCard(buildId) {
+      requestAnimationFrame(() => {
+        const card = communityBuildsEl?.querySelector(`[data-build-id="${CSS.escape(buildId)}"]`);
+        if (!card) return;
+        card.scrollIntoView({ behavior: "smooth", block: "center" });
+        card.classList.add("is-highlighted");
+        window.setTimeout(() => card.classList.remove("is-highlighted"), 2400);
+      });
+    }
+
+    function openCommunityBuildDetail(buildId) {
+      const build = loadCommunityBuilds().find((b) => b.id === buildId);
+      if (!build) {
+        showPassiveHint(t("recentBuilds.missing"));
+        return;
+      }
+      communityCharacterFilter = communityBuildCharacterId(build) || "";
+      communityModeFilter = build.mode || "stage";
+      communityTargetFilter = buildTargetValue(build);
+      communityPowerFilter = null;
+      syncCommunityCharacterControl();
+      syncCommunityModeControl();
+      syncCommunityPowerControl();
+      setAppTab("community");
+      const reveal = () => {
+        renderCommunityFilters();
+        renderCommunityBuilds();
+        scrollToCommunityBuildCard(buildId);
+      };
+      if (API_ENABLED && !communityBuildCache) {
+        refreshCommunityBuildsFromServer().then(reveal);
+        return;
+      }
+      reveal();
+    }
+
+    function renderRecentBuildsRail() {
+      if (!recentBuildsListEl) return;
+      const builds = latestCommunityBuilds();
+      if (!builds.length) {
+        recentBuildsListEl.innerHTML = `<li class="recent-builds-empty"><p data-i18n="recentBuilds.empty">${escapeHtml(t("recentBuilds.empty"))}</p></li>`;
+        window.I18n.applyDocument(recentBuildsListEl);
+        return;
+      }
+      recentBuildsListEl.innerHTML = builds
+        .map((build) => {
+          const title = build.title || t("community.buildTitle", {
+            character: characterLabel(communityBuildCharacterId(build)),
+            mode: modeLabel(build.mode || "stage"),
+          });
+          const meta = `${characterLabel(communityBuildCharacterId(build))} · ${modeLabel(build.mode || "stage")}`;
+          return `
+            <li class="recent-builds-item">
+              <button type="button" class="recent-builds-link" data-recent-build-id="${escapeHtml(build.id)}" title="${escapeHtml(t("recentBuilds.open"))}">
+                <span class="recent-builds-link-title">${escapeHtml(title)}</span>
+                <span class="recent-builds-link-date">${escapeHtml(formatBuildPublishedAt(build.createdAt))}</span>
+                <span class="recent-builds-link-meta">${escapeHtml(meta)}</span>
+              </button>
+            </li>
+          `;
+        })
+        .join("");
+    }
+
+    function bindRecentBuildsRail() {
+      recentBuildsListEl?.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-recent-build-id]");
+        if (!btn) return;
+        openCommunityBuildDetail(btn.getAttribute("data-recent-build-id"));
+      });
+    }
+
     function loadCommunityBuilds() {
       if (communityBuildCache) return communityBuildCache;
       try {
@@ -6318,6 +7124,7 @@
             localStorage.setItem(COMMUNITY_BUILDS_KEY, JSON.stringify(communityBuildCache));
           } catch {}
           renderCommunityBuilds();
+          renderRecentBuildsRail();
           return communityBuildCache;
         })
         .catch(() => loadCommunityBuilds())
@@ -6887,6 +7694,7 @@
     function renderCommunityBuilds() {
       if (!communityBuildsEl) return;
       updateCommunityPublishFields();
+      renderRecentBuildsRail();
       renderCommunityFilters();
       renderCommunityStageBossPreview();
       if (API_ENABLED && !communityBuildCache) {
@@ -6914,6 +7722,7 @@
       for (const b of builds) {
         const card = document.createElement("article");
         card.className = "community-build-card";
+        card.dataset.buildId = b.id;
         const voted = hasVotedCommunityBuild(b.id);
         const voteButtonText = API_ENABLED && !currentUser
           ? t("community.signInToVote")
@@ -8131,6 +8940,7 @@
       plannerGeneratedSlots = [];
       resetBuildSlots();
       renderSlots();
+      renderFunctionSkills();
       onUpdate();
       const ch = currentCharacter();
       showPassiveHint(`${ch.label} — starting skill: ${skillLabel(ch.exclusiveSkill)} (slot 1).`);
@@ -8175,6 +8985,7 @@
     } else {
       window.I18n.init().then(() => {
         loadIconCacheVer().then(() => {
+          loadFunctionSkillsStore();
           initMarketWidgets();
           updateVisitCounter();
           resetBuildSlots();
@@ -8182,13 +8993,16 @@
           bindSupportCopy();
           bindProfileMenu();
           bindLiveChat();
+          bindRecentBuildsRail();
           bindCommunityBuilds();
+          renderRecentBuildsRail();
           bindPlanner();
           bindPickerClicks();
           bindStarClicks();
           loadAuthState();
           renderBestBuilds();
           renderSlots();
+          renderFunctionSkills();
           onUpdate();
           checkGamePngAssets();
           const ch = currentCharacter();
