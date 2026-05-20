@@ -4561,7 +4561,8 @@
     const COMMUNITY_DIFFICULTY_VALUES = new Set(COMMUNITY_DIFFICULTY_KEYS.map(([v]) => v));
     const RECENT_BUILDS_LIMIT = 5;
     const CHAT_POLL_MS = 12000;
-    const PRESENCE_PING_MS = 30000;
+    const PRESENCE_PING_MS = 120000;
+    const VISIT_COUNT_SESSION_KEY = "builder_visit_counted:v1";
     const VISITOR_ID_KEY = "builder_visitor_id:v1";
     const CHAT_MESSAGE_MAX = 240;
     const VISIT_COUNT_KEY = "builderVisitCount:v1";
@@ -5591,7 +5592,18 @@
       let count = 1;
       if (API_ENABLED) {
         try {
-          const data = await apiRequest("/api/visits", { method: "POST", body: "{}" });
+          let countedThisSession = false;
+          try {
+            countedThisSession = sessionStorage.getItem(VISIT_COUNT_SESSION_KEY) === "1";
+          } catch {}
+          const data = countedThisSession
+            ? await apiRequest("/api/visits", { method: "GET" })
+            : await apiRequest("/api/visits", { method: "POST", body: "{}" });
+          if (!countedThisSession) {
+            try {
+              sessionStorage.setItem(VISIT_COUNT_SESSION_KEY, "1");
+            } catch {}
+          }
           visitCounterEl.textContent = t("nav.visits", { count: Number(data.visits || 0).toLocaleString(localeTag()) });
           return;
         } catch {

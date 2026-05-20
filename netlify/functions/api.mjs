@@ -635,6 +635,11 @@ export async function handler(event) {
       return json(200, await getGetgemsCollectionMarket(new URL(rawUrl).searchParams.get("address")));
     }
 
+    if (path === "/api/visits" && event.httpMethod === "GET") {
+      const db = await readDb(store);
+      return json(200, { visits: db.visits });
+    }
+
     if (path === "/api/visits" && event.httpMethod === "POST") {
       const db = await readDb(store);
       db.visits += 1;

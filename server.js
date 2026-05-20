@@ -37,6 +37,7 @@ const {
 } = require("./lib/auth-accounts.cjs");
 const {
   touchPresence,
+  presenceKvWriteDue,
   publicCommunityStats,
   sanitizeVisitorId,
 } = require("./lib/presence-stats.cjs");
@@ -803,6 +804,11 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, await getGetgemsCollectionMarket(url.searchParams.get("address")));
   }
 
+  if (url.pathname === "/api/visits" && req.method === "GET") {
+    const db = readDb();
+    return sendJson(res, 200, { visits: db.visits });
+  }
+
   if (url.pathname === "/api/visits" && req.method === "POST") {
     const db = readDb();
     db.visits += 1;
@@ -816,9 +822,11 @@ async function handleApi(req, res, url) {
     const visitorId = sanitizeVisitorId(body.visitorId);
     if (!visitorId) return sendJson(res, 400, { error: "visitorId is required." });
     const user = sessionUser(req, db);
-    touchPresence(db, visitorId, user?.id || null);
-    writeDb(db);
-    return sendJson(res, 200, publicCommunityStats(db));
+    const now = Date.now();
+    const writeDue = presenceKvWriteDue(db, visitorId, undefined, now);
+    touchPresence(db, visitorId, user?.id || null, now);
+    if (writeDue) writeDb(db);
+    return sendJson(res, 200, publicCommunityStats(db, now));
   }
 
   if (url.pathname === "/api/stats/community" && req.method === "GET") {

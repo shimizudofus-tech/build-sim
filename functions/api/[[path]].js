@@ -11,6 +11,7 @@ import {
 } from "../../lib/auth-accounts.cjs";
 import {
   touchPresence,
+  presenceKvWriteDue,
   publicCommunityStats,
   sanitizeVisitorId,
 } from "../../lib/presence-stats.cjs";
@@ -660,6 +661,11 @@ export async function onRequest(context) {
       return json(await getGetgemsCollectionMarket(url.searchParams.get("address")));
     }
 
+    if (path === "/api/visits" && method === "GET") {
+      const db = await readDb(env);
+      return json({ visits: db.visits });
+    }
+
     if (path === "/api/visits" && method === "POST") {
       const db = await readDb(env);
       db.visits += 1;
@@ -673,9 +679,11 @@ export async function onRequest(context) {
       const visitorId = sanitizeVisitorId(body.visitorId);
       if (!visitorId) return json({ error: "visitorId is required." }, 400);
       const user = await sessionUser(request, env, db);
-      touchPresence(db, visitorId, user?.id || null);
-      await writeDb(env, db);
-      return json(publicCommunityStats(db));
+      const now = Date.now();
+      const writeDue = presenceKvWriteDue(db, visitorId, undefined, now);
+      touchPresence(db, visitorId, user?.id || null, now);
+      if (writeDue) await writeDb(env, db);
+      return json(publicCommunityStats(db, now));
     }
 
     if (path === "/api/stats/community" && method === "GET") {
