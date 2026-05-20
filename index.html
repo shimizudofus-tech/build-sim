@@ -7592,6 +7592,9 @@
     }
 
     function buildTargetLabel(build) {
+      const mode = build?.mode || build?.state?.mode || "stage";
+      const targetValue = buildTargetValue(build);
+      if (targetValue !== null) return communityTargetLabel(mode, targetValue);
       return build?.targetLabel || build?.state?.targetLabel || "";
     }
 
