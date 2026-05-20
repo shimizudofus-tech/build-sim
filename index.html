@@ -2924,6 +2924,27 @@
       flex: 1;
       min-width: 0;
     }
+    .community-preview-labeled-row {
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 0.4rem;
+      max-width: 100%;
+    }
+    .community-preview-row-label {
+      flex: 0 0 auto;
+      width: 3.35rem;
+      font-size: 0.65rem;
+      font-weight: 750;
+      color: #8ec9a8;
+      letter-spacing: 0.03em;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+    .community-preview-labeled-row .community-preview-line {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
     .community-preview-line {
       display: flex;
       flex-wrap: wrap;
@@ -3011,6 +3032,11 @@
       color: #9ff0c4;
       font-weight: 700;
       letter-spacing: 0.02em;
+    }
+    .community-build-notes-body {
+      display: block;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
     .community-build-actions {
       display: flex;
@@ -7354,9 +7380,49 @@
       renderFunctionSkills();
     }
 
-    /** Carte communauté : 3 lignes compactes (sorts / passifs / skills hors partie), icônes seules. */
-    function communityBuildPreview(state) {
-      state = state || {};
+    /**
+     * Shu stage 108 — build publié sans functionSkills : 6 skills hors partie (tout legendary).
+     * Le 5ᵉ slot n'utilise pas `bat` (exclus Nox, filtré par sanitize) : `buldak` correspond à l'icône flammes / volatile.
+     */
+    const LEGACY_SHU_STAGE_108_FUNCTION_SKILLS = [
+      { skillId: "thunderbolt", rarity: "legendary" },
+      { skillId: "razor", rarity: "legendary" },
+      { skillId: "blue-shell", rarity: "legendary" },
+      { skillId: "boom-frog", rarity: "legendary" },
+      { skillId: "buldak", rarity: "legendary" },
+      { skillId: "tempest", rarity: "legendary" },
+    ];
+
+    function legacyFunctionSkillsPatchForPublishedBuild(build) {
+      if (!build) return null;
+      const character = String(build.character || build.state?.character || "");
+      const mode = String(build.mode || build.state?.mode || "");
+      const targetValue = Number(build.targetValue ?? build.state?.targetValue ?? NaN);
+      if (character !== "shu" || mode !== "stage" || targetValue !== 108) return null;
+      return LEGACY_SHU_STAGE_108_FUNCTION_SKILLS;
+    }
+
+    function mergeLegacyFunctionSkillsIntoState(build) {
+      const raw = build?.state && typeof build.state === "object" ? build.state : {};
+      const state = { ...raw };
+      const hasFn =
+        Array.isArray(state.functionSkills) &&
+        sanitizeFunctionSkillsForPublish(state.functionSkills).some(Boolean);
+      if (!hasFn) {
+        const patch = legacyFunctionSkillsPatchForPublishedBuild(build);
+        if (patch) state.functionSkills = sanitizeFunctionSkillsForPublish(patch);
+      }
+      return state;
+    }
+
+    function communityPreviewLabeledRow(lineClass, i18nKey, cellsHtml) {
+      return `<div class="community-preview-labeled-row"><span class="community-preview-row-label" data-i18n="${i18nKey}"></span><div class="community-preview-line ${lineClass}">${cellsHtml}</div></div>`;
+    }
+
+    /** Carte communauté : 3 lignes libellées (sorts / passifs / skills hors partie), icônes seules. */
+    function communityBuildPreview(build) {
+      if (!build) return "";
+      const state = mergeLegacyFunctionSkillsIntoState(build);
       const n = slotCount(state.mode);
       const consumed = new Set(state.consumedEvo || []);
       const MAIN_ICO = 22;
@@ -7395,32 +7461,50 @@
         passiveCells.push(pasCell);
       }
       const fn = sanitizeFunctionSkillsForPublish(state.functionSkills);
+      const fnCellsHtml = fn
+        .map((entry) => {
+          if (!entry) {
+            return `<span class="community-preview-cell community-preview-cell--empty" aria-hidden="true"></span>`;
+          }
+          const lab = skillLabel(entry.skillId);
+          const tip = `${lab} · ${functionRarityLabel(entry.rarity)}`;
+          const main = iconMarkup("skill", entry.skillId, FN_ICO, lab);
+          return `<span class="community-preview-cell function-skill-cell--rarity-${escapeHtml(entry.rarity)}" title="${escapeHtml(tip)}">${main}</span>`;
+        })
+        .join("");
       const hasFnRow = fn.some(Boolean);
-      const fnCells = hasFnRow
-        ? fn
-            .map((entry) => {
-              if (!entry) {
-                return `<span class="community-preview-cell community-preview-cell--empty" aria-hidden="true"></span>`;
-              }
-              const lab = skillLabel(entry.skillId);
-              const tip = `${lab} · ${functionRarityLabel(entry.rarity)}`;
-              const main = iconMarkup("skill", entry.skillId, FN_ICO, lab);
-              return `<span class="community-preview-cell function-skill-cell--rarity-${escapeHtml(entry.rarity)}" title="${escapeHtml(tip)}">${main}</span>`;
-            })
-            .join("")
-        : "";
       if (!hasSlotRow && !hasFnRow) return "";
       const parts = [];
       if (hasSlotRow) {
         parts.push(
-          `<div class="community-preview-line community-preview-line--skills">${mainCells.join("")}</div>`,
+          communityPreviewLabeledRow(
+            "community-preview-line--skills",
+            "community.previewRowSpells",
+            mainCells.join(""),
+          ),
         );
         parts.push(
-          `<div class="community-preview-line community-preview-line--passives">${passiveCells.join("")}</div>`,
+          communityPreviewLabeledRow(
+            "community-preview-line--passives",
+            "community.previewRowPassives",
+            passiveCells.join(""),
+          ),
         );
-      }
-      if (hasFnRow) {
-        parts.push(`<div class="community-preview-line community-preview-line--function">${fnCells}</div>`);
+        parts.push(
+          communityPreviewLabeledRow(
+            "community-preview-line--function",
+            "community.previewRowFunctionSkills",
+            fnCellsHtml,
+          ),
+        );
+      } else if (hasFnRow) {
+        parts.push(
+          communityPreviewLabeledRow(
+            "community-preview-line--function",
+            "community.previewRowFunctionSkills",
+            fnCellsHtml,
+          ),
+        );
       }
       return `<div class="community-build-preview-stack">${parts.join("")}</div>`;
     }
@@ -7868,8 +7952,8 @@
             </div>
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
-          <div class="community-build-preview">${targetPreview}${communityBuildPreview(b.state)}</div>
-          ${strategyNotes ? `<div class="community-build-notes"><span class="community-build-notes-label">${escapeHtml(t("community.strategyLabel"))}</span>${escapeHtml(strategyNotes)}</div>` : ""}
+          <div class="community-build-preview">${targetPreview}${communityBuildPreview(b)}</div>
+          ${strategyNotes ? `<div class="community-build-notes"><span class="community-build-notes-label" data-i18n="community.strategyLabel"></span><span class="community-build-notes-body">${escapeHtml(strategyNotes)}</span></div>` : ""}
           ${videoEmbed}
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}"${voteDisabled}>${voteButtonText}</button>
@@ -7879,6 +7963,9 @@
           </div>
         `;
         communityBuildsEl.appendChild(card);
+      }
+      if (window.I18n?.applyDocument && communityBuildsEl) {
+        window.I18n.applyDocument(communityBuildsEl);
       }
     }
 
@@ -7921,7 +8008,7 @@
         if (!build) return;
         if (btn.dataset.communityAction === "vote") voteCommunityBuild(id);
         if (btn.dataset.communityAction === "apply") {
-          applySerializedBuild(build.state);
+          applySerializedBuild(mergeLegacyFunctionSkillsIntoState(build));
           setAppTab("build");
         }
         if (btn.dataset.communityAction === "delete") deleteCommunityBuild(id);
