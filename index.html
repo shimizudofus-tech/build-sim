@@ -3038,6 +3038,19 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+    .community-build-notes-body-wrap {
+      display: block;
+    }
+    .community-strategy-translate-status {
+      display: block;
+      margin-top: 0.28rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .community-strategy-translate-status[hidden] {
+      display: none !important;
+    }
     .community-build-actions {
       display: flex;
       flex-wrap: wrap;
@@ -7333,6 +7346,7 @@
         videoUrl: metadata.videoUrl || "",
         strategyNotes: metadata.strategyNotes || "",
         strategyNotesLocales: strategyNotesLocalesFromMetadata(metadata),
+        strategyNotesSourceLocale: strategyNotesSourceLocaleFromMetadata(metadata),
         slots: slots.map((s) => ({ ...s })),
         evoPool: evoPool.map((e) => ({ ...e })),
         consumedEvo: Array.from(consumedEvo),
@@ -7595,29 +7609,159 @@
     }
 
     function buildStrategyNotes(build) {
+      const plan = strategyNotesTranslationPlan(build);
+      if (plan.type === "verbatim" || plan.type === "translate") return plan.text;
+      return "";
+    }
+
+    /** Map locale UI → code langue MyMemory (GET langpair). */
+    function localeToMyMemoryLang(loc) {
+      if (!loc) return "en";
+      const l = String(loc).toLowerCase();
+      if (l === "pt-br" || l === "pt") return "pt";
+      if (l === "en" || l.startsWith("en-")) return "en";
+      if (l === "fr" || l.startsWith("fr")) return "fr";
+      if (l === "id" || l.startsWith("id")) return "id";
+      if (l === "vi" || l.startsWith("vi")) return "vi";
+      return l.split("-")[0] || "en";
+    }
+
+    function strategyNotesPickFromLocales(rawLocales, loc) {
+      if (!rawLocales || typeof rawLocales !== "object" || Array.isArray(rawLocales)) return "";
+      const pick = (key) => sanitizeStrategyNotes(rawLocales[key] ?? "");
+      let text = pick(loc);
+      if (!text && loc.includes("-")) text = pick(loc.split("-")[0]);
+      return text;
+    }
+
+    /**
+     * @returns {{ type: "none" } | { type: "verbatim", text: string } | { type: "translate", text: string, from: string, to: string }}
+     */
+    function strategyNotesTranslationPlan(build) {
       const loc = typeof window !== "undefined" && window.I18n?.locale ? window.I18n.locale : "en";
+      const locMm = localeToMyMemoryLang(loc);
       const rawLocales =
         build?.strategyNotesLocales ??
         build?.state?.strategyNotesLocales;
+      const verbatimLoc = strategyNotesPickFromLocales(rawLocales, loc);
+      if (verbatimLoc) return { type: "verbatim", text: verbatimLoc };
+
+      const pick = (key) => sanitizeStrategyNotes(rawLocales?.[key] ?? "");
+      let sourceText = "";
+      let sourceLangKey = "en";
       if (rawLocales && typeof rawLocales === "object" && !Array.isArray(rawLocales)) {
-        const pick = (key) => sanitizeStrategyNotes(rawLocales[key] ?? "");
-        let text = pick(loc);
-        if (!text && loc.includes("-")) text = pick(loc.split("-")[0]);
-        if (!text) {
-          for (const k of ["en", "fr", "pt-BR", "id", "vi"]) {
-            text = pick(k);
-            if (text) break;
+        for (const k of ["en", "fr", "pt-BR", "id", "vi"]) {
+          const text = pick(k);
+          if (text) {
+            sourceText = text;
+            sourceLangKey = k;
+            break;
           }
         }
-        if (!text) {
+        if (!sourceText) {
           for (const k of Object.keys(rawLocales)) {
-            text = pick(k);
-            if (text) break;
+            const text = pick(k);
+            if (text) {
+              sourceText = text;
+              sourceLangKey = k;
+              break;
+            }
           }
         }
-        if (text) return text;
       }
-      return sanitizeStrategyNotes(build?.strategyNotes ?? build?.state?.strategyNotes ?? "");
+      if (!sourceText) {
+        sourceText = sanitizeStrategyNotes(build?.strategyNotes ?? build?.state?.strategyNotes ?? "");
+        const rawSrc = String(
+          build?.strategyNotesSourceLocale ?? build?.state?.strategyNotesSourceLocale ?? "",
+        ).trim();
+        sourceLangKey = rawSrc || "en";
+      }
+      if (!sourceText) return { type: "none" };
+      const fromMm = localeToMyMemoryLang(sourceLangKey);
+      if (fromMm === locMm) return { type: "verbatim", text: sourceText };
+      return { type: "translate", text: sourceText, from: fromMm, to: locMm };
+    }
+
+    function hashStrategyNotesKey(s) {
+      let h = 0;
+      for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+      return `h${h}`;
+    }
+
+    function chunkStrategyText(str, maxLen) {
+      if (!str) return [""];
+      const out = [];
+      for (let i = 0; i < str.length; i += maxLen) {
+        out.push(str.slice(i, i + maxLen));
+      }
+      return out;
+    }
+
+    async function translateStrategyNotesMyMemory(fullText, from, to) {
+      if (!fullText || from === to) return fullText;
+      const cacheKey = `builderStrategyTr:v1:${from}|${to}|${hashStrategyNotesKey(fullText)}`;
+      try {
+        const hit = sessionStorage.getItem(cacheKey);
+        if (hit) return hit;
+      } catch {}
+      const chunks = chunkStrategyText(fullText, 360);
+      const parts = [];
+      for (let i = 0; i < chunks.length; i++) {
+        const q = chunks[i];
+        const url = `https://api.mymemory.translated.net/get?${new URLSearchParams({
+          q,
+          langpair: `${from}|${to}`,
+        }).toString()}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        const status = Number(data.responseStatus);
+        if (status !== 200) {
+          throw new Error(data.responseData?.error || data.responseDetails || "translate");
+        }
+        parts.push(data.responseData.translatedText || "");
+        if (i < chunks.length - 1) await new Promise((r) => setTimeout(r, 180));
+      }
+      const merged = parts.join("");
+      try {
+        sessionStorage.setItem(cacheKey, merged);
+      } catch {}
+      return merged;
+    }
+
+    async function runCommunityStrategyTranslations() {
+      if (!communityBuildsEl) return;
+      const wraps = communityBuildsEl.querySelectorAll("[data-strategy-translate=\"1\"]");
+      for (const wrap of wraps) {
+        const from = wrap.getAttribute("data-from") || "en";
+        const to = wrap.getAttribute("data-to") || "en";
+        const body = wrap.querySelector(".community-build-notes-body");
+        const statusEl = wrap.querySelector(".community-strategy-translate-status");
+        const original = body?.textContent ?? "";
+        if (!body || !original || from === to) {
+          if (statusEl) statusEl.hidden = true;
+          continue;
+        }
+        try {
+          const out = await translateStrategyNotesMyMemory(original, from, to);
+          body.textContent = out;
+          if (statusEl) statusEl.hidden = true;
+        } catch {
+          if (statusEl) {
+            statusEl.removeAttribute("data-i18n");
+            statusEl.textContent = t("community.strategyTranslateFail");
+            statusEl.hidden = false;
+          }
+        }
+      }
+    }
+
+    function communityStrategyNotesBlockHtml(plan) {
+      if (plan.type === "none") return "";
+      const label = `<span class="community-build-notes-label" data-i18n="community.strategyLabel"></span>`;
+      if (plan.type === "verbatim") {
+        return `<div class="community-build-notes">${label}<span class="community-build-notes-body">${escapeHtml(plan.text)}</span></div>`;
+      }
+      return `<div class="community-build-notes">${label}<div class="community-build-notes-body-wrap" data-strategy-translate="1" data-from="${escapeHtml(plan.from)}" data-to="${escapeHtml(plan.to)}"><span class="community-build-notes-body">${escapeHtml(plan.text)}</span><span class="community-strategy-translate-status" data-i18n="community.strategyTranslating"></span></div></div>`;
     }
 
     /** Stocke les notes par locale UI au moment de la publication. */
@@ -7626,6 +7770,12 @@
       if (!text) return undefined;
       const loc = typeof window !== "undefined" && window.I18n?.locale ? window.I18n.locale : "en";
       return { [loc]: text };
+    }
+
+    function strategyNotesSourceLocaleFromMetadata(metadata) {
+      const text = sanitizeStrategyNotes(metadata?.strategyNotes || "");
+      if (!text) return undefined;
+      return typeof window !== "undefined" && window.I18n?.locale ? window.I18n.locale : "en";
     }
 
     function communityBuildTargetPreview(build, modeId) {
@@ -7965,7 +8115,7 @@
         const power = buildPower(b);
         const difficulty = buildDifficulty(b);
         const videoUrl = buildVideoUrl(b);
-        const strategyNotes = buildStrategyNotes(b);
+        const snPlan = strategyNotesTranslationPlan(b);
         const videoEmbed = communityVideoEmbedHtml(videoUrl);
         const videoAction = communityVideoActionHtml(videoUrl);
         const targetPreview = communityBuildTargetPreview(b, mode);
@@ -7985,7 +8135,7 @@
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
           <div class="community-build-preview">${targetPreview}${communityBuildPreview(b)}</div>
-          ${strategyNotes ? `<div class="community-build-notes"><span class="community-build-notes-label" data-i18n="community.strategyLabel"></span><span class="community-build-notes-body">${escapeHtml(strategyNotes)}</span></div>` : ""}
+          ${communityStrategyNotesBlockHtml(snPlan)}
           ${videoEmbed}
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}"${voteDisabled}>${voteButtonText}</button>
@@ -7999,6 +8149,7 @@
       if (window.I18n?.applyDocument && communityBuildsEl) {
         window.I18n.applyDocument(communityBuildsEl);
       }
+      void runCommunityStrategyTranslations();
     }
 
     function bindCommunityBuilds() {

@@ -143,6 +143,8 @@
   "community.previewRowSpells": "Feitiços",
   "community.previewRowPassives": "Passivos",
   "community.previewRowFunctionSkills": "Skills",
+  "community.strategyTranslating": "Traduzindo…",
+  "community.strategyTranslateFail": "Tradução indisponível. Mostrando o texto original.",
   "community.empty": "Nenhum build da comunidade corresponde a estes filtros.",
   "community.filterAll": "Todos",
   "community.filterBuild": "● build",

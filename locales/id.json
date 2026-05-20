@@ -143,6 +143,8 @@
   "community.previewRowSpells": "Skill aktif",
   "community.previewRowPassives": "Pasif",
   "community.previewRowFunctionSkills": "Skill",
+  "community.strategyTranslating": "Menerjemahkan…",
+  "community.strategyTranslateFail": "Terjemahan tidak tersedia. Teks asli ditampilkan.",
   "community.empty": "Belum ada build komunitas yang cocok dengan filter ini.",
   "community.filterAll": "Semua",
   "community.filterBuild": "● build",

@@ -143,6 +143,8 @@
   "community.previewRowSpells": "Sort",
   "community.previewRowPassives": "Passif",
   "community.previewRowFunctionSkills": "Skill",
+  "community.strategyTranslating": "Traduction…",
+  "community.strategyTranslateFail": "Traduction indisponible. Texte d’origine affiché.",
   "community.empty": "Aucun build communauté ne correspond à ces filtres.",
   "community.filterAll": "Tout",
   "community.filterBuild": "● build",

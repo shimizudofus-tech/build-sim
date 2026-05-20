@@ -143,6 +143,8 @@
   "community.previewRowSpells": "Kỹ năng",
   "community.previewRowPassives": "Bị động",
   "community.previewRowFunctionSkills": "Skill",
+  "community.strategyTranslating": "Đang dịch…",
+  "community.strategyTranslateFail": "Không dịch được. Hiển thị bản gốc.",
   "community.empty": "Chưa có build cộng đồng khớp bộ lọc này.",
   "community.filterAll": "Tất cả",
   "community.filterBuild": "● build",
