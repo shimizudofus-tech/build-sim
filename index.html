@@ -5827,7 +5827,8 @@
       return t("community.clearedLevelN", { n: formatNumber(value) });
     }
 
-    const STAGE_BOSS_IMAGE_COUNT = 81;
+    /** Dernier stage pour lequel on tente `assets/stage-bosses/stage-NNN.png` (fichiers manquants → fallback UI). */
+    const STAGE_BOSS_IMAGE_COUNT = 200;
 
     function communityStageBossAssetCandidates(stageLevel) {
       const n = Number(stageLevel);
