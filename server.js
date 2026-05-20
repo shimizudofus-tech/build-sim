@@ -35,6 +35,11 @@ const {
   linkProviderAccount,
   publicUserLinks,
 } = require("./lib/auth-accounts.cjs");
+const {
+  touchPresence,
+  publicCommunityStats,
+  sanitizeVisitorId,
+} = require("./lib/presence-stats.cjs");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -68,9 +73,10 @@ function readDb() {
       builds: Array.isArray(parsed.builds) ? parsed.builds : [],
       users: normalizeUsers(parsed.users),
       chatMessages: Array.isArray(parsed.chatMessages) ? parsed.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
+      presence: parsed.presence && typeof parsed.presence === "object" ? parsed.presence : {},
     };
   } catch {
-    return { visits: 0, builds: [], users: {}, chatMessages: [] };
+    return { visits: 0, builds: [], users: {}, chatMessages: [], presence: {} };
   }
 }
 
@@ -802,6 +808,22 @@ async function handleApi(req, res, url) {
     db.visits += 1;
     writeDb(db);
     return sendJson(res, 200, { visits: db.visits });
+  }
+
+  if (url.pathname === "/api/presence/ping" && req.method === "POST") {
+    const body = await readBody(req);
+    const db = readDb();
+    const visitorId = sanitizeVisitorId(body.visitorId);
+    if (!visitorId) return sendJson(res, 400, { error: "visitorId is required." });
+    const user = sessionUser(req, db);
+    touchPresence(db, visitorId, user?.id || null);
+    writeDb(db);
+    return sendJson(res, 200, publicCommunityStats(db));
+  }
+
+  if (url.pathname === "/api/stats/community" && req.method === "GET") {
+    const db = readDb();
+    return sendJson(res, 200, publicCommunityStats(db));
   }
 
   if (url.pathname === "/api/chat/messages" && req.method === "GET") {

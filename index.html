@@ -74,7 +74,47 @@
       flex-direction: column;
       align-items: stretch;
       gap: 0.38rem;
-      width: min(10.5rem, calc(100vw - 6rem));
+      width: min(13.5rem, calc(100vw - 6rem));
+    }
+    .profile-widget-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0.35rem;
+      width: 100%;
+    }
+    .profile-widget-row .profile-button {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .linked-members-counter {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.04rem;
+      min-width: 3.15rem;
+      max-width: 4.2rem;
+      padding: 0.3rem 0.42rem;
+      border: 1px solid rgba(110, 168, 254, 0.38);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(42, 63, 99, 0.92), rgba(21, 26, 36, 0.96));
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+      text-align: center;
+    }
+    .linked-members-value {
+      font-size: 0.92rem;
+      font-weight: 750;
+      line-height: 1.1;
+      color: #e8f1ff;
+    }
+    .linked-members-label {
+      font-size: 0.56rem;
+      font-weight: 650;
+      line-height: 1.15;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #9eb6e8;
     }
     .profile-widget .player-progress {
       min-width: 0;
@@ -536,6 +576,37 @@
       margin: 0;
       font-size: 0.95rem;
       line-height: 1.1;
+    }
+    .live-chat-head-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.32rem;
+      flex-shrink: 0;
+    }
+    .live-chat-online-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.24rem;
+      padding: 0.16rem 0.36rem 0.16rem 0.3rem;
+      border-radius: 999px;
+      border: 1px solid rgba(62, 207, 142, 0.28);
+      background: rgba(8, 18, 14, 0.55);
+      color: #8ef0bf;
+      font-size: 0.68rem;
+      font-weight: 750;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .live-chat-online-dot {
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 999px;
+      background: #3ecf8e;
+      box-shadow: 0 0 0 1px rgba(142, 240, 191, 0.35), 0 0 8px rgba(62, 207, 142, 0.75);
+      flex-shrink: 0;
+    }
+    .live-chat-online-num {
+      font-variant-numeric: tabular-nums;
     }
     .live-chat-status {
       margin: 0.1rem 0 0;
@@ -2852,14 +2923,26 @@
     </button>
   </div>
   <aside class="profile-widget" data-i18n-aria-label="profile.aria">
-    <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" data-i18n-title="profile.title" title="Profile">
-      <span id="profileButtonAvatar" class="profile-avatar-trigger" data-profile-avatar hidden data-i18n-aria-label="profile.changeAvatar" aria-label="Change profile picture"></span>
-      <span id="profileButtonGuestIcon" class="profile-icon" aria-hidden="true">ID</span>
-        <span class="profile-button-copy">
-          <span class="profile-button-main" data-i18n="profile.signIn">Sign in</span>
-          <span class="profile-button-sub" data-i18n="profile.communityAccount">Community account</span>
-        </span>
-    </button>
+    <div class="profile-widget-row">
+      <button type="button" id="profileButton" class="profile-button" aria-haspopup="true" aria-expanded="false" data-i18n-title="profile.title" title="Profile">
+        <span id="profileButtonAvatar" class="profile-avatar-trigger" data-profile-avatar hidden data-i18n-aria-label="profile.changeAvatar" aria-label="Change profile picture"></span>
+        <span id="profileButtonGuestIcon" class="profile-icon" aria-hidden="true">ID</span>
+          <span class="profile-button-copy">
+            <span class="profile-button-main" data-i18n="profile.signIn">Sign in</span>
+            <span class="profile-button-sub" data-i18n="profile.communityAccount">Community account</span>
+          </span>
+      </button>
+      <div
+        id="linkedMembersCounter"
+        class="linked-members-counter"
+        data-i18n-aria-label="profile.linkedMembersAria"
+        aria-label="Builders signed in with Discord or Telegram"
+        title="Discord or Telegram Builders"
+      >
+        <span id="linkedMembersValue" class="linked-members-value">—</span>
+        <span class="linked-members-label" data-i18n="profile.linkedMembersShort">Builders</span>
+      </div>
+    </div>
     <div class="player-progress player-progress--preview" data-i18n-aria-label="profile.xpPreviewAria" aria-label="XP and energy preview (coming soon)">
       <div class="player-progress-head">
         <span class="player-progress-badge" data-i18n="profile.comingSoon">Coming soon</span>
@@ -2934,7 +3017,18 @@
             <h2 data-i18n="chat.title">Live chat</h2>
             <p id="liveChatStatus" class="live-chat-status" data-i18n="chat.publicRead">Public to read. Sign in to write.</p>
           </div>
-          <button type="button" id="liveChatRefresh" class="secondary live-chat-refresh" data-i18n="chat.refresh">Refresh</button>
+          <div class="live-chat-head-actions">
+            <span
+              id="liveChatOnlineIndicator"
+              class="live-chat-online-indicator"
+              data-i18n-title="chat.onlineHint"
+              title="Active visitors in the last 5 minutes"
+            >
+              <span class="live-chat-online-dot" aria-hidden="true"></span>
+              <span id="liveChatOnlineCount" class="live-chat-online-num" data-i18n-aria-label="chat.onlineCountAria" aria-label="0 online">0</span>
+            </span>
+            <button type="button" id="liveChatRefresh" class="secondary live-chat-refresh" data-i18n="chat.refresh">Refresh</button>
+          </div>
         </div>
         <div id="liveChatMessages" class="live-chat-messages" aria-live="polite">
           <p class="live-chat-empty" data-i18n="chat.loadingMessages">Loading messages...</p>
@@ -3349,6 +3443,7 @@
       renderPlanner();
       renderBestBuilds();
       updateLiveChatUi();
+      renderCommunityStats();
       renderBuildLevel();
       syncBuilderCommunityTargetLabel();
       if (typeof updateCommunityPublishFields === "function") updateCommunityPublishFields();
@@ -3937,6 +4032,10 @@
     const liveChatRefreshEl = document.getElementById("liveChatRefresh");
     const liveChatLatestEl = document.getElementById("liveChatLatest");
     const liveChatUnreadEl = document.getElementById("liveChatUnread");
+    const liveChatOnlineIndicatorEl = document.getElementById("liveChatOnlineIndicator");
+    const liveChatOnlineCountEl = document.getElementById("liveChatOnlineCount");
+    const linkedMembersValueEl = document.getElementById("linkedMembersValue");
+    const linkedMembersCounterEl = document.getElementById("linkedMembersCounter");
     const COMMUNITY_BUILDS_KEY = "builderCommunityBuilds:v1";
     const COMMUNITY_OWNER_KEY = "builderCommunityOwner:v1";
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
@@ -3956,6 +4055,8 @@
     }
     const COMMUNITY_DIFFICULTY_VALUES = new Set(COMMUNITY_DIFFICULTY_KEYS.map(([v]) => v));
     const CHAT_POLL_MS = 12000;
+    const PRESENCE_PING_MS = 30000;
+    const VISITOR_ID_KEY = "builder_visitor_id:v1";
     const CHAT_MESSAGE_MAX = 240;
     const VISIT_COUNT_KEY = "builderVisitCount:v1";
     const undoEl = document.getElementById("undo");
@@ -3991,8 +4092,10 @@
     let chatMessages = [];
     let chatFetchInFlight = null;
     let chatPollTimer = 0;
+    let presencePollTimer = 0;
     let chatUnreadCount = 0;
     let chatLastSeenId = "";
+    let communityStats = { online: 0, membersTotal: 0 };
     const plannerSelectedChoices = new Set();
     let plannerGeneratedSlots = [];
     let plannerLastError = "";
@@ -4310,6 +4413,76 @@
       return Boolean(liveChatEl?.matches(":hover, :focus-within, .is-open"));
     }
 
+    function getVisitorId() {
+      try {
+        let id = localStorage.getItem(VISITOR_ID_KEY);
+        if (!id) {
+          id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+          localStorage.setItem(VISITOR_ID_KEY, id);
+        }
+        return id;
+      } catch {
+        return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+      }
+    }
+
+    function formatCommunityStatCount(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number) || number < 0) return "—";
+      return number.toLocaleString(localeTag());
+    }
+
+    function renderCommunityStats() {
+      const onlineText = formatCommunityStatCount(communityStats.online);
+      const membersText = formatCommunityStatCount(communityStats.membersTotal);
+      if (liveChatOnlineCountEl) {
+        liveChatOnlineCountEl.textContent = onlineText;
+        liveChatOnlineCountEl.setAttribute(
+          "aria-label",
+          API_ENABLED ? t("chat.onlineCountAria", { count: onlineText }) : t("chat.onlineCountAria", { count: "—" }),
+        );
+      }
+      if (liveChatOnlineIndicatorEl) {
+        liveChatOnlineIndicatorEl.title = t("chat.onlineHint");
+      }
+      if (linkedMembersValueEl) linkedMembersValueEl.textContent = membersText;
+      if (linkedMembersCounterEl) {
+        linkedMembersCounterEl.title = API_ENABLED
+          ? t("profile.linkedMembersTitle", { count: membersText })
+          : t("profile.linkedMembersAria");
+      }
+    }
+
+    async function pingPresence() {
+      if (!API_ENABLED) {
+        communityStats = { online: 0, membersTotal: 0 };
+        renderCommunityStats();
+        return;
+      }
+      try {
+        const data = await apiRequest("/api/presence/ping", {
+          method: "POST",
+          body: JSON.stringify({ visitorId: getVisitorId() }),
+        });
+        communityStats = {
+          online: Number(data.online) || 0,
+          membersTotal: Number(data.membersTotal) || 0,
+        };
+        renderCommunityStats();
+      } catch {
+        try {
+          const data = await apiRequest("/api/stats/community");
+          communityStats = {
+            online: Number(data.online) || 0,
+            membersTotal: Number(data.membersTotal) || 0,
+          };
+          renderCommunityStats();
+        } catch {
+          /* keep previous values */
+        }
+      }
+    }
+
     function resetLiveChatUnread() {
       chatUnreadCount = 0;
       chatLastSeenId = chatMessages.at(-1)?.id || chatLastSeenId;
@@ -4467,7 +4640,9 @@
       liveChatEl.addEventListener("focusin", resetLiveChatUnread);
       renderLiveChatComposer();
       refreshLiveChatMessages({ silent: true });
+      pingPresence();
       chatPollTimer = window.setInterval(() => refreshLiveChatMessages({ silent: true }), CHAT_POLL_MS);
+      presencePollTimer = window.setInterval(() => pingPresence(), PRESENCE_PING_MS);
     }
 
     function loadAuthState() {
@@ -4488,6 +4663,7 @@
         renderProfile();
         renderCommunityBuilds();
         consumeAccountLinkNotice();
+        pingPresence();
       })();
       return authStateReady;
     }

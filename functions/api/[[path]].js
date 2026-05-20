@@ -9,6 +9,11 @@ import {
   linkProviderAccount,
   publicUserLinks,
 } from "../../lib/auth-accounts.cjs";
+import {
+  touchPresence,
+  publicCommunityStats,
+  sanitizeVisitorId,
+} from "../../lib/presence-stats.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -438,6 +443,7 @@ async function readDb(env) {
     builds: Array.isArray(db.builds) ? db.builds : [],
     users: normalizeUsers(db.users),
     chatMessages: Array.isArray(db.chatMessages) ? db.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
+    presence: db.presence && typeof db.presence === "object" ? db.presence : {},
   };
 }
 
@@ -659,6 +665,22 @@ export async function onRequest(context) {
       db.visits += 1;
       await writeDb(env, db);
       return json({ visits: db.visits });
+    }
+
+    if (path === "/api/presence/ping" && method === "POST") {
+      const body = await readBody(request);
+      const db = await readDb(env);
+      const visitorId = sanitizeVisitorId(body.visitorId);
+      if (!visitorId) return json({ error: "visitorId is required." }, 400);
+      const user = await sessionUser(request, env, db);
+      touchPresence(db, visitorId, user?.id || null);
+      await writeDb(env, db);
+      return json(publicCommunityStats(db));
+    }
+
+    if (path === "/api/stats/community" && method === "GET") {
+      const db = await readDb(env);
+      return json(publicCommunityStats(db));
     }
 
     if (path === "/api/chat/messages" && method === "GET") {
