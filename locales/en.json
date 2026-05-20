@@ -139,6 +139,7 @@
   "community.deleteFailed": "Online delete failed.",
   "community.deleted": "Build deleted.",
   "community.difficultyLabel": "Difficulty",
+  "community.strategyLabel": "Strategy",
   "community.empty": "No community builds match these filters yet.",
   "community.filterAll": "All",
   "community.filterBuild": "● build",

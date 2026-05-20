@@ -139,6 +139,7 @@
   "community.deleteFailed": "Xóa trực tuyến thất bại.",
   "community.deleted": "Đã xóa build.",
   "community.difficultyLabel": "Độ khó",
+  "community.strategyLabel": "Chiến lược",
   "community.empty": "Chưa có build cộng đồng khớp bộ lọc này.",
   "community.filterAll": "Tất cả",
   "community.filterBuild": "● build",

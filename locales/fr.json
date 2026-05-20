@@ -139,6 +139,7 @@
   "community.deleteFailed": "Échec de la suppression en ligne.",
   "community.deleted": "Build supprimé.",
   "community.difficultyLabel": "Difficulté",
+  "community.strategyLabel": "Stratégie",
   "community.empty": "Aucun build communauté ne correspond à ces filtres.",
   "community.filterAll": "Tout",
   "community.filterBuild": "● build",

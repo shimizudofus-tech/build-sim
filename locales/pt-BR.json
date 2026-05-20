@@ -139,6 +139,7 @@
   "community.deleteFailed": "Falha ao excluir online.",
   "community.deleted": "Build excluído.",
   "community.difficultyLabel": "Dificuldade",
+  "community.strategyLabel": "Estratégia",
   "community.empty": "Nenhum build da comunidade corresponde a estes filtros.",
   "community.filterAll": "Todos",
   "community.filterBuild": "● build",

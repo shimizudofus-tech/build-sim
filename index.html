@@ -2913,12 +2913,46 @@
     .community-build-preview {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.4rem;
-      align-items: center;
+      gap: 0.45rem;
+      align-items: flex-start;
       margin-bottom: 0.5rem;
     }
-    .community-build-preview .best-build-slot {
-      padding: 0.3rem 0.4rem;
+    .community-build-preview-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      flex: 1;
+      min-width: 0;
+    }
+    .community-preview-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.28rem;
+      align-items: center;
+      line-height: 0;
+    }
+    .community-preview-cell {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      padding: 1px;
+      border-radius: 6px;
+      line-height: 0;
+      vertical-align: middle;
+    }
+    .community-preview-cell--empty {
+      width: 26px;
+      height: 26px;
+      box-sizing: border-box;
+      opacity: 0.22;
+      border: 1px dashed rgba(255, 255, 255, 0.14);
+      border-radius: 6px;
+    }
+    .community-preview-line--function .community-preview-cell:not(.community-preview-cell--empty) {
+      padding: 2px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 7px;
     }
     .community-card-target-preview {
       position: relative;
@@ -2970,6 +3004,13 @@
       font-size: 0.82rem;
       line-height: 1.35;
       white-space: pre-wrap;
+    }
+    .community-build-notes-label {
+      display: block;
+      margin-bottom: 0.18rem;
+      color: #9ff0c4;
+      font-weight: 700;
+      letter-spacing: 0.02em;
     }
     .community-build-actions {
       display: flex;
@@ -4579,6 +4620,29 @@
 
     function emptyFunctionSkillSlots() {
       return Array.from({ length: FUNCTION_SKILL_SLOT_COUNT }, () => null);
+    }
+
+    /** Safe copy of function-skill slots for publish / apply (6 entries, null or { skillId, rarity }). */
+    function sanitizeFunctionSkillsForPublish(arr) {
+      const skillIds = new Set(SKILLS.map((s) => s.id));
+      const rarityIds = new Set(FUNCTION_RARITIES.map((r) => r.id));
+      const out = emptyFunctionSkillSlots();
+      if (!Array.isArray(arr)) return out;
+      for (let i = 0; i < FUNCTION_SKILL_SLOT_COUNT && i < arr.length; i++) {
+        const e = arr[i];
+        if (!e || typeof e !== "object") {
+          out[i] = null;
+          continue;
+        }
+        const sid = String(e.skillId || "");
+        const rid = String(e.rarity || "");
+        if (!skillIds.has(sid) || !functionSkillAllowed(sid) || !rarityIds.has(rid)) {
+          out[i] = null;
+          continue;
+        }
+        out[i] = { skillId: sid, rarity: rid };
+      }
+      return out;
     }
 
     function sanitizeFunctionSkillSlots(slots) {
@@ -7246,6 +7310,7 @@
         evoPool: evoPool.map((e) => ({ ...e })),
         consumedEvo: Array.from(consumedEvo),
         mythics: mythics.map((m) => ({ ...m })),
+        functionSkills: sanitizeFunctionSkillsForPublish(getCharacterFunctionSlots()),
       };
     }
 
@@ -7253,7 +7318,8 @@
       return (
         slots.some((s) => s.skill || s.passive) ||
         evoPool.length > 0 ||
-        mythics.length > 0
+        mythics.length > 0 ||
+        getCharacterFunctionSlots().some(Boolean)
       );
     }
 
@@ -7277,46 +7343,86 @@
       focusSkillSlot = Math.min(mythics.length, slotCount() - 1);
       focusPassiveSlot = 0;
       focusField = "passive";
+      if (state.character && Array.isArray(state.functionSkills)) {
+        functionSkillsByCharacter[state.character] = sanitizeFunctionSkillsForPublish(
+          state.functionSkills,
+        );
+        saveFunctionSkillsStore();
+      }
       showPassiveHint(t("community.applied"));
       onUpdate();
+      renderFunctionSkills();
     }
 
+    /** Carte communauté : 3 lignes compactes (sorts / passifs / skills hors partie), icônes seules. */
     function communityBuildPreview(state) {
       state = state || {};
       const n = slotCount(state.mode);
       const consumed = new Set(state.consumedEvo || []);
-      const html = [];
+      const MAIN_ICO = 22;
+      const PASSIVE_ICO = 20;
+      const FN_ICO = 22;
+      const mainCells = [];
+      const passiveCells = [];
+      let hasSlotRow = false;
       for (let i = 0; i < n; i++) {
         const slot = state.slots?.[i] || emptySlot();
         const mythic = (state.mythics || []).find((m) => m.skillSlotIndex === i);
         const evo = (state.evoPool || []).find(
           (e) => !consumed.has(e.instanceId) && e.skillSlotIndex === i
         );
-        if (!mythic && !evo && !slot.skill && !slot.passive) continue;
-        let main = iconMarkup("", "", 32, "");
-        let label = "Empty";
-        let mainType = slot.passive ? "passive" : "skill";
+        let mainCell = `<span class="community-preview-cell community-preview-cell--empty" aria-hidden="true"></span>`;
         if (mythic) {
-          main = iconMarkup("mythic", mythic.mythicId, 32, mythic.label);
-          label = mythic.label;
-          mainType = "mythic";
+          hasSlotRow = true;
+          const tip = mythic.label || mythic.mythicId;
+          mainCell = `<span class="community-preview-cell is-mythic" title="${escapeHtml(tip)}">${iconMarkup("mythic", mythic.mythicId, MAIN_ICO, tip)}</span>`;
         } else if (evo) {
-          main = iconMarkup("evo", evo.evoId, 32, evo.label);
-          label = evo.label;
-          mainType = "evo";
+          hasSlotRow = true;
+          const tip = evo.label || evo.evoId;
+          mainCell = `<span class="community-preview-cell is-evo" title="${escapeHtml(tip)}">${iconMarkup("evo", evo.evoId, MAIN_ICO, tip)}</span>`;
         } else if (slot.skill) {
-          label = skillLabel(slot.skill);
-          main = iconMarkup("skill", slot.skill, 32, label);
-          mainType = "skill";
+          hasSlotRow = true;
+          const tip = skillLabel(slot.skill);
+          mainCell = `<span class="community-preview-cell is-skill" title="${escapeHtml(tip)}">${iconMarkup("skill", slot.skill, MAIN_ICO, tip)}</span>`;
         }
-        const passive = slot.passive
-          ? `<span class="best-build-passives">${iconMarkup("passive", slot.passive, 22, passiveLabel(slot.passive))}</span>`
-          : "";
-        html.push(
-          `<span class="best-build-slot is-${mainType}"><span class="tag mono">#${i + 1}</span>${main}<span class="tag">${escapeHtml(label)}</span>${passive}</span>`
+        mainCells.push(mainCell);
+        let pasCell = `<span class="community-preview-cell community-preview-cell--empty" aria-hidden="true"></span>`;
+        if (slot.passive) {
+          hasSlotRow = true;
+          const pt = passiveLabel(slot.passive);
+          pasCell = `<span class="community-preview-cell is-passive" title="${escapeHtml(pt)}">${iconMarkup("passive", slot.passive, PASSIVE_ICO, pt)}</span>`;
+        }
+        passiveCells.push(pasCell);
+      }
+      const fn = sanitizeFunctionSkillsForPublish(state.functionSkills);
+      const hasFnRow = fn.some(Boolean);
+      const fnCells = hasFnRow
+        ? fn
+            .map((entry) => {
+              if (!entry) {
+                return `<span class="community-preview-cell community-preview-cell--empty" aria-hidden="true"></span>`;
+              }
+              const lab = skillLabel(entry.skillId);
+              const tip = `${lab} · ${functionRarityLabel(entry.rarity)}`;
+              const main = iconMarkup("skill", entry.skillId, FN_ICO, lab);
+              return `<span class="community-preview-cell function-skill-cell--rarity-${escapeHtml(entry.rarity)}" title="${escapeHtml(tip)}">${main}</span>`;
+            })
+            .join("")
+        : "";
+      if (!hasSlotRow && !hasFnRow) return "";
+      const parts = [];
+      if (hasSlotRow) {
+        parts.push(
+          `<div class="community-preview-line community-preview-line--skills">${mainCells.join("")}</div>`,
+        );
+        parts.push(
+          `<div class="community-preview-line community-preview-line--passives">${passiveCells.join("")}</div>`,
         );
       }
-      return html.join("");
+      if (hasFnRow) {
+        parts.push(`<div class="community-preview-line community-preview-line--function">${fnCells}</div>`);
+      }
+      return `<div class="community-build-preview-stack">${parts.join("")}</div>`;
     }
 
     function readIntegerInput(inputEl) {
@@ -7763,7 +7869,7 @@
             <span class="community-score">▲ ${Number(b.votes) || 0}</span>
           </div>
           <div class="community-build-preview">${targetPreview}${communityBuildPreview(b.state)}</div>
-          ${strategyNotes ? `<div class="community-build-notes">${escapeHtml(strategyNotes)}</div>` : ""}
+          ${strategyNotes ? `<div class="community-build-notes"><span class="community-build-notes-label">${escapeHtml(t("community.strategyLabel"))}</span>${escapeHtml(strategyNotes)}</div>` : ""}
           ${videoEmbed}
           <div class="community-build-actions">
             <button type="button" data-community-action="vote" data-build-id="${escapeHtml(b.id)}"${voteDisabled}>${voteButtonText}</button>
