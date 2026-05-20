@@ -7332,6 +7332,7 @@
         difficulty: metadata.difficulty || "",
         videoUrl: metadata.videoUrl || "",
         strategyNotes: metadata.strategyNotes || "",
+        strategyNotesLocales: strategyNotesLocalesFromMetadata(metadata),
         slots: slots.map((s) => ({ ...s })),
         evoPool: evoPool.map((e) => ({ ...e })),
         consumedEvo: Array.from(consumedEvo),
@@ -7593,7 +7594,37 @@
     }
 
     function buildStrategyNotes(build) {
+      const loc = typeof window !== "undefined" && window.I18n?.locale ? window.I18n.locale : "en";
+      const rawLocales =
+        build?.strategyNotesLocales ??
+        build?.state?.strategyNotesLocales;
+      if (rawLocales && typeof rawLocales === "object" && !Array.isArray(rawLocales)) {
+        const pick = (key) => sanitizeStrategyNotes(rawLocales[key] ?? "");
+        let text = pick(loc);
+        if (!text && loc.includes("-")) text = pick(loc.split("-")[0]);
+        if (!text) {
+          for (const k of ["en", "fr", "pt-BR", "id", "vi"]) {
+            text = pick(k);
+            if (text) break;
+          }
+        }
+        if (!text) {
+          for (const k of Object.keys(rawLocales)) {
+            text = pick(k);
+            if (text) break;
+          }
+        }
+        if (text) return text;
+      }
       return sanitizeStrategyNotes(build?.strategyNotes ?? build?.state?.strategyNotes ?? "");
+    }
+
+    /** Stocke les notes par locale UI au moment de la publication. */
+    function strategyNotesLocalesFromMetadata(metadata) {
+      const text = sanitizeStrategyNotes(metadata?.strategyNotes || "");
+      if (!text) return undefined;
+      const loc = typeof window !== "undefined" && window.I18n?.locale ? window.I18n.locale : "en";
+      return { [loc]: text };
     }
 
     function communityBuildTargetPreview(build, modeId) {
