@@ -1459,7 +1459,7 @@
     }
     .build-page-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
       gap: 1rem;
       align-items: start;
     }
@@ -1498,10 +1498,34 @@
     .community-form.builder-publish .community-difficulty-field,
     .community-form.builder-publish .community-power-input,
     .community-form.builder-publish .community-video-input,
-    .community-form.builder-publish .community-strategy-input {
-      flex: 0 0 auto;
+    .community-form.builder-publish .community-strategy-field {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
       min-width: 0;
       width: 100%;
+    }
+    .community-form.builder-publish .community-strategy-field label {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .community-form.builder-publish .community-strategy-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
+      min-height: 10.5rem;
+      max-height: 18rem;
+      field-sizing: content;
+    }
+    .community-strategy-counter {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: right;
+      line-height: 1.2;
+    }
+    .community-strategy-counter.is-near-limit {
+      color: #ffe7a8;
     }
     .build-level-counter {
       padding: 0.45rem 0.7rem;
@@ -2739,9 +2763,9 @@
     .community-form .community-strategy-input {
       flex: 1 0 100%;
       min-width: 0;
-      min-height: 4.4rem;
+      min-height: 6.5rem;
       resize: vertical;
-      line-height: 1.35;
+      line-height: 1.4;
     }
     .community-controls {
       display: flex;
@@ -3819,7 +3843,11 @@
             </select>
           </div>
           <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" data-i18n-placeholder="builder.videoOptional" placeholder="Video link (optional)" />
-          <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" maxlength="360" rows="3" data-i18n-placeholder="builder.strategyPlaceholder" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
+          <div class="community-strategy-field">
+            <label for="builderCommunityStrategyNotes" data-i18n="community.strategyLabel">Strategy</label>
+            <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" rows="6" data-i18n-placeholder="builder.strategyPlaceholder" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
+            <span id="builderCommunityStrategyCounter" class="community-strategy-counter" aria-live="polite"></span>
+          </div>
           <button type="button" id="builderSaveCommunityBuild" data-i18n="builder.publish">Publish current build</button>
         </div>
         <nav class="recent-builds-panel" data-i18n-aria-label="recentBuilds.aria" aria-label="Latest community builds">
@@ -4546,7 +4574,7 @@
     const COMMUNITY_OWNED_IDS_KEY = "builderCommunityOwnedIds:v1";
     const COMMUNITY_VOTER_KEY = "builderCommunityVoter:v1";
     const COMMUNITY_VOTED_IDS_KEY = "builderCommunityVotedIds:v1";
-    const COMMUNITY_STRATEGY_NOTES_MAX = 360;
+    const COMMUNITY_STRATEGY_NOTES_MAX = 1200;
     const COMMUNITY_DIFFICULTY_KEYS = [
       ["", "difficulty.notRated"],
       ["very_easy", "difficulty.veryEasy"],
@@ -7720,7 +7748,7 @@
         const hit = sessionStorage.getItem(cacheKey);
         if (hit) return hit;
       } catch {}
-      const chunks = chunkStrategyText(fullText, 360);
+      const chunks = chunkStrategyText(fullText, 500);
       const parts = [];
       for (let i = 0; i < chunks.length; i++) {
         const q = chunks[i];
@@ -7896,6 +7924,7 @@
           if (powerInputEl) powerInputEl.value = "";
           if (videoInputEl) videoInputEl.value = "";
           if (strategyNotesEl) strategyNotesEl.value = "";
+          syncBuilderStrategyNotesCounter();
           showPassiveHint(t("community.publishedOnline"));
           renderCommunityBuilds();
           return;
@@ -7918,6 +7947,7 @@
       if (powerInputEl) powerInputEl.value = "";
       if (videoInputEl) videoInputEl.value = "";
       if (strategyNotesEl) strategyNotesEl.value = "";
+      syncBuilderStrategyNotesCounter();
       showPassiveHint(t("community.publishedLocal"));
       renderCommunityBuilds();
     }
@@ -8168,7 +8198,22 @@
       void runCommunityStrategyTranslations();
     }
 
+    function syncBuilderStrategyNotesCounter() {
+      const el = builderCommunityStrategyNotesEl;
+      const counter = document.getElementById("builderCommunityStrategyCounter");
+      if (!el || !counter) return;
+      el.maxLength = COMMUNITY_STRATEGY_NOTES_MAX;
+      const len = sanitizeStrategyNotes(el.value).length;
+      counter.textContent = t("builder.strategyCharCount", {
+        current: formatNumber(len),
+        max: formatNumber(COMMUNITY_STRATEGY_NOTES_MAX),
+      });
+      counter.classList.toggle("is-near-limit", len >= COMMUNITY_STRATEGY_NOTES_MAX * 0.9);
+    }
+
     function bindCommunityBuilds() {
+      builderCommunityStrategyNotesEl?.addEventListener("input", syncBuilderStrategyNotesCounter);
+      syncBuilderStrategyNotesCounter();
       builderSaveCommunityBuildEl?.addEventListener("click", () =>
         publishCurrentCommunityBuild(
           builderCommunityTargetValueEl,

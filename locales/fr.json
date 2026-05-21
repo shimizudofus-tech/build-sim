@@ -88,6 +88,7 @@
   "builder.signInToPublish": "Connexion pour publier",
   "builder.skillsAria": "Skills",
   "builder.strategyPlaceholder": "Stratégie boss / notes (optionnel). Ex. : Buldak aide à bloquer les projectiles sur ce boss.",
+  "builder.strategyCharCount": "{current} / {max} caractères",
   "builder.undoFusion": "Annuler la dernière fusion",
   "builder.videoOptional": "Lien vidéo (optionnel)",
   "chat.aria": "Chat en direct communauté",

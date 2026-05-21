@@ -88,6 +88,7 @@
   "builder.signInToPublish": "Đăng nhập để đăng",
   "builder.skillsAria": "Skill",
   "builder.strategyPlaceholder": "Chiến lược Boss / ghi chú (tùy chọn). Ví dụ: Buldak giúp chặn đạn trên Boss này.",
+  "builder.strategyCharCount": "{current} / {max} ký tự",
   "builder.undoFusion": "Hoàn tác hợp nhất cuối",
   "builder.videoOptional": "Liên kết video (tùy chọn)",
   "chat.aria": "Chat trực tiếp cộng đồng",

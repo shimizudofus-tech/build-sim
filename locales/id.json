@@ -88,6 +88,7 @@
   "builder.signInToPublish": "Masuk untuk menerbitkan",
   "builder.skillsAria": "Skill",
   "builder.strategyPlaceholder": "Strategi Boss / catatan (opsional). Contoh: Buldak membantu memblokir proyektil pada Boss ini.",
+  "builder.strategyCharCount": "{current} / {max} karakter",
   "builder.undoFusion": "Batalkan fusi terakhir",
   "builder.videoOptional": "Tautan video (opsional)",
   "chat.aria": "Obrolan langsung komunitas",

@@ -88,6 +88,7 @@
   "builder.signInToPublish": "Sign in to publish",
   "builder.skillsAria": "Skills",
   "builder.strategyPlaceholder": "Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss.",
+  "builder.strategyCharCount": "{current} / {max} characters",
   "builder.undoFusion": "Undo last fusion",
   "builder.videoOptional": "Video link (optional)",
   "chat.aria": "Community live chat",
