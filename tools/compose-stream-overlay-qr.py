@@ -15,36 +15,36 @@ OVERLAY_OUT = ROOT / "assets" / "stream-overlay.png"
 SITE_QR_OUT = ROOT / "assets" / "build-sim-site-qr.png"
 URL = "https://build-sim.pages.dev/"
 
-# Inner white tile inside the purple QR frame on 1024×576 source (above URL pills).
 QR_INNER = (886, 382, 1010, 508)
 QR_QUIET = 8
 QR_SIZE_RATIO = 0.72
 
-# Trou vidéo portrait (un peu plus large que 9:16 strict pour limiter les bandes noires).
-PHONE_ASPECT = 10 / 16  # largeur / hauteur
+PHONE_ASPECT = 10 / 16
 HOLE_INSET_Y = 12
 HOLE_INSET_X = 0
-HOLE_SCALE = 1.06  # léger agrandissement dans le cadre violet
-HOLE_FEATHER = 5  # adoucissement alpha (OBS / démultiplication)
-# Fond latéral neutre (toute la bande, pas seulement le damier).
-HOLE_FILL_INNER = np.array([52, 50, 58], dtype=np.float32)
-HOLE_FILL_OUTER = np.array([44, 42, 50], dtype=np.float32)
-# Éclairs violets du cadre à conserver dans les bandes latérales.
-LATERAL_LIGHTNING_MIN_SAT = 38
+HOLE_SCALE = 1.06
+HOLE_FEATHER = 4
+# Zone d'encadrement intérieur (au-delà du damier détecté).
+GUTTER_EXPAND_X = 58
+GUTTER_EXPAND_Y = 22
+SIDEBAR_LEFT_MAX = 212
+SIDEBAR_RIGHT_MIN = 812
+# Fond neutre de l'encadrement intérieur.
+GUTTER_FILL_INNER = np.array([54, 52, 60], dtype=np.float32)
+GUTTER_FILL_OUTER = np.array([46, 44, 52], dtype=np.float32)
+LIGHTNING_MIN_SAT = 42
 
 
 def checker_like_mask(rgb: np.ndarray) -> np.ndarray:
-    """Damier « transparence » Photoshop (gris neutres), pas de vrai alpha."""
     r = rgb[:, :, 0].astype(np.int16)
     g = rgb[:, :, 1].astype(np.int16)
     b = rgb[:, :, 2].astype(np.int16)
     sat = np.maximum.reduce([r, g, b]) - np.minimum.reduce([r, g, b])
     lum = (r + g + b) // 3
-    return (sat <= 15) & (lum >= 16) & (lum <= 42)
+    return (sat <= 18) & (lum >= 12) & (lum <= 48)
 
 
 def video_hole_mask(rgb: np.ndarray) -> np.ndarray:
-    """Zone vidéo centrale : plus grand composant connexe de pixels damier."""
     chk = checker_like_mask(rgb)
     h, w = chk.shape
     seeds = [(h // 2, w // 2), (h // 2, w // 3), (h // 2, 2 * w // 3)]
@@ -75,16 +75,14 @@ def video_hole_mask(rgb: np.ndarray) -> np.ndarray:
     return mask
 
 
-def phone_hole_rect(full_hole: np.ndarray, aspect: float = PHONE_ASPECT) -> tuple[np.ndarray, tuple[int, int, int, int]]:
-    """Rectangle portrait du trou vidéo (tout le rect = transparent, pas seulement le damier)."""
+def phone_hole_rect(full_hole: np.ndarray, aspect: float = PHONE_ASPECT) -> np.ndarray:
     ys, xs = np.where(full_hole)
     if len(xs) == 0:
-        empty = np.zeros_like(full_hole)
-        return empty, (0, 0, 0, 0)
+        return np.zeros_like(full_hole)
     x0, x1 = int(xs.min()) + HOLE_INSET_X, int(xs.max()) - HOLE_INSET_X
     y0, y1 = int(ys.min()) + HOLE_INSET_Y, int(ys.max()) - HOLE_INSET_Y
     if x1 <= x0 or y1 <= y0:
-        return full_hole.copy(), (0, 0, full_hole.shape[1] - 1, full_hole.shape[0] - 1)
+        return full_hole.copy()
     avail_w = x1 - x0 + 1
     h = y1 - y0 + 1
     w = min(avail_w, max(1, int(h * aspect * HOLE_SCALE)))
@@ -93,25 +91,29 @@ def phone_hole_rect(full_hole: np.ndarray, aspect: float = PHONE_ASPECT) -> tupl
     nx1 = min(x1, nx0 + w - 1)
     phone = np.zeros_like(full_hole)
     phone[y0 : y1 + 1, nx0 : nx1 + 1] = True
-    return phone, (nx0, y0, nx1, y1)
+    return phone
 
 
-def lateral_lightning_mask(arr: np.ndarray, region: np.ndarray) -> np.ndarray:
-    """Traits lumineux violets du cadre (à ne pas effacer)."""
-    r = arr[:, :, 0].astype(np.int16)
-    g = arr[:, :, 1].astype(np.int16)
-    b = arr[:, :, 2].astype(np.int16)
-    sat = np.maximum.reduce([r, g, b]) - np.minimum.reduce([r, g, b])
-    return (
-        region
-        & (sat >= LATERAL_LIGHTNING_MIN_SAT)
-        & (b >= 55)
-        & (r >= 35)
-        & (b > g + 8)
-    )
+def inner_gutter_mask(full_hole: np.ndarray, phone_rect: np.ndarray) -> np.ndarray:
+    """Encadrement intérieur complet : bbox du damier élargi, moins le trou vidéo."""
+    ys, xs = np.where(full_hole)
+    if len(xs) == 0:
+        return np.zeros_like(full_hole)
+    x0, x1 = int(xs.min()), int(xs.max())
+    y0, y1 = int(ys.min()), int(ys.max())
+    h, w = full_hole.shape
+    frame = np.zeros((h, w), dtype=bool)
+    frame[
+        max(0, y0 - GUTTER_EXPAND_Y) : min(h, y1 + GUTTER_EXPAND_Y + 1),
+        max(0, x0 - GUTTER_EXPAND_X) : min(w, x1 + GUTTER_EXPAND_X + 1),
+    ] = True
+    gutter = frame & ~phone_rect
+    gutter[:, :SIDEBAR_LEFT_MAX] = False
+    gutter[:, SIDEBAR_RIGHT_MIN:] = False
+    return gutter
 
 
-def lateral_fill_colors(phone_rect: np.ndarray, shape: tuple[int, int]) -> np.ndarray:
+def gutter_fill_colors(phone_rect: np.ndarray, shape: tuple[int, int]) -> np.ndarray:
     ys, xs = np.where(phone_rect)
     x0, x1, y0, y1 = int(xs.min()), int(xs.max()), int(ys.min()), int(ys.max())
     h, w = shape
@@ -121,28 +123,33 @@ def lateral_fill_colors(phone_rect: np.ndarray, shape: tuple[int, int]) -> np.nd
     dist = np.maximum(dx, dy)
     max_d = float(max(1.0, dist.max()))
     t = np.clip(dist / max_d, 0.0, 1.0)
-    return HOLE_FILL_INNER[None, None, :] * (1.0 - t[..., None]) + HOLE_FILL_OUTER[None, None, :] * t[..., None]
+    return GUTTER_FILL_INNER[None, None, :] * (1.0 - t[..., None]) + GUTTER_FILL_OUTER[None, None, :] * t[..., None]
 
 
-def fill_lateral_bands(
-    rgba: np.ndarray, arr: np.ndarray, full_hole: np.ndarray, phone_rect: np.ndarray
-) -> np.ndarray:
-    """Remplace toute la bande latérale (damier + bruit coloré) par un fond uni."""
-    lateral = full_hole & ~phone_rect
-    if not lateral.any():
-        return lateral_fill_colors(phone_rect, arr.shape[:2])
-    fill = lateral_fill_colors(phone_rect, arr.shape[:2])
-    keep = lateral_lightning_mask(arr, lateral)
-    paint = lateral & ~keep
-    rgba[paint, :3] = fill[paint].astype(np.uint8)
-    rgba[lateral, 3] = 255
-    return fill
+def lightning_mask(arr: np.ndarray, region: np.ndarray) -> np.ndarray:
+    r = arr[:, :, 0].astype(np.int16)
+    g = arr[:, :, 1].astype(np.int16)
+    b = arr[:, :, 2].astype(np.int16)
+    sat = np.maximum.reduce([r, g, b]) - np.minimum.reduce([r, g, b])
+    lum = r + g + b
+    return (
+        region
+        & (sat >= LIGHTNING_MIN_SAT)
+        & (lum >= 120)
+        & (b >= 70)
+        & (b > g + 12)
+    )
 
 
-def feather_hole_alpha(
-    rgba: np.ndarray, phone_rect: np.ndarray, fill: np.ndarray
-) -> None:
-    """Adoucit le bord du trou avec un voile neutre (pas les pixels source saturés)."""
+def paint_inner_gutter(rgba: np.ndarray, arr: np.ndarray, gutter: np.ndarray, fill: np.ndarray) -> None:
+    """Recouvre tout l'encadrement puis ne garde que les gros éclairs violets."""
+    rgba[gutter, :3] = fill[gutter].astype(np.uint8)
+    rgba[gutter, 3] = 255
+    bolts = lightning_mask(arr, gutter)
+    rgba[bolts, :3] = arr[bolts]
+
+
+def feather_hole_alpha(rgba: np.ndarray, phone_rect: np.ndarray, fill: np.ndarray) -> None:
     if HOLE_FEATHER <= 0:
         return
     h, w = phone_rect.shape
@@ -167,17 +174,18 @@ def feather_hole_alpha(
     if not ring.any():
         return
     ramp = np.clip(dist[ring] / HOLE_FEATHER, 0.0, 1.0)
-    base = fill[ring]
-    rgba[ring, :3] = (base * ramp[:, None]).astype(np.uint8)
+    rgba[ring, :3] = (fill[ring] * ramp[:, None]).astype(np.uint8)
     rgba[ring, 3] = (ramp * 255.0).astype(np.uint8)
 
 
 def rgba_with_video_hole(rgb: Image.Image, aspect: float = PHONE_ASPECT) -> Image.Image:
     arr = np.array(rgb.convert("RGB"))
     full_hole = video_hole_mask(arr)
-    phone_rect, _bounds = phone_hole_rect(full_hole, aspect)
+    phone_rect = phone_hole_rect(full_hole, aspect)
+    gutter = inner_gutter_mask(full_hole, phone_rect)
+    fill = gutter_fill_colors(phone_rect, arr.shape[:2])
     rgba = np.dstack([arr, np.full(arr.shape[:2], 255, dtype=np.uint8)])
-    fill = fill_lateral_bands(rgba, arr, full_hole, phone_rect)
+    paint_inner_gutter(rgba, arr, gutter, fill)
     rgba[phone_rect, :3] = 0
     rgba[phone_rect, 3] = 0
     feather_hole_alpha(rgba, phone_rect, fill)
@@ -236,7 +244,7 @@ def main() -> None:
         w = int(xs.max() - xs.min() + 1)
         h = int(ys.max() - ys.min() + 1)
         print(
-            f"Wrote {OVERLAY_OUT.name} (RGBA, trou portrait alpha=0: "
+            f"Wrote {OVERLAY_OUT.name} (RGBA, trou alpha=0: "
             f"x {xs.min()}-{xs.max()}, y {ys.min()}-{ys.max()}, {w}×{h}px)"
         )
     else:
