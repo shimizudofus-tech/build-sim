@@ -14,7 +14,7 @@ SITE_QR_OUT = ROOT / "assets" / "build-sim-site-qr.png"
 URL = "https://build-sim.pages.dev/"
 
 # Inner white QR panel on 1024×576 overlay (above URL pills)
-QR_BOX = (876, 396, 1002, 522)
+QR_BOX = (892, 368, 1018, 494)
 
 
 def main() -> None:
