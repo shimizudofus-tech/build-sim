@@ -25,10 +25,12 @@ PHONE_ASPECT = 10 / 16  # largeur / hauteur
 HOLE_INSET_Y = 12
 HOLE_INSET_X = 0
 HOLE_SCALE = 1.06  # léger agrandissement dans le cadre violet
-HOLE_FEATHER = 4  # adoucissement alpha (OBS / démultiplication)
-# Fond latéral désaturé (évite taches magenta / damier visible).
-HOLE_FILL_INNER = np.array([58, 52, 68], dtype=np.float32)
-HOLE_FILL_OUTER = np.array([40, 36, 48], dtype=np.float32)
+HOLE_FEATHER = 5  # adoucissement alpha (OBS / démultiplication)
+# Fond latéral neutre (toute la bande, pas seulement le damier).
+HOLE_FILL_INNER = np.array([52, 50, 58], dtype=np.float32)
+HOLE_FILL_OUTER = np.array([44, 42, 50], dtype=np.float32)
+# Éclairs violets du cadre à conserver dans les bandes latérales.
+LATERAL_LIGHTNING_MIN_SAT = 38
 
 
 def checker_like_mask(rgb: np.ndarray) -> np.ndarray:
@@ -94,31 +96,53 @@ def phone_hole_rect(full_hole: np.ndarray, aspect: float = PHONE_ASPECT) -> tupl
     return phone, (nx0, y0, nx1, y1)
 
 
-def fill_lateral_bands(
-    rgba: np.ndarray, arr: np.ndarray, full_hole: np.ndarray, phone_rect: np.ndarray
-) -> None:
-    """Remplace tout le damier latéral par un fond uni désaturé (garde les éclairs du cadre)."""
-    lateral = full_hole & ~phone_rect
-    if not lateral.any():
-        return
-    chk = checker_like_mask(arr)
+def lateral_lightning_mask(arr: np.ndarray, region: np.ndarray) -> np.ndarray:
+    """Traits lumineux violets du cadre (à ne pas effacer)."""
+    r = arr[:, :, 0].astype(np.int16)
+    g = arr[:, :, 1].astype(np.int16)
+    b = arr[:, :, 2].astype(np.int16)
+    sat = np.maximum.reduce([r, g, b]) - np.minimum.reduce([r, g, b])
+    return (
+        region
+        & (sat >= LATERAL_LIGHTNING_MIN_SAT)
+        & (b >= 55)
+        & (r >= 35)
+        & (b > g + 8)
+    )
+
+
+def lateral_fill_colors(phone_rect: np.ndarray, shape: tuple[int, int]) -> np.ndarray:
     ys, xs = np.where(phone_rect)
     x0, x1, y0, y1 = int(xs.min()), int(xs.max()), int(ys.min()), int(ys.max())
-    h, w = arr.shape[:2]
+    h, w = shape
     yy, xx = np.ogrid[:h, :w]
     dx = np.where(xx < x0, x0 - xx, np.where(xx > x1, xx - x1, 0)).astype(np.float32)
     dy = np.where(yy < y0, y0 - yy, np.where(yy > y1, yy - y1, 0)).astype(np.float32)
     dist = np.maximum(dx, dy)
-    max_d = float(max(1.0, dist[lateral].max()))
+    max_d = float(max(1.0, dist.max()))
     t = np.clip(dist / max_d, 0.0, 1.0)
-    fill = HOLE_FILL_INNER[None, None, :] * (1.0 - t[..., None]) + HOLE_FILL_OUTER[None, None, :] * t[..., None]
-    replace = lateral & chk
-    rgba[replace, :3] = fill[replace].astype(np.uint8)
+    return HOLE_FILL_INNER[None, None, :] * (1.0 - t[..., None]) + HOLE_FILL_OUTER[None, None, :] * t[..., None]
+
+
+def fill_lateral_bands(
+    rgba: np.ndarray, arr: np.ndarray, full_hole: np.ndarray, phone_rect: np.ndarray
+) -> np.ndarray:
+    """Remplace toute la bande latérale (damier + bruit coloré) par un fond uni."""
+    lateral = full_hole & ~phone_rect
+    if not lateral.any():
+        return lateral_fill_colors(phone_rect, arr.shape[:2])
+    fill = lateral_fill_colors(phone_rect, arr.shape[:2])
+    keep = lateral_lightning_mask(arr, lateral)
+    paint = lateral & ~keep
+    rgba[paint, :3] = fill[paint].astype(np.uint8)
     rgba[lateral, 3] = 255
+    return fill
 
 
-def feather_hole_alpha(rgba: np.ndarray, phone_rect: np.ndarray) -> None:
-    """Adoucit le bord du trou (évite halos sombres en démultipliant dans OBS)."""
+def feather_hole_alpha(
+    rgba: np.ndarray, phone_rect: np.ndarray, fill: np.ndarray
+) -> None:
+    """Adoucit le bord du trou avec un voile neutre (pas les pixels source saturés)."""
     if HOLE_FEATHER <= 0:
         return
     h, w = phone_rect.shape
@@ -142,9 +166,10 @@ def feather_hole_alpha(rgba: np.ndarray, phone_rect: np.ndarray) -> None:
     ring = (~phone_rect) & (dist <= HOLE_FEATHER)
     if not ring.any():
         return
-    ramp = np.clip(dist[ring] / HOLE_FEATHER, 0.0, 1.0)[:, None]
-    rgba[ring, :3] = (rgba[ring, :3].astype(np.float32) * ramp).astype(np.uint8)
-    rgba[ring, 3] = (ramp[:, 0] * 255.0).astype(np.uint8)
+    ramp = np.clip(dist[ring] / HOLE_FEATHER, 0.0, 1.0)
+    base = fill[ring]
+    rgba[ring, :3] = (base * ramp[:, None]).astype(np.uint8)
+    rgba[ring, 3] = (ramp * 255.0).astype(np.uint8)
 
 
 def rgba_with_video_hole(rgb: Image.Image, aspect: float = PHONE_ASPECT) -> Image.Image:
@@ -152,10 +177,10 @@ def rgba_with_video_hole(rgb: Image.Image, aspect: float = PHONE_ASPECT) -> Imag
     full_hole = video_hole_mask(arr)
     phone_rect, _bounds = phone_hole_rect(full_hole, aspect)
     rgba = np.dstack([arr, np.full(arr.shape[:2], 255, dtype=np.uint8)])
-    fill_lateral_bands(rgba, arr, full_hole, phone_rect)
+    fill = fill_lateral_bands(rgba, arr, full_hole, phone_rect)
     rgba[phone_rect, :3] = 0
     rgba[phone_rect, 3] = 0
-    feather_hole_alpha(rgba, phone_rect)
+    feather_hole_alpha(rgba, phone_rect, fill)
     return Image.fromarray(rgba, mode="RGBA")
 
 
