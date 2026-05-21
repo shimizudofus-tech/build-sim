@@ -13,8 +13,9 @@ OVERLAY_OUT = ROOT / "assets" / "stream-overlay.png"
 SITE_QR_OUT = ROOT / "assets" / "build-sim-site-qr.png"
 URL = "https://build-sim.pages.dev/"
 
-# White QR panel on 1024×576 overlay (above URL pills); QR drawn at half this size, centered.
+# Purple-framed QR zone on 1024×576 overlay (above URL pills)
 QR_FRAME = (892, 368, 1018, 494)
+QR_PAD = 4
 
 
 def qr_box_half_centered(frame: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
@@ -57,11 +58,19 @@ def main() -> None:
     qr_img = qr_hi.resize((qw, qh), Image.Resampling.LANCZOS)
 
     base = Image.open(src).convert("RGBA")
-    white = Image.new("RGBA", (frame_w, frame_h), (255, 255, 255, 255))
-    base.paste(white, (fx0, fy0))
+    sample = base.getpixel((fx0 + 4, fy0 + 8))
+    if not isinstance(sample, tuple):
+        sample = (40, 20, 55, 255)
+    elif len(sample) == 3:
+        sample = (*sample, 255)
+    backdrop = Image.new("RGBA", (frame_w, frame_h), sample)
+    base.paste(backdrop, (fx0, fy0))
+
+    white = Image.new("RGBA", (qw + QR_PAD * 2, qh + QR_PAD * 2), (255, 255, 255, 255))
+    base.paste(white, (x0 - QR_PAD, y0 - QR_PAD))
     base.paste(qr_img, (x0, y0), qr_img)
     base.convert("RGB").save(OVERLAY_OUT, format="PNG", optimize=True)
-    print(f"Wrote {SITE_QR_OUT.name} and {OVERLAY_OUT.name}")
+    print(f"Wrote {SITE_QR_OUT.name} and {OVERLAY_OUT.name} ({qw}×{qh} px QR)")
 
 
 if __name__ == "__main__":
