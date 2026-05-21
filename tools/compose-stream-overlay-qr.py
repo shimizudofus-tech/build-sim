@@ -13,8 +13,29 @@ OVERLAY_OUT = ROOT / "assets" / "stream-overlay.png"
 SITE_QR_OUT = ROOT / "assets" / "build-sim-site-qr.png"
 URL = "https://build-sim.pages.dev/"
 
-# Inner white QR panel on 1024×576 overlay (above URL pills)
-QR_BOX = (892, 368, 1018, 494)
+# White QR panel on 1024×576 overlay (above URL pills); QR drawn at half this size, centered.
+QR_FRAME = (892, 368, 1018, 494)
+
+
+def qr_box_half_centered(frame: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
+    fx0, fy0, fx1, fy1 = frame
+    fw, fh = fx1 - fx0, fy1 - fy0
+    qw, qh = fw // 2, fh // 2
+    cx, cy = (fx0 + fx1) // 2, (fy0 + fy1) // 2
+    return (cx - qw // 2, cy - qh // 2, cx + qw // 2, cy + qh // 2)
+
+
+def make_site_qr(size: int) -> Image.Image:
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(URL)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#120818", back_color="#ffffff").convert("RGBA")
+    return img.resize((size, size), Image.Resampling.LANCZOS)
 
 
 def main() -> None:
@@ -26,24 +47,18 @@ def main() -> None:
         print(f"Or place source at {OVERLAY_IN}")
         sys.exit(1)
 
-    x0, y0, x1, y1 = QR_BOX
-    inner_w, inner_h = x1 - x0, y1 - y0
+    fx0, fy0, fx1, fy1 = QR_FRAME
+    frame_w, frame_h = fx1 - fx0, fy1 - fy0
+    x0, y0, x1, y1 = qr_box_half_centered(QR_FRAME)
+    qw, qh = x1 - x0, y1 - y0
 
-    qr = qrcode.QRCode(
-        version=None,
-        error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=8,
-        border=2,
-    )
-    qr.add_data(URL)
-    qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="#120818", back_color="#ffffff").convert("RGBA")
-    qr_img = qr_img.resize((inner_w, inner_h), Image.Resampling.LANCZOS)
-    qr_img.save(SITE_QR_OUT, optimize=True)
+    qr_hi = make_site_qr(256)
+    qr_hi.save(SITE_QR_OUT, optimize=True)
+    qr_img = qr_hi.resize((qw, qh), Image.Resampling.LANCZOS)
 
     base = Image.open(src).convert("RGBA")
-    white = Image.new("RGBA", (inner_w, inner_h), (255, 255, 255, 255))
-    base.paste(white, (x0, y0))
+    white = Image.new("RGBA", (frame_w, frame_h), (255, 255, 255, 255))
+    base.paste(white, (fx0, fy0))
     base.paste(qr_img, (x0, y0), qr_img)
     base.convert("RGB").save(OVERLAY_OUT, format="PNG", optimize=True)
     print(f"Wrote {SITE_QR_OUT.name} and {OVERLAY_OUT.name}")
