@@ -8,13 +8,15 @@
   <style>
     :root {
       --overlay-scale: 1;
+      --slot-size: calc(2.75rem * var(--overlay-scale));
+      --icon-size: calc(2.15rem * var(--overlay-scale));
     }
     html, body {
       margin: 0;
       min-height: 100vh;
     }
     body {
-      overflow: auto;
+      overflow: hidden;
     }
     body.bg-transparent {
       background: transparent;
@@ -26,83 +28,61 @@
       background: #00ff00;
     }
     .overlay-root {
-      padding: 0.45rem;
-      display: grid;
-      gap: 0.45rem;
-      width: fit-content;
-      max-width: 100vw;
-    }
-    .overlay-block {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      min-width: 0;
-    }
-    .overlay-block.is-stack {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .overlay-root.is-split {
-      display: block;
-      padding: 0;
-    }
-    .overlay-root.is-group-horizontal {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 0.65rem;
+      position: relative;
+      width: 100vw;
+      height: 100vh;
     }
     .overlay-panel {
-      padding: 0.45rem 0.55rem;
-      border: 1px solid rgba(110, 168, 254, 0.38);
+      position: fixed;
+      z-index: 1;
+      padding: 0.4rem 0.5rem 0.5rem;
       border-radius: 12px;
+      border: 1px solid rgba(110, 168, 254, 0.38);
       background: rgba(8, 12, 20, 0.88);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
       width: fit-content;
       max-width: 96vw;
-      display: grid;
-      gap: 0.45rem;
+      touch-action: none;
     }
-    .overlay-root.is-group-horizontal .overlay-panel {
-      display: flex;
-      flex-direction: row;
-      align-items: flex-start;
-      gap: 0.65rem;
+    .overlay-panel--passive {
+      border-color: rgba(62, 207, 142, 0.38);
+      z-index: 2;
     }
     body.bg-transparent .overlay-panel {
+      background: rgba(8, 12, 20, 0.78);
+      backdrop-filter: blur(4px);
+    }
+    body.bg-transparent.bg-no-panel-bg .overlay-panel {
       background: transparent;
-      border-color: rgba(110, 168, 254, 0.28);
+      border-color: rgba(110, 168, 254, 0.22);
       box-shadow: none;
+      backdrop-filter: none;
     }
     body.bg-chroma .overlay-panel {
       background: rgba(8, 12, 20, 0.82);
     }
-    .overlay-root.is-split .overlay-panel {
-      position: fixed;
-    }
-    .overlay-root.is-split .overlay-panel--active {
-      bottom: 1rem;
-      right: 1rem;
-    }
-    .overlay-root.is-split .overlay-panel--passive {
-      bottom: 1rem;
-      right: 1rem;
-      transform: translateY(calc(-100% - 0.75rem));
-    }
-    .overlay-label {
-      flex: 0 0 auto;
+    .overlay-drag-handle {
+      display: block;
+      margin: 0 0 0.4rem;
+      padding: 0.15rem 0.1rem;
       font: 750 0.62rem/1.2 "Segoe UI", system-ui, sans-serif;
       letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: #9aa8bf;
+      color: #9ec5ff;
       white-space: nowrap;
+      cursor: grab;
+      user-select: none;
     }
-    .overlay-label--active { color: #9ec5ff; }
-    .overlay-label--passive { color: #8ee8bc; }
+    .overlay-drag-handle:active {
+      cursor: grabbing;
+    }
+    .overlay-panel--passive .overlay-drag-handle {
+      color: #8ee8bc;
+    }
     .overlay-slots {
       display: flex;
       flex-wrap: wrap;
-      gap: calc(0.28rem * var(--overlay-scale));
+      gap: calc(0.32rem * var(--overlay-scale));
       min-width: 0;
     }
     .overlay-slots.is-flow-horizontal {
@@ -111,22 +91,52 @@
     .overlay-slots.is-flow-vertical {
       flex-direction: column;
       flex-wrap: nowrap;
-      align-items: center;
+      align-items: stretch;
     }
     .build-mini-overlay-slot {
       display: grid;
       place-items: center;
+      width: var(--slot-size);
+      height: var(--slot-size);
+      padding: calc(0.12rem * var(--overlay-scale));
+      border-radius: 10px;
+      border: 1px solid rgba(110, 168, 254, 0.28);
+      background:
+        linear-gradient(145deg, rgba(110, 168, 254, 0.12), transparent 42%),
+        rgba(18, 25, 39, 0.92);
+      box-sizing: border-box;
+    }
+    .overlay-panel--passive .build-mini-overlay-slot {
+      border-color: rgba(62, 207, 142, 0.28);
+      background:
+        linear-gradient(145deg, rgba(62, 207, 142, 0.1), transparent 42%),
+        rgba(16, 27, 36, 0.92);
+    }
+    .build-mini-overlay-slot .ico-wrap {
+      width: var(--icon-size) !important;
+      height: var(--icon-size) !important;
+      display: grid !important;
+      place-items: center;
+    }
+    .build-mini-overlay-slot .ico-wrap img,
+    .build-mini-overlay-slot .ico-wrap svg {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
     }
     .ico-wrap {
       position: relative;
-      display: inline-grid;
-      place-items: center;
     }
     .ico-img.is-hidden {
       display: none;
     }
     .ico-wrap.has-png .ico-sprite {
       opacity: 0;
+      position: absolute;
+      inset: 0;
     }
     .ico-sprite {
       position: relative;
@@ -138,8 +148,10 @@
   <div id="overlayRoot" class="overlay-root"></div>
   <script>
     const STATE_KEY = "buildMiniOverlayState:v1";
+    const POS_KEY = "overlayPopoutPanelPos:v1";
     const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("build-mini-overlay-sync") : null;
     const rootEl = document.getElementById("overlayRoot");
+    let dragState = null;
 
     function iconImgError(img) {
       let rest = [];
@@ -167,49 +179,127 @@
       return layout === "vertical" ? "is-flow-vertical" : "is-flow-horizontal";
     }
 
+    function readPanelPositions() {
+      try {
+        return JSON.parse(localStorage.getItem(POS_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function savePanelPositions() {
+      const active = document.querySelector(".overlay-panel--active");
+      const passive = document.querySelector(".overlay-panel--passive");
+      if (!active || !passive) return;
+      const payload = {
+        active: {
+          left: Math.round(parseFloat(active.style.left) || 0),
+          top: Math.round(parseFloat(active.style.top) || 0),
+        },
+        passive: {
+          left: Math.round(parseFloat(passive.style.left) || 0),
+          top: Math.round(parseFloat(passive.style.top) || 0),
+        },
+      };
+      try {
+        localStorage.setItem(POS_KEY, JSON.stringify(payload));
+      } catch {}
+    }
+
+    function defaultPanelPositions(activeEl, passiveEl) {
+      const pad = 16;
+      const pw = passiveEl.offsetWidth || 220;
+      const ph = passiveEl.offsetHeight || 100;
+      const aw = activeEl.offsetWidth || 220;
+      const ah = activeEl.offsetHeight || 100;
+      passiveEl.style.left = `${Math.max(pad, window.innerWidth - pw - pad)}px`;
+      passiveEl.style.top = `${Math.max(pad, window.innerHeight - ph - ah - pad - 12)}px`;
+      activeEl.style.left = `${Math.max(pad, window.innerWidth - aw - pad)}px`;
+      activeEl.style.top = `${Math.max(pad, window.innerHeight - ah - pad)}px`;
+    }
+
+    function applyPanelPositions(activeEl, passiveEl) {
+      const saved = readPanelPositions();
+      if (saved.active?.left != null && saved.active?.top != null) {
+        activeEl.style.left = `${saved.active.left}px`;
+        activeEl.style.top = `${saved.active.top}px`;
+      }
+      if (saved.passive?.left != null && saved.passive?.top != null) {
+        passiveEl.style.left = `${saved.passive.left}px`;
+        passiveEl.style.top = `${saved.passive.top}px`;
+      }
+      if (!saved.active && !saved.passive) {
+        defaultPanelPositions(activeEl, passiveEl);
+        savePanelPositions();
+      }
+    }
+
+    function bindPanelDrag(panelEl, panelKey) {
+      const handle = panelEl.querySelector(".overlay-drag-handle");
+      if (!handle) return;
+      handle.addEventListener("mousedown", (ev) => {
+        if (ev.button !== 0) return;
+        const rect = panelEl.getBoundingClientRect();
+        dragState = {
+          panelEl,
+          offsetX: ev.clientX - rect.left,
+          offsetY: ev.clientY - rect.top,
+        };
+        ev.preventDefault();
+      });
+    }
+
+    function bindPanelDrags() {
+      const active = document.querySelector(".overlay-panel--active");
+      const passive = document.querySelector(".overlay-panel--passive");
+      if (active) bindPanelDrag(active, "active");
+      if (passive) bindPanelDrag(passive, "passive");
+    }
+
+    window.addEventListener("mousemove", (ev) => {
+      if (!dragState) return;
+      const { panelEl, offsetX, offsetY } = dragState;
+      panelEl.style.left = `${ev.clientX - offsetX}px`;
+      panelEl.style.top = `${ev.clientY - offsetY}px`;
+    });
+
+    window.addEventListener("mouseup", () => {
+      if (!dragState) return;
+      dragState = null;
+      savePanelPositions();
+    });
+
     function applyState(state) {
       if (!state?.html || !rootEl) return;
       const scale = Math.min(200, Math.max(50, Number(state.scale) || 100));
       const layout = state.layout === "vertical" ? "vertical" : "horizontal";
-      const split = Boolean(state.split);
       const bg = state.popoutBg === "dark" || state.popoutBg === "chroma" ? state.popoutBg : "transparent";
       const labels = state.labels || { active: "Active Skill", passive: "Passive Skill" };
       const flow = flowClass(layout);
+      const activesHtml = state.html.activesSplit || state.html.actives || "";
+      const passivesHtml = state.html.passivesSplit || state.html.passives || "";
 
-      document.body.className = `bg-${bg}`;
+      document.body.className = `bg-${bg}${bg === "transparent" ? " bg-no-panel-bg" : ""}`;
       document.documentElement.style.setProperty("--overlay-scale", String(scale / 100));
 
-      if (split) {
-        rootEl.className = "overlay-root is-split";
-        rootEl.innerHTML = `
-          <section class="overlay-panel overlay-panel--active">
-            <div class="overlay-block is-stack">
-              <span class="overlay-label overlay-label--active">${labels.active}</span>
-              <div class="overlay-slots ${flow}">${state.html.activesSplit || state.html.actives || ""}</div>
-            </div>
-          </section>
-          <section class="overlay-panel overlay-panel--passive">
-            <div class="overlay-block is-stack">
-              <span class="overlay-label overlay-label--passive">${labels.passive}</span>
-              <div class="overlay-slots ${flow}">${state.html.passivesSplit || state.html.passives || ""}</div>
-            </div>
-          </section>`;
-        return;
-      }
-
-      const groupClass = layout === "vertical" ? "is-group-vertical" : "is-group-horizontal";
-      rootEl.className = `overlay-root ${groupClass}`;
       rootEl.innerHTML = `
-        <section class="overlay-panel">
-          <div class="overlay-block is-stack">
-            <span class="overlay-label overlay-label--active">${labels.active}</span>
-            <div class="overlay-slots ${flow}">${state.html.actives || ""}</div>
-          </div>
-          <div class="overlay-block is-stack">
-            <span class="overlay-label overlay-label--passive">${labels.passive}</span>
-            <div class="overlay-slots ${flow}">${state.html.passives || ""}</div>
-          </div>
+        <section class="overlay-panel overlay-panel--passive">
+          <span class="overlay-drag-handle">${labels.passive}</span>
+          <div class="overlay-slots ${flow}">${passivesHtml}</div>
+        </section>
+        <section class="overlay-panel overlay-panel--active">
+          <span class="overlay-drag-handle">${labels.active}</span>
+          <div class="overlay-slots ${flow}">${activesHtml}</div>
         </section>`;
+
+      const activeEl = document.querySelector(".overlay-panel--active");
+      const passiveEl = document.querySelector(".overlay-panel--passive");
+      if (activeEl && passiveEl) {
+        requestAnimationFrame(() => {
+          applyPanelPositions(activeEl, passiveEl);
+          bindPanelDrags();
+        });
+      }
     }
 
     function readState() {
