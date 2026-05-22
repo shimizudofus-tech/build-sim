@@ -3189,6 +3189,43 @@
       line-height: 1.25;
       text-align: center;
     }
+    .invite-toast-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: rgba(5, 8, 13, 0.62);
+      backdrop-filter: blur(5px);
+    }
+    .invite-toast-backdrop[hidden] {
+      display: none;
+    }
+    .invite-toast {
+      width: min(22rem, 100%);
+      padding: 1.1rem 1.2rem;
+      border: 1px solid rgba(186, 133, 255, 0.45);
+      border-radius: 16px;
+      background:
+        radial-gradient(420px 180px at 50% 0%, rgba(186, 133, 255, 0.22), transparent 70%),
+        linear-gradient(180deg, rgba(32, 22, 48, 0.98), rgba(14, 10, 22, 0.98));
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+      text-align: center;
+    }
+    .invite-toast-msg {
+      margin: 0 0 0.85rem;
+      color: #f5fcff;
+      font-size: 1rem;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+    .invite-toast-ok {
+      min-width: 5.5rem;
+      border-color: rgba(186, 133, 255, 0.5);
+      background: rgba(186, 133, 255, 0.18);
+      font-weight: 700;
+    }
     @media (max-width: 520px) {
       .fake-sparks-hero {
         grid-template-columns: 1fr;
@@ -4200,6 +4237,12 @@
       <p id="profileStatus" class="profile-status" aria-live="polite"></p>
     </div>
   </aside>
+  <div id="inviteCopiedToast" class="invite-toast-backdrop" hidden aria-hidden="true">
+    <div class="invite-toast" role="alertdialog" aria-modal="true" aria-labelledby="inviteCopiedToastMsg">
+      <p id="inviteCopiedToastMsg" class="invite-toast-msg"></p>
+      <button type="button" id="inviteCopiedToastOk" class="invite-toast-ok" data-i18n="fakeSparks.disclaimerAck">Got it</button>
+    </div>
+  </div>
   <div id="authModalBackdrop" class="auth-modal-backdrop" hidden aria-hidden="true">
     <section class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" aria-describedby="authModalDescription">
       <div class="auth-modal-head">
@@ -9528,6 +9571,10 @@
     const fakeSparksInviteUsageEl = document.getElementById("fakeSparksInviteUsage");
     const fakeSparksInviteCopyBtnEl = document.getElementById("fakeSparksInviteCopyBtn");
     const fakeSparksInviteLimitMsgEl = document.getElementById("fakeSparksInviteLimitMsg");
+    const inviteCopiedToastEl = document.getElementById("inviteCopiedToast");
+    const inviteCopiedToastMsgEl = document.getElementById("inviteCopiedToastMsg");
+    const inviteCopiedToastOkEl = document.getElementById("inviteCopiedToastOk");
+    let inviteCopiedToastTimer = 0;
 
     function fakeSparksGateMessage(code) {
       if (!currentUser) return t("fakeSparks.gateSignIn");
@@ -9831,6 +9878,25 @@
       }
     }
 
+    function hideInviteCopiedToast() {
+      if (inviteCopiedToastTimer) {
+        window.clearTimeout(inviteCopiedToastTimer);
+        inviteCopiedToastTimer = 0;
+      }
+      if (!inviteCopiedToastEl) return;
+      inviteCopiedToastEl.hidden = true;
+      inviteCopiedToastEl.setAttribute("aria-hidden", "true");
+    }
+
+    function showInviteCopiedToast(message) {
+      if (!inviteCopiedToastEl || !inviteCopiedToastMsgEl) return;
+      hideInviteCopiedToast();
+      inviteCopiedToastMsgEl.textContent = message;
+      inviteCopiedToastEl.hidden = false;
+      inviteCopiedToastEl.setAttribute("aria-hidden", "false");
+      inviteCopiedToastTimer = window.setTimeout(hideInviteCopiedToast, 3500);
+    }
+
     async function copyReferralInviteLink() {
       if (!currentUser) {
         openAuthModal(t("fakeSparks.inviteSignIn"));
@@ -9845,7 +9911,7 @@
       const url = buildReferralInviteUrl(ref);
       try {
         await navigator.clipboard.writeText(url);
-        showPassiveHint(t("fakeSparks.inviteCopied"));
+        showInviteCopiedToast(t("fakeSparks.inviteCopied"));
       } catch {
         showPassiveHint(t("fakeSparks.inviteCopyFail"));
       }
@@ -10017,6 +10083,10 @@
       renderFakeSparksWheel();
       headerFakeSparksDailyBtnEl?.addEventListener("click", () => void claimFakeSparksDaily());
       fakeSparksInviteCopyBtnEl?.addEventListener("click", () => void copyReferralInviteLink());
+      inviteCopiedToastOkEl?.addEventListener("click", hideInviteCopiedToast);
+      inviteCopiedToastEl?.addEventListener("click", (e) => {
+        if (e.target === inviteCopiedToastEl) hideInviteCopiedToast();
+      });
       fakeSparksWheelBtnEl?.addEventListener("click", () => void spinFakeSparksWheel());
       fakeSparksDisclaimerOkEl?.addEventListener("click", () => void acknowledgeFakeSparksDisclaimer());
     }
