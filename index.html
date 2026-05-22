@@ -3,11 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script>
-    if (new URLSearchParams(location.search).get("overlayPopout") === "1") {
-      document.documentElement.classList.add("is-overlay-popout");
-    }
-  </script>
   <link rel="icon" type="image/x-icon" href="./assets/favicon/favicon.ico?v=1779183947272">
   <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon/favicon-16x16.png?v=1779183947272">
   <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon/favicon-32x32.png?v=1779183947272">
@@ -2283,40 +2278,6 @@
       display: grid;
       place-items: center;
     }
-    html.is-overlay-popout,
-    html.is-overlay-popout body {
-      margin: 0;
-      min-height: 100vh;
-      background: rgba(8, 12, 20, 0.97);
-      overflow: hidden;
-    }
-    html.is-overlay-popout body > :not(svg):not(#buildMiniOverlay):not(#buildMiniOverlayActivePanel):not(#buildMiniOverlayPassivePanel) {
-      display: none !important;
-    }
-    html.is-overlay-popout #buildMiniOverlayToggle {
-      display: none !important;
-    }
-    html.is-overlay-popout .build-mini-overlay:not(.build-mini-overlay--split) {
-      position: relative;
-      inset: auto;
-      bottom: auto;
-      right: auto;
-      width: 100%;
-      max-width: none;
-      min-height: 100vh;
-      border-radius: 0;
-      border-left: none;
-      border-right: none;
-      border-top: none;
-      box-shadow: none;
-    }
-    html.is-overlay-popout .build-mini-overlay.is-dock-only {
-      min-height: auto;
-      width: 100%;
-    }
-    html.is-overlay-popout .build-mini-overlay--split {
-      position: fixed;
-    }
     .build-cell {
       display: flex;
       position: relative;
@@ -4437,6 +4398,7 @@
         <button type="button" id="buildMiniOverlaySplitBtn" class="build-mini-overlay-ctrl secondary" aria-pressed="false" data-i18n="builder.miniOverlaySplit">Split</button>
         <button type="button" id="buildMiniOverlayLayoutBtn" class="build-mini-overlay-ctrl secondary" aria-pressed="false" data-i18n-title="builder.miniOverlayLayoutHorizontal" title="Horizontal layout">↔</button>
         <button type="button" id="buildMiniOverlayPopoutBtn" class="build-mini-overlay-ctrl secondary" data-i18n="builder.miniOverlayPopout">Pop out</button>
+        <button type="button" id="buildMiniOverlayPopoutBgBtn" class="build-mini-overlay-ctrl secondary" data-i18n-title="builder.miniOverlayPopoutBgTransparent" title="Transparent background for OBS">OBS</button>
         <label class="build-mini-overlay-size">
           <span data-i18n="builder.miniOverlaySize">Size</span>
           <input type="range" id="buildMiniOverlayScale" min="50" max="200" step="5" value="100" />
@@ -5137,7 +5099,6 @@
     const t = (key, params) => window.I18n.t(key, params);
     const translateApiError = (msg) => window.I18n.translateApiError(msg);
     const localeTag = () => window.I18n.bcp47;
-    const IS_OVERLAY_POPOUT = new URLSearchParams(location.search).get("overlayPopout") === "1";
     const overlaySyncChannel =
       typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("build-mini-overlay-sync") : null;
     function refreshI18nUi() {
@@ -5876,6 +5837,7 @@
     const BUILD_OVERLAY_ACTIVE_POS_KEY = "buildMiniOverlayActivePos:v1";
     const BUILD_OVERLAY_PASSIVE_POS_KEY = "buildMiniOverlayPassivePos:v1";
     const BUILD_OVERLAY_STATE_KEY = "buildMiniOverlayState:v1";
+    const BUILD_OVERLAY_POPOUT_BG_KEY = "buildMiniOverlayPopoutBg:v1";
     const undoEl = document.getElementById("undo");
     const buildMiniOverlayEl = document.getElementById("buildMiniOverlay");
     const buildMiniOverlayBodyEl = document.getElementById("buildMiniOverlayBody");
@@ -5885,6 +5847,7 @@
     const buildMiniOverlaySplitBtnEl = document.getElementById("buildMiniOverlaySplitBtn");
     const buildMiniOverlayLayoutBtnEl = document.getElementById("buildMiniOverlayLayoutBtn");
     const buildMiniOverlayPopoutBtnEl = document.getElementById("buildMiniOverlayPopoutBtn");
+    const buildMiniOverlayPopoutBgBtnEl = document.getElementById("buildMiniOverlayPopoutBgBtn");
     const buildMiniOverlayScaleEl = document.getElementById("buildMiniOverlayScale");
     const buildMiniOverlayScaleValueEl = document.getElementById("buildMiniOverlayScaleValue");
     const buildMiniOverlayActivesEl = document.getElementById("buildMiniOverlayActives");
@@ -5913,6 +5876,7 @@
     let buildMiniOverlayScale = 100;
     let buildMiniOverlaySplit = false;
     let buildMiniOverlayLayout = "horizontal";
+    let buildMiniOverlayPopoutBg = "transparent";
     let buildMiniOverlayDrag = null;
     let buildMiniOverlayPopoutWin = null;
     /** Curseurs indépendants : passifs L1, sorts L2 (sort exclusif protégé en L1). */
@@ -11497,53 +11461,31 @@
       undoEl.disabled = mythicStack.length === 0;
     }
 
-    function buildOverlaySyncSnapshot() {
+    function captureBuildMiniOverlayHtml() {
       return {
-        slots: slots.map((s) => ({ ...s })),
-        evoPool: evoPool.map((e) => ({ ...e })),
-        consumedEvo: [...consumedEvo],
-        mythics: mythics.map((m) => ({ ...m })),
-        nextInstance,
-        character: characterEl?.value || "nox",
-        mode: modeEl?.value || "stage",
-        scale: buildMiniOverlayScale,
-        split: buildMiniOverlaySplit,
-        layout: buildMiniOverlayLayout,
+        actives: buildMiniOverlayActivesEl?.innerHTML || "",
+        passives: buildMiniOverlayPassivesEl?.innerHTML || "",
+        activesSplit: buildMiniOverlayActivesSplitEl?.innerHTML || "",
+        passivesSplit: buildMiniOverlayPassivesSplitEl?.innerHTML || "",
       };
     }
 
-    function readOverlaySyncSnapshot() {
-      try {
-        const raw = localStorage.getItem(BUILD_OVERLAY_STATE_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch {
-        return null;
-      }
-    }
-
-    function applyOverlaySyncSnapshot(data) {
-      if (!data?.slots?.length) return;
-      if (data.character && characterEl) characterEl.value = data.character;
-      if (data.mode && modeEl) modeEl.value = data.mode;
-      ensureSlots();
-      const n = slotCount();
-      slots = data.slots.slice(0, n).map((s) => ({ ...emptySlot(), ...s }));
-      while (slots.length < n) slots.push(emptySlot());
-      evoPool = Array.isArray(data.evoPool) ? data.evoPool.map((e) => ({ ...e })) : [];
-      consumedEvo = new Set(Array.isArray(data.consumedEvo) ? data.consumedEvo : []);
-      mythics = Array.isArray(data.mythics) ? data.mythics.map((m) => ({ ...m })) : [];
-      if (Number.isFinite(data.nextInstance)) nextInstance = data.nextInstance;
-      buildMiniOverlayScale = Math.min(200, Math.max(50, Number(data.scale) || buildMiniOverlayScale));
-      buildMiniOverlaySplit = Boolean(data.split);
-      buildMiniOverlayLayout = data.layout === "vertical" ? "vertical" : "horizontal";
-      if (!IS_OVERLAY_POPOUT) return;
-      syncBuildMiniOverlayScaleUi();
-      syncBuildMiniOverlayModeUi();
-      renderBuildMiniOverlay();
+    function buildOverlaySyncSnapshot() {
+      return {
+        scale: buildMiniOverlayScale,
+        split: buildMiniOverlaySplit,
+        layout: buildMiniOverlayLayout,
+        popoutBg: buildMiniOverlayPopoutBg,
+        labels: {
+          active: t("builder.activeSkill"),
+          passive: t("builder.passiveSkill"),
+        },
+        html: captureBuildMiniOverlayHtml(),
+        ts: Date.now(),
+      };
     }
 
     function publishBuildMiniOverlayState() {
-      if (IS_OVERLAY_POPOUT) return;
       const payload = buildOverlaySyncSnapshot();
       try {
         localStorage.setItem(BUILD_OVERLAY_STATE_KEY, JSON.stringify(payload));
@@ -11553,30 +11495,37 @@
 
     function openBuildMiniOverlayPopout() {
       publishBuildMiniOverlayState();
-      const url = `${location.pathname}?overlayPopout=1`;
+      const popoutUrl = new URL("overlay-popout.html", location.href).href;
       const features =
-        "popup=yes,width=560,height=420,menubar=no,toolbar=no,location=no,status=no,resizable=yes";
+        "popup=yes,width=480,height=280,menubar=no,toolbar=no,location=no,status=no,resizable=yes";
       if (buildMiniOverlayPopoutWin && !buildMiniOverlayPopoutWin.closed) {
         buildMiniOverlayPopoutWin.focus();
         publishBuildMiniOverlayState();
         return;
       }
-      buildMiniOverlayPopoutWin = window.open(url, "buildSimOverlayPopout", features);
+      buildMiniOverlayPopoutWin = window.open(popoutUrl, "buildSimOverlayPopout", features);
     }
 
-    function initOverlayPopoutMode() {
-      document.documentElement.classList.add("is-overlay-popout");
-      document.title = "Build overlay — Spekter Builder";
-      if (buildMiniOverlayPopoutBtnEl) buildMiniOverlayPopoutBtnEl.hidden = true;
-      loadBuildMiniOverlayPrefs();
-      applyOverlaySyncSnapshot(readOverlaySyncSnapshot());
-      setBuildMiniOverlayOpen(true);
-      overlaySyncChannel?.addEventListener("message", (ev) => applyOverlaySyncSnapshot(ev.data));
-      window.addEventListener("storage", (ev) => {
-        if (ev.key === BUILD_OVERLAY_STATE_KEY && ev.newValue) {
-          applyOverlaySyncSnapshot(JSON.parse(ev.newValue));
-        }
-      });
+    function syncBuildMiniOverlayPopoutBgUi() {
+      if (!buildMiniOverlayPopoutBgBtnEl) return;
+      const labels = {
+        transparent: t("builder.miniOverlayPopoutBgTransparent"),
+        dark: t("builder.miniOverlayPopoutBgDark"),
+        chroma: t("builder.miniOverlayPopoutBgChroma"),
+      };
+      buildMiniOverlayPopoutBgBtnEl.textContent = labels[buildMiniOverlayPopoutBg] || labels.transparent;
+      buildMiniOverlayPopoutBgBtnEl.title = labels[buildMiniOverlayPopoutBg] || labels.transparent;
+    }
+
+    function cycleBuildMiniOverlayPopoutBg() {
+      const order = ["transparent", "dark", "chroma"];
+      const idx = order.indexOf(buildMiniOverlayPopoutBg);
+      buildMiniOverlayPopoutBg = order[(idx + 1) % order.length];
+      try {
+        localStorage.setItem(BUILD_OVERLAY_POPOUT_BG_KEY, buildMiniOverlayPopoutBg);
+      } catch {}
+      syncBuildMiniOverlayPopoutBgUi();
+      publishBuildMiniOverlayState();
     }
 
     function loadBuildMiniOverlayPrefs() {
@@ -11590,6 +11539,10 @@
       try {
         const layout = localStorage.getItem(BUILD_OVERLAY_LAYOUT_KEY);
         if (layout === "horizontal" || layout === "vertical") buildMiniOverlayLayout = layout;
+      } catch {}
+      try {
+        const bg = localStorage.getItem(BUILD_OVERLAY_POPOUT_BG_KEY);
+        if (bg === "transparent" || bg === "dark" || bg === "chroma") buildMiniOverlayPopoutBg = bg;
       } catch {}
     }
 
@@ -11761,14 +11714,10 @@
       fillBuildMiniOverlaySlots(buildMiniOverlayPassivesEl, passiveCells);
       fillBuildMiniOverlaySlots(buildMiniOverlayActivesSplitEl, activeCells);
       fillBuildMiniOverlaySlots(buildMiniOverlayPassivesSplitEl, passiveCells);
-      if (!IS_OVERLAY_POPOUT) publishBuildMiniOverlayState();
+      publishBuildMiniOverlayState();
     }
 
     function setBuildMiniOverlayOpen(open) {
-      if (IS_OVERLAY_POPOUT && !open) {
-        window.close();
-        return;
-      }
       if (!buildMiniOverlayEl) return;
       buildMiniOverlayEl.hidden = !open;
       buildMiniOverlayEl.setAttribute("aria-hidden", open ? "false" : "true");
@@ -11834,11 +11783,13 @@
       restoreBuildMiniOverlayPosition(buildMiniOverlayEl, BUILD_OVERLAY_POS_KEY);
       syncBuildMiniOverlayScaleUi();
       syncBuildMiniOverlayLayoutUi();
+      syncBuildMiniOverlayPopoutBgUi();
       buildMiniOverlayToggleEl?.addEventListener("click", toggleBuildMiniOverlay);
       buildMiniOverlayCloseEl?.addEventListener("click", () => setBuildMiniOverlayOpen(false));
       buildMiniOverlaySplitBtnEl?.addEventListener("click", toggleBuildMiniOverlaySplit);
       buildMiniOverlayLayoutBtnEl?.addEventListener("click", toggleBuildMiniOverlayLayout);
       buildMiniOverlayPopoutBtnEl?.addEventListener("click", openBuildMiniOverlayPopout);
+      buildMiniOverlayPopoutBgBtnEl?.addEventListener("click", cycleBuildMiniOverlayPopoutBg);
       buildMiniOverlayScaleEl?.addEventListener("input", () => {
         buildMiniOverlayScale = Math.min(
           200,
@@ -11865,20 +11816,6 @@
       try {
         if (localStorage.getItem(BUILD_OVERLAY_OPEN_KEY) === "1") setBuildMiniOverlayOpen(true);
       } catch {}
-      if (IS_OVERLAY_POPOUT) {
-        initOverlayPopoutMode();
-      } else {
-        window.addEventListener("storage", (ev) => {
-          if (
-            ev.key === BUILD_OVERLAY_SCALE_KEY ||
-            ev.key === BUILD_OVERLAY_SPLIT_KEY ||
-            ev.key === BUILD_OVERLAY_LAYOUT_KEY
-          ) {
-            loadBuildMiniOverlayPrefs();
-            if (!buildMiniOverlayEl?.hidden) renderBuildMiniOverlay();
-          }
-        });
-      }
     }
 
     function onUpdate() {

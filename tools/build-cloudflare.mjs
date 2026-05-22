@@ -9,6 +9,7 @@ await fs.rm(dist, { recursive: true, force: true });
 await fs.mkdir(dist, { recursive: true });
 
 await fs.copyFile(path.join(root, "index.html"), path.join(dist, "index.html"));
+await fs.copyFile(path.join(root, "overlay-popout.html"), path.join(dist, "overlay-popout.html"));
 await fs.cp(path.join(root, "assets"), path.join(dist, "assets"), {
   recursive: true,
   force: true,
