@@ -2124,6 +2124,160 @@
       gap: 0.5rem;
       min-width: 0;
     }
+    .build-mini-overlay {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 75;
+      width: min(92vw, 540px);
+      border: 1px solid rgba(110, 168, 254, 0.38);
+      border-radius: 14px;
+      background: rgba(8, 12, 20, 0.94);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.58);
+      touch-action: none;
+    }
+    .build-mini-overlay.is-dock-only {
+      width: auto;
+      min-width: 16rem;
+      max-width: min(92vw, 560px);
+    }
+    .build-mini-overlay--split {
+      z-index: 76;
+      width: auto;
+      min-width: 5.5rem;
+      max-width: min(92vw, 420px);
+    }
+    .build-mini-overlay--split-passive {
+      z-index: 77;
+    }
+    .build-mini-overlay[hidden] {
+      display: none;
+    }
+    .build-mini-overlay-head {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid rgba(126, 151, 194, 0.22);
+      cursor: grab;
+      user-select: none;
+      flex-wrap: wrap;
+    }
+    .build-mini-overlay-head:active {
+      cursor: grabbing;
+    }
+    .build-mini-overlay-title {
+      font-size: 0.72rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #d8e8ff;
+    }
+    .build-mini-overlay-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+    .build-mini-overlay-ctrl {
+      padding: 0.18rem 0.45rem;
+      border-radius: 999px;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      white-space: nowrap;
+    }
+    .build-mini-overlay-ctrl[aria-pressed="true"] {
+      border-color: rgba(110, 168, 254, 0.65);
+      background: rgba(110, 168, 254, 0.2);
+      color: #d8e8ff;
+    }
+    .build-mini-overlay-size {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .build-mini-overlay-size input[type="range"] {
+      width: 5.75rem;
+      padding: 0;
+      accent-color: var(--accent);
+    }
+    .build-mini-overlay-close {
+      flex: 0 0 auto;
+      width: 1.65rem;
+      height: 1.65rem;
+      padding: 0;
+      border-radius: 8px;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .build-mini-overlay-body {
+      padding: 0.55rem 0.65rem 0.65rem;
+      display: grid;
+      gap: 0.45rem;
+    }
+    .build-mini-overlay-body.is-group-horizontal {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 0.65rem;
+    }
+    .build-mini-overlay-body.is-group-horizontal .build-mini-overlay-row {
+      flex: 1 1 0;
+      min-width: 0;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .build-mini-overlay-body--solo {
+      display: block;
+      padding-top: 0.45rem;
+    }
+    .build-mini-overlay-row {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+    .build-mini-overlay-label {
+      flex: 0 0 3.4rem;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .build-mini-overlay-label--active {
+      color: #9ec5ff;
+    }
+    .build-mini-overlay-label--passive {
+      color: #8ee8bc;
+    }
+    .build-mini-overlay-slots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: calc(0.28rem * var(--overlay-scale, 1));
+      min-width: 0;
+    }
+    .build-mini-overlay-slots.is-flow-horizontal {
+      flex-direction: row;
+    }
+    .build-mini-overlay-slots.is-flow-vertical {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      align-items: center;
+    }
+    .build-mini-overlay-slot {
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+    }
     .build-cell {
       display: flex;
       position: relative;
@@ -4237,6 +4391,47 @@
       <p id="profileStatus" class="profile-status" aria-live="polite"></p>
     </div>
   </aside>
+  <div id="buildMiniOverlay" class="build-mini-overlay" hidden aria-hidden="true">
+    <div id="buildMiniOverlayHead" class="build-mini-overlay-head">
+      <span class="build-mini-overlay-title" data-i18n="builder.miniOverlayTitle">Build overlay</span>
+      <div class="build-mini-overlay-controls">
+        <button type="button" id="buildMiniOverlaySplitBtn" class="build-mini-overlay-ctrl secondary" aria-pressed="false" data-i18n="builder.miniOverlaySplit">Split</button>
+        <button type="button" id="buildMiniOverlayLayoutBtn" class="build-mini-overlay-ctrl secondary" aria-pressed="false" data-i18n-title="builder.miniOverlayLayoutHorizontal" title="Horizontal layout">↔</button>
+        <label class="build-mini-overlay-size">
+          <span data-i18n="builder.miniOverlaySize">Size</span>
+          <input type="range" id="buildMiniOverlayScale" min="50" max="200" step="5" value="100" />
+          <span id="buildMiniOverlayScaleValue">100%</span>
+        </label>
+      </div>
+      <button type="button" id="buildMiniOverlayClose" class="build-mini-overlay-close secondary" data-i18n-aria-label="builder.miniOverlayClose" aria-label="Close build overlay">×</button>
+    </div>
+    <div id="buildMiniOverlayBody" class="build-mini-overlay-body is-group-vertical">
+      <div class="build-mini-overlay-row">
+        <span class="build-mini-overlay-label build-mini-overlay-label--active" data-i18n="builder.activeSkill">Active Skill</span>
+        <div id="buildMiniOverlayActives" class="build-mini-overlay-slots is-flow-horizontal"></div>
+      </div>
+      <div class="build-mini-overlay-row">
+        <span class="build-mini-overlay-label build-mini-overlay-label--passive" data-i18n="builder.passiveSkill">Passive Skill</span>
+        <div id="buildMiniOverlayPassives" class="build-mini-overlay-slots is-flow-horizontal"></div>
+      </div>
+    </div>
+  </div>
+  <div id="buildMiniOverlayActivePanel" class="build-mini-overlay build-mini-overlay--split" hidden aria-hidden="true">
+    <div id="buildMiniOverlayActiveHead" class="build-mini-overlay-head">
+      <span class="build-mini-overlay-label build-mini-overlay-label--active" data-i18n="builder.activeSkill">Active Skill</span>
+    </div>
+    <div class="build-mini-overlay-body build-mini-overlay-body--solo">
+      <div id="buildMiniOverlayActivesSplit" class="build-mini-overlay-slots is-flow-horizontal"></div>
+    </div>
+  </div>
+  <div id="buildMiniOverlayPassivePanel" class="build-mini-overlay build-mini-overlay--split build-mini-overlay--split-passive" hidden aria-hidden="true">
+    <div id="buildMiniOverlayPassiveHead" class="build-mini-overlay-head">
+      <span class="build-mini-overlay-label build-mini-overlay-label--passive" data-i18n="builder.passiveSkill">Passive Skill</span>
+    </div>
+    <div class="build-mini-overlay-body build-mini-overlay-body--solo">
+      <div id="buildMiniOverlayPassivesSplit" class="build-mini-overlay-slots is-flow-horizontal"></div>
+    </div>
+  </div>
   <div id="inviteCopiedToast" class="invite-toast-backdrop" hidden aria-hidden="true">
     <div class="invite-toast" role="alertdialog" aria-modal="true" aria-labelledby="inviteCopiedToastMsg">
       <p id="inviteCopiedToastMsg" class="invite-toast-msg"></p>
@@ -4574,6 +4769,13 @@
           </div>
           <button type="button" class="secondary" id="reset" data-i18n="builder.reset">Reset build</button>
           <button type="button" class="secondary" id="undo" disabled data-i18n="builder.undoFusion">Undo last fusion</button>
+          <button
+            type="button"
+            class="secondary"
+            id="buildMiniOverlayToggle"
+            aria-pressed="false"
+            data-i18n="builder.miniOverlayToggle"
+          >Mini overlay</button>
           <div id="buildLevelCounter" class="build-level-counter" data-i18n-aria-label="builder.buildLevelAria" aria-label="Current build level">Build level: 0</div>
           <div class="toolbar-grow">
             <p id="passiveHint" class="hint" aria-live="polite" style="margin:0"></p>
@@ -5623,7 +5825,31 @@
     const VISITOR_ID_KEY = "builder_visitor_id:v1";
     const CHAT_MESSAGE_MAX = 240;
     const VISIT_COUNT_KEY = "builderVisitCount:v1";
+    const BUILD_OVERLAY_SCALE_KEY = "buildMiniOverlayScale:v1";
+    const BUILD_OVERLAY_OPEN_KEY = "buildMiniOverlayOpen:v1";
+    const BUILD_OVERLAY_POS_KEY = "buildMiniOverlayPos:v1";
+    const BUILD_OVERLAY_SPLIT_KEY = "buildMiniOverlaySplit:v1";
+    const BUILD_OVERLAY_LAYOUT_KEY = "buildMiniOverlayLayout:v1";
+    const BUILD_OVERLAY_ACTIVE_POS_KEY = "buildMiniOverlayActivePos:v1";
+    const BUILD_OVERLAY_PASSIVE_POS_KEY = "buildMiniOverlayPassivePos:v1";
     const undoEl = document.getElementById("undo");
+    const buildMiniOverlayEl = document.getElementById("buildMiniOverlay");
+    const buildMiniOverlayBodyEl = document.getElementById("buildMiniOverlayBody");
+    const buildMiniOverlayHeadEl = document.getElementById("buildMiniOverlayHead");
+    const buildMiniOverlayToggleEl = document.getElementById("buildMiniOverlayToggle");
+    const buildMiniOverlayCloseEl = document.getElementById("buildMiniOverlayClose");
+    const buildMiniOverlaySplitBtnEl = document.getElementById("buildMiniOverlaySplitBtn");
+    const buildMiniOverlayLayoutBtnEl = document.getElementById("buildMiniOverlayLayoutBtn");
+    const buildMiniOverlayScaleEl = document.getElementById("buildMiniOverlayScale");
+    const buildMiniOverlayScaleValueEl = document.getElementById("buildMiniOverlayScaleValue");
+    const buildMiniOverlayActivesEl = document.getElementById("buildMiniOverlayActives");
+    const buildMiniOverlayPassivesEl = document.getElementById("buildMiniOverlayPassives");
+    const buildMiniOverlayActivePanelEl = document.getElementById("buildMiniOverlayActivePanel");
+    const buildMiniOverlayActiveHeadEl = document.getElementById("buildMiniOverlayActiveHead");
+    const buildMiniOverlayActivesSplitEl = document.getElementById("buildMiniOverlayActivesSplit");
+    const buildMiniOverlayPassivePanelEl = document.getElementById("buildMiniOverlayPassivePanel");
+    const buildMiniOverlayPassiveHeadEl = document.getElementById("buildMiniOverlayPassiveHead");
+    const buildMiniOverlayPassivesSplitEl = document.getElementById("buildMiniOverlayPassivesSplit");
     const passiveHintEl = document.getElementById("passiveHint");
     const API_ENABLED = location.protocol === "http:" || location.protocol === "https:";
     let nextInstance = 1;
@@ -5639,6 +5865,10 @@
     let mythicStack = [];
 
     let passiveHintTimer = 0;
+    let buildMiniOverlayScale = 100;
+    let buildMiniOverlaySplit = false;
+    let buildMiniOverlayLayout = "horizontal";
+    let buildMiniOverlayDrag = null;
     /** Curseurs indépendants : passifs L1, sorts L2 (sort exclusif protégé en L1). */
     let focusSkillSlot = 1;
     let focusPassiveSlot = 0;
@@ -10093,6 +10323,7 @@
 
     function bindCommunityBuilds() {
       bindFakeSparks();
+      bindBuildMiniOverlay();
       builderCommunityStrategyNotesEl?.addEventListener("input", syncBuilderStrategyNotesCounter);
       syncBuilderStrategyNotesCounter();
       builderPublishModeToggleEl?.addEventListener("click", toggleBuilderPublishMode);
@@ -11220,6 +11451,288 @@
       undoEl.disabled = mythicStack.length === 0;
     }
 
+    function loadBuildMiniOverlayPrefs() {
+      try {
+        const raw = Number(localStorage.getItem(BUILD_OVERLAY_SCALE_KEY));
+        if (Number.isFinite(raw)) buildMiniOverlayScale = Math.min(200, Math.max(50, raw));
+      } catch {}
+      try {
+        buildMiniOverlaySplit = localStorage.getItem(BUILD_OVERLAY_SPLIT_KEY) === "1";
+      } catch {}
+      try {
+        const layout = localStorage.getItem(BUILD_OVERLAY_LAYOUT_KEY);
+        if (layout === "horizontal" || layout === "vertical") buildMiniOverlayLayout = layout;
+      } catch {}
+    }
+
+    function restoreBuildMiniOverlayPosition(panelEl, storageKey) {
+      if (!panelEl) return false;
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (!raw) return false;
+        const pos = JSON.parse(raw);
+        if (!Number.isFinite(pos?.left) || !Number.isFinite(pos?.top)) return false;
+        panelEl.style.left = `${pos.left}px`;
+        panelEl.style.top = `${pos.top}px`;
+        panelEl.style.right = "auto";
+        panelEl.style.bottom = "auto";
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function saveBuildMiniOverlayPosition(panelEl, storageKey) {
+      if (!panelEl) return;
+      try {
+        const rect = panelEl.getBoundingClientRect();
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({ left: Math.round(rect.left), top: Math.round(rect.top) })
+        );
+      } catch {}
+    }
+
+    function defaultBuildMiniOverlaySplitPositions() {
+      if (!buildMiniOverlayActivePanelEl || !buildMiniOverlayPassivePanelEl) return;
+      const anchor = buildMiniOverlayEl?.getBoundingClientRect();
+      const baseLeft = anchor?.left ?? Math.max(16, window.innerWidth - 280);
+      const baseTop = anchor?.top ?? Math.max(16, window.innerHeight - 220);
+      if (!restoreBuildMiniOverlayPosition(buildMiniOverlayActivePanelEl, BUILD_OVERLAY_ACTIVE_POS_KEY)) {
+        buildMiniOverlayActivePanelEl.style.left = `${Math.round(baseLeft)}px`;
+        buildMiniOverlayActivePanelEl.style.top = `${Math.round(baseTop + 120)}px`;
+        buildMiniOverlayActivePanelEl.style.right = "auto";
+        buildMiniOverlayActivePanelEl.style.bottom = "auto";
+      }
+      if (!restoreBuildMiniOverlayPosition(buildMiniOverlayPassivePanelEl, BUILD_OVERLAY_PASSIVE_POS_KEY)) {
+        buildMiniOverlayPassivePanelEl.style.left = `${Math.round(baseLeft)}px`;
+        buildMiniOverlayPassivePanelEl.style.top = `${Math.round(baseTop)}px`;
+        buildMiniOverlayPassivePanelEl.style.right = "auto";
+        buildMiniOverlayPassivePanelEl.style.bottom = "auto";
+      }
+    }
+
+    function syncBuildMiniOverlayScaleUi() {
+      if (buildMiniOverlayScaleEl) buildMiniOverlayScaleEl.value = String(buildMiniOverlayScale);
+      if (buildMiniOverlayScaleValueEl) {
+        buildMiniOverlayScaleValueEl.textContent = `${buildMiniOverlayScale}%`;
+      }
+      const scaleVar = String(buildMiniOverlayScale / 100);
+      buildMiniOverlayEl?.style.setProperty("--overlay-scale", scaleVar);
+      buildMiniOverlayActivePanelEl?.style.setProperty("--overlay-scale", scaleVar);
+      buildMiniOverlayPassivePanelEl?.style.setProperty("--overlay-scale", scaleVar);
+    }
+
+    function syncBuildMiniOverlayLayoutUi() {
+      const isVertical = buildMiniOverlayLayout === "vertical";
+      const flowClass = isVertical ? "is-flow-vertical" : "is-flow-horizontal";
+      document.querySelectorAll(".build-mini-overlay-slots").forEach((el) => {
+        el.classList.remove("is-flow-horizontal", "is-flow-vertical");
+        el.classList.add(flowClass);
+      });
+      if (buildMiniOverlayBodyEl) {
+        buildMiniOverlayBodyEl.classList.toggle("is-group-horizontal", !isVertical);
+        buildMiniOverlayBodyEl.classList.toggle("is-group-vertical", isVertical);
+      }
+      if (buildMiniOverlayLayoutBtnEl) {
+        buildMiniOverlayLayoutBtnEl.textContent = isVertical ? "↕" : "↔";
+        buildMiniOverlayLayoutBtnEl.setAttribute(
+          "title",
+          t(isVertical ? "builder.miniOverlayLayoutVertical" : "builder.miniOverlayLayoutHorizontal")
+        );
+        buildMiniOverlayLayoutBtnEl.setAttribute("aria-pressed", isVertical ? "true" : "false");
+      }
+    }
+
+    function syncBuildMiniOverlayModeUi() {
+      const open = Boolean(buildMiniOverlayEl && !buildMiniOverlayEl.hidden);
+      buildMiniOverlayEl?.classList.toggle("is-dock-only", open && buildMiniOverlaySplit);
+      if (buildMiniOverlayBodyEl) buildMiniOverlayBodyEl.hidden = buildMiniOverlaySplit;
+      if (buildMiniOverlaySplitBtnEl) {
+        buildMiniOverlaySplitBtnEl.setAttribute("aria-pressed", buildMiniOverlaySplit ? "true" : "false");
+      }
+      if (open && buildMiniOverlaySplit) {
+        defaultBuildMiniOverlaySplitPositions();
+        if (buildMiniOverlayActivePanelEl) {
+          buildMiniOverlayActivePanelEl.hidden = false;
+          buildMiniOverlayActivePanelEl.setAttribute("aria-hidden", "false");
+        }
+        if (buildMiniOverlayPassivePanelEl) {
+          buildMiniOverlayPassivePanelEl.hidden = false;
+          buildMiniOverlayPassivePanelEl.setAttribute("aria-hidden", "false");
+        }
+      } else {
+        if (buildMiniOverlayActivePanelEl) {
+          buildMiniOverlayActivePanelEl.hidden = true;
+          buildMiniOverlayActivePanelEl.setAttribute("aria-hidden", "true");
+        }
+        if (buildMiniOverlayPassivePanelEl) {
+          buildMiniOverlayPassivePanelEl.hidden = true;
+          buildMiniOverlayPassivePanelEl.setAttribute("aria-hidden", "true");
+        }
+      }
+      syncBuildMiniOverlayLayoutUi();
+    }
+
+    function buildMiniOverlayActiveCells(iconSize) {
+      ensureSlots();
+      const cells = [];
+      const n = slotCount();
+      for (let i = 0; i < n; i++) {
+        const { skill } = slots[i];
+        const evo = evoOnSlot(i);
+        const myth = !evo && !skill ? mythicOnSlot(i) : null;
+        if (evo) {
+          cells.push({ html: iconMarkup("evo", evo.evoId, iconSize, evo.label), title: evo.label });
+        } else if (myth) {
+          cells.push({ html: iconMarkup("mythic", myth.mythicId, iconSize, myth.label), title: myth.label });
+        } else {
+          cells.push({
+            html: iconMarkup("skill", skill, iconSize, skillLabel(skill)),
+            title: skill ? skillLabel(skill) : `Slot ${i + 1}`,
+          });
+        }
+      }
+      return cells;
+    }
+
+    function buildMiniOverlayPassiveCells(iconSize) {
+      ensureSlots();
+      const cells = [];
+      const n = slotCount();
+      for (let i = 0; i < n; i++) {
+        const { passive } = slots[i];
+        cells.push({
+          html: iconMarkup("passive", passive, iconSize, passiveLabel(passive)),
+          title: passive ? passiveLabel(passive) : `Slot ${i + 1}`,
+        });
+      }
+      return cells;
+    }
+
+    function fillBuildMiniOverlaySlots(containerEl, cells) {
+      if (!containerEl) return;
+      containerEl.innerHTML = "";
+      for (const cell of cells) {
+        const slotEl = document.createElement("div");
+        slotEl.className = "build-mini-overlay-slot";
+        slotEl.innerHTML = cell.html;
+        slotEl.title = cell.title;
+        containerEl.appendChild(slotEl);
+      }
+    }
+
+    function renderBuildMiniOverlay() {
+      if (!buildMiniOverlayEl || buildMiniOverlayEl.hidden) return;
+      syncBuildMiniOverlayScaleUi();
+      syncBuildMiniOverlayModeUi();
+      const iconSize = Math.round(36 * (buildMiniOverlayScale / 100));
+      const activeCells = buildMiniOverlayActiveCells(iconSize);
+      const passiveCells = buildMiniOverlayPassiveCells(iconSize);
+      fillBuildMiniOverlaySlots(buildMiniOverlayActivesEl, activeCells);
+      fillBuildMiniOverlaySlots(buildMiniOverlayPassivesEl, passiveCells);
+      fillBuildMiniOverlaySlots(buildMiniOverlayActivesSplitEl, activeCells);
+      fillBuildMiniOverlaySlots(buildMiniOverlayPassivesSplitEl, passiveCells);
+    }
+
+    function setBuildMiniOverlayOpen(open) {
+      if (!buildMiniOverlayEl) return;
+      buildMiniOverlayEl.hidden = !open;
+      buildMiniOverlayEl.setAttribute("aria-hidden", open ? "false" : "true");
+      buildMiniOverlayToggleEl?.setAttribute("aria-pressed", open ? "true" : "false");
+      if (!open) {
+        if (buildMiniOverlayActivePanelEl) {
+          buildMiniOverlayActivePanelEl.hidden = true;
+          buildMiniOverlayActivePanelEl.setAttribute("aria-hidden", "true");
+        }
+        if (buildMiniOverlayPassivePanelEl) {
+          buildMiniOverlayPassivePanelEl.hidden = true;
+          buildMiniOverlayPassivePanelEl.setAttribute("aria-hidden", "true");
+        }
+      }
+      try {
+        localStorage.setItem(BUILD_OVERLAY_OPEN_KEY, open ? "1" : "0");
+      } catch {}
+      if (open) renderBuildMiniOverlay();
+    }
+
+    function toggleBuildMiniOverlay() {
+      setBuildMiniOverlayOpen(Boolean(buildMiniOverlayEl?.hidden));
+    }
+
+    function toggleBuildMiniOverlaySplit() {
+      buildMiniOverlaySplit = !buildMiniOverlaySplit;
+      try {
+        localStorage.setItem(BUILD_OVERLAY_SPLIT_KEY, buildMiniOverlaySplit ? "1" : "0");
+      } catch {}
+      renderBuildMiniOverlay();
+    }
+
+    function toggleBuildMiniOverlayLayout() {
+      buildMiniOverlayLayout = buildMiniOverlayLayout === "horizontal" ? "vertical" : "horizontal";
+      try {
+        localStorage.setItem(BUILD_OVERLAY_LAYOUT_KEY, buildMiniOverlayLayout);
+      } catch {}
+      renderBuildMiniOverlay();
+    }
+
+    function bindBuildMiniOverlayDrag(headEl, panelEl, storageKey) {
+      headEl?.addEventListener("mousedown", (ev) => {
+        if (ev.button !== 0) return;
+        if (ev.target.closest("input, button, label")) return;
+        if (!panelEl) return;
+        const rect = panelEl.getBoundingClientRect();
+        buildMiniOverlayDrag = {
+          panelEl,
+          storageKey,
+          offsetX: ev.clientX - rect.left,
+          offsetY: ev.clientY - rect.top,
+        };
+        panelEl.style.left = `${rect.left}px`;
+        panelEl.style.top = `${rect.top}px`;
+        panelEl.style.right = "auto";
+        panelEl.style.bottom = "auto";
+        ev.preventDefault();
+      });
+    }
+
+    function bindBuildMiniOverlay() {
+      loadBuildMiniOverlayPrefs();
+      restoreBuildMiniOverlayPosition(buildMiniOverlayEl, BUILD_OVERLAY_POS_KEY);
+      syncBuildMiniOverlayScaleUi();
+      syncBuildMiniOverlayLayoutUi();
+      buildMiniOverlayToggleEl?.addEventListener("click", toggleBuildMiniOverlay);
+      buildMiniOverlayCloseEl?.addEventListener("click", () => setBuildMiniOverlayOpen(false));
+      buildMiniOverlaySplitBtnEl?.addEventListener("click", toggleBuildMiniOverlaySplit);
+      buildMiniOverlayLayoutBtnEl?.addEventListener("click", toggleBuildMiniOverlayLayout);
+      buildMiniOverlayScaleEl?.addEventListener("input", () => {
+        buildMiniOverlayScale = Math.min(
+          200,
+          Math.max(50, Math.floor(Number(buildMiniOverlayScaleEl.value) || 100))
+        );
+        try {
+          localStorage.setItem(BUILD_OVERLAY_SCALE_KEY, String(buildMiniOverlayScale));
+        } catch {}
+        renderBuildMiniOverlay();
+      });
+      bindBuildMiniOverlayDrag(buildMiniOverlayHeadEl, buildMiniOverlayEl, BUILD_OVERLAY_POS_KEY);
+      bindBuildMiniOverlayDrag(buildMiniOverlayActiveHeadEl, buildMiniOverlayActivePanelEl, BUILD_OVERLAY_ACTIVE_POS_KEY);
+      bindBuildMiniOverlayDrag(buildMiniOverlayPassiveHeadEl, buildMiniOverlayPassivePanelEl, BUILD_OVERLAY_PASSIVE_POS_KEY);
+      window.addEventListener("mousemove", (ev) => {
+        if (!buildMiniOverlayDrag?.panelEl) return;
+        buildMiniOverlayDrag.panelEl.style.left = `${ev.clientX - buildMiniOverlayDrag.offsetX}px`;
+        buildMiniOverlayDrag.panelEl.style.top = `${ev.clientY - buildMiniOverlayDrag.offsetY}px`;
+      });
+      window.addEventListener("mouseup", () => {
+        if (!buildMiniOverlayDrag) return;
+        saveBuildMiniOverlayPosition(buildMiniOverlayDrag.panelEl, buildMiniOverlayDrag.storageKey);
+        buildMiniOverlayDrag = null;
+      });
+      try {
+        if (localStorage.getItem(BUILD_OVERLAY_OPEN_KEY) === "1") setBuildMiniOverlayOpen(true);
+      } catch {}
+    }
+
     function onUpdate() {
       ensureSlots();
       pruneInvalidEvos();
@@ -11233,6 +11746,7 @@
       renderPlanner();
       renderBuildLevel();
       syncUndo();
+      renderBuildMiniOverlay();
       if (builderPublishMode !== "request") syncBuilderPublishCharacterPreview();
     }
 
