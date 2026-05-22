@@ -111,7 +111,7 @@
   "builder.miniOverlayPopout": "Pop out",
   "builder.miniOverlayPopoutBgTransparent": "Transparent (OBS)",
   "builder.miniOverlayPopoutBgDark": "Dark background",
-  "builder.miniOverlayPopoutBgChroma": "Green chroma (OBS)",
+  "builder.miniOverlayPopoutBgChroma": "Magenta chroma (OBS)",
   "builder.videoOptional": "Video link (optional)",
   "chat.aria": "Community live chat",
   "chat.badge": "CHAT",

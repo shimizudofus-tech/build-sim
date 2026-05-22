@@ -111,7 +111,7 @@
   "builder.miniOverlayPopout": "Détacher",
   "builder.miniOverlayPopoutBgTransparent": "Transparent (OBS)",
   "builder.miniOverlayPopoutBgDark": "Fond sombre",
-  "builder.miniOverlayPopoutBgChroma": "Fond vert chroma (OBS)",
+  "builder.miniOverlayPopoutBgChroma": "Chroma magenta (OBS)",
   "builder.videoOptional": "Lien vidéo (optionnel)",
   "chat.aria": "Chat en direct communauté",
   "chat.badge": "CHAT",
