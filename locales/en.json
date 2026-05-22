@@ -330,7 +330,7 @@
   "fakeSparks.disclaimer": "⚠️ KRAPS is a community fun airdrop. It is not officially affiliated with Spekter Agency. Some SPEK token rewards may be distributed.",
   "fakeSparks.disclaimerAck": "Got it",
   "fakeSparks.loadError": "Could not load the airdrop right now.",
-  "api.fakeSparksLinkRequired": "Connect Discord and Telegram to join the KRAPS airdrop.",
+  "api.fakeSparksLinkRequired": "Connect Discord or Telegram to join the KRAPS airdrop.",
   "api.fakeSparksDailyClaimed": "Daily reward already claimed today.",
   "api.fakeSparksWheelSpun": "You already spun the wheel today.",
   "api.fakeSparksReferralInvalid": "Invalid invitation link.",

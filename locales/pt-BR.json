@@ -8,7 +8,7 @@
   "api.cpRequired": "Power (CP) é obrigatório.",
   "api.discordNotConfigured": "Login com Discord não está configurado.",
   "api.fakeSparksDailyClaimed": "Recompensa diária já resgatada hoje.",
-  "api.fakeSparksLinkRequired": "Conecte Discord e Telegram para participar do airdrop KRAPS.",
+  "api.fakeSparksLinkRequired": "Conecte Discord ou Telegram para participar do airdrop KRAPS.",
   "api.fakeSparksReferralAlready": "Esta conta já foi indicada.",
   "api.fakeSparksReferralInvalid": "Link de convite inválido.",
   "api.fakeSparksReferralLimit": "Este indicador já usou os 3 convites.",

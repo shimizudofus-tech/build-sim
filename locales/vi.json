@@ -8,7 +8,7 @@
   "api.cpRequired": "Bắt buộc chọn sức mạnh (CP).",
   "api.discordNotConfigured": "Đăng nhập Discord chưa được cấu hình.",
   "api.fakeSparksDailyClaimed": "Phần thưởng hàng ngày đã nhận hôm nay.",
-  "api.fakeSparksLinkRequired": "Liên kết Discord và Telegram để tham gia airdrop KRAPS.",
+  "api.fakeSparksLinkRequired": "Liên kết Discord hoặc Telegram để tham gia airdrop KRAPS.",
   "api.fakeSparksReferralAlready": "Tài khoản này đã được giới thiệu.",
   "api.fakeSparksReferralInvalid": "Liên kết mời không hợp lệ.",
   "api.fakeSparksReferralLimit": "Người giới thiệu này đã dùng hết 3 lời mời.",

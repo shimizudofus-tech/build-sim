@@ -8,7 +8,7 @@
   "api.cpRequired": "Power (CP) wajib diisi.",
   "api.discordNotConfigured": "Masuk Discord belum dikonfigurasi.",
   "api.fakeSparksDailyClaimed": "Hadiah harian sudah diklaim hari ini.",
-  "api.fakeSparksLinkRequired": "Hubungkan Discord dan Telegram untuk ikut airdrop KRAPS.",
+  "api.fakeSparksLinkRequired": "Hubungkan Discord atau Telegram untuk ikut airdrop KRAPS.",
   "api.fakeSparksReferralAlready": "Akun ini sudah dirujuk.",
   "api.fakeSparksReferralInvalid": "Tautan undangan tidak valid.",
   "api.fakeSparksReferralLimit": "Perujuk ini sudah memakai 3 undangan.",
