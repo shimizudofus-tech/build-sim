@@ -15,6 +15,17 @@ import {
   publicCommunityStats,
   sanitizeVisitorId,
 } from "../../lib/presence-stats.cjs";
+import { normalizeReferrals } from "../../lib/fake-sparks-referrals.cjs";
+import { readSupportFields, publicSupportStats } from "../../lib/support-stats.cjs";
+import {
+  normalizeFakeSparksUsers,
+  getFakeSparksState,
+  claimDaily,
+  spinWheel,
+  acknowledgeDisclaimer,
+  registerReferralPending,
+  applyReferralAfterAuth,
+} from "../../lib/fake-sparks.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -167,6 +178,17 @@ function sanitizeCommunityVideoUrl(value) {
 function publicBuild(build) {
   const { ownerKey, voteKeys, voterKeys, voters, ...safe } = build;
   return safe;
+}
+
+const REQUEST_CHARACTERS = new Set(["nox", "vel", "zen", "shu"]);
+
+function sanitizeRequestCharacter(value) {
+  const id = String(value ?? "").trim().toLowerCase();
+  return REQUEST_CHARACTERS.has(id) ? id : "";
+}
+
+function publicBuildRequest(request) {
+  return request;
 }
 
 function publicChatMessage(message) {
@@ -442,9 +464,13 @@ async function readDb(env) {
   return {
     visits: Number(db.visits) || 0,
     builds: Array.isArray(db.builds) ? db.builds : [],
+    buildRequests: Array.isArray(db.buildRequests) ? db.buildRequests : [],
     users: normalizeUsers(db.users),
     chatMessages: Array.isArray(db.chatMessages) ? db.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
     presence: db.presence && typeof db.presence === "object" ? db.presence : {},
+    fakeSparksUsers: normalizeFakeSparksUsers(db.fakeSparksUsers),
+    referrals: normalizeReferrals(db.referrals),
+    ...readSupportFields(db),
   };
 }
 
@@ -541,9 +567,14 @@ export async function onRequest(context) {
               const primary = db.users[statePayload.uid];
               if (!primary) throw new Error("Link session expired. Sign in again.");
               linkProviderAccount(db, primary, profile);
+              applyReferralAfterAuth(db, primary);
               return primary;
             })()
-          : resolveAuthUser(db, profile, upsertUser);
+          : (() => {
+              const u = resolveAuthUser(db, profile, upsertUser);
+              applyReferralAfterAuth(db, u);
+              return u;
+            })();
       await writeDb(env, db);
       const session = await signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, env.SESSION_SECRET);
       const linkQuery = statePayload.mode === "link" ? "?linked=discord" : "";
@@ -559,6 +590,7 @@ export async function onRequest(context) {
       const profile = await validateTelegramPayload(env, body);
       const db = await readDb(env);
       const user = resolveAuthUser(db, profile, upsertUser);
+      applyReferralAfterAuth(db, user);
       await writeDb(env, db);
       const session = await signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, env.SESSION_SECRET);
       return json({ user: publicUser(user) }, 200, { "set-cookie": cookieHeader(SESSION_COOKIE, session, request, env) });
@@ -573,6 +605,7 @@ export async function onRequest(context) {
         const body = await readBody(request);
         const profile = await validateTelegramPayload(env, body);
         linkProviderAccount(db, primary, profile);
+        applyReferralAfterAuth(db, primary);
         await writeDb(env, db);
         return json({ user: publicUser(primary), linked: "telegram" });
       } catch (err) {
@@ -691,6 +724,11 @@ export async function onRequest(context) {
       return json(publicCommunityStats(db));
     }
 
+    if (path === "/api/support/stats" && method === "GET") {
+      const db = await readDb(env);
+      return json(publicSupportStats(db));
+    }
+
     if (path === "/api/chat/messages" && method === "GET") {
       const db = await readDb(env);
       return json({ messages: db.chatMessages.map(publicChatMessage) });
@@ -714,6 +752,48 @@ export async function onRequest(context) {
       db.chatMessages = [...db.chatMessages, message].slice(-CHAT_RETENTION_LIMIT);
       await writeDb(env, db);
       return json({ message: publicChatMessage(message), messages: db.chatMessages.map(publicChatMessage) }, 201);
+    }
+
+    if (path === "/api/build-requests" && method === "GET") {
+      const db = await readDb(env);
+      const requests = [...db.buildRequests]
+        .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0))
+        .slice(0, 12)
+        .map(publicBuildRequest);
+      return json({ requests });
+    }
+
+    if (path === "/api/build-requests" && method === "POST") {
+      const body = await readBody(request);
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const power = sanitizePowerText(body.power);
+      if (!power) return json({ error: "Power (CP) is required." }, 400);
+      const character = sanitizeRequestCharacter(body.character);
+      if (!character) return json({ error: "Desired character is required." }, 400);
+      const targetValue = sanitizeNumber(body.targetValue);
+      if (targetValue === null) return json({ error: "Target level is required." }, 400);
+      const targetLabel = sanitizeText(body.targetLabel, 64);
+      if (!targetLabel) return json({ error: "Target level label is required." }, 400);
+      const buildRequest = {
+        id: randomId(),
+        userId: user.id,
+        author: sanitizeText(user.displayName, 32) || "Anonymous",
+        authorProfile: publicUser(user),
+        targetValue,
+        targetLabel,
+        power,
+        character,
+        mode: sanitizeText(body.mode, 24) || "stage",
+        createdAt: Date.now(),
+      };
+      db.buildRequests.push(buildRequest);
+      if (db.buildRequests.length > 500) {
+        db.buildRequests = db.buildRequests.slice(-500);
+      }
+      await writeDb(env, db);
+      return json({ request: publicBuildRequest(buildRequest) }, 201);
     }
 
     if (path === "/api/community-builds" && method === "GET") {
@@ -776,6 +856,58 @@ export async function onRequest(context) {
       build.votes = (Number(build.votes) || 0) + 1;
       await writeDb(env, db);
       return json({ build: publicBuild(build) });
+    }
+
+    if (path === "/api/fake-sparks" && method === "GET") {
+      const db = await readDb(env);
+      const user = await sessionUser(request, env, db);
+      return json(getFakeSparksState(db, user));
+    }
+
+    if (path === "/api/fake-sparks/daily" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const result = claimDaily(db, user);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
+    }
+
+    if (path === "/api/fake-sparks/wheel" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const result = spinWheel(db, user);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
+    }
+
+    if (path === "/api/fake-sparks/disclaimer" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const result = acknowledgeDisclaimer(db, user);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
+    }
+
+    if (path === "/api/fake-sparks/referral/pending" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const body = await readBody(request);
+      const result = registerReferralPending(db, user, body.referrerId);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json({
+        ok: true,
+        referrals: result.referrals,
+        validation: result.validation,
+        ...getFakeSparksState(db, user),
+      });
     }
 
     const deleteMatch = path.match(/^\/api\/community-builds\/([^/]+)$/);

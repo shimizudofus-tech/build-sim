@@ -156,6 +156,17 @@ function sanitizeCommunityVideoUrl(value) {
   }
 }
 
+const REQUEST_CHARACTERS = new Set(["nox", "vel", "zen", "shu"]);
+
+function sanitizeRequestCharacter(value) {
+  const id = String(value ?? "").trim().toLowerCase();
+  return REQUEST_CHARACTERS.has(id) ? id : "";
+}
+
+function publicBuildRequest(request) {
+  return request;
+}
+
 function publicBuild(build) {
   const { ownerKey, voteKeys, voterKeys, voters, ...safe } = build;
   return safe;
@@ -424,6 +435,7 @@ async function readDb(store) {
   return {
     visits: Number(db.visits) || 0,
     builds: Array.isArray(db.builds) ? db.builds : [],
+    buildRequests: Array.isArray(db.buildRequests) ? db.buildRequests : [],
     users: normalizeUsers(db.users),
     chatMessages: Array.isArray(db.chatMessages) ? db.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
   };
@@ -670,6 +682,48 @@ export async function handler(event) {
       db.chatMessages = [...db.chatMessages, message].slice(-CHAT_RETENTION_LIMIT);
       await writeDb(store, db);
       return json(201, { message: publicChatMessage(message), messages: db.chatMessages.map(publicChatMessage) });
+    }
+
+    if (path === "/api/build-requests" && event.httpMethod === "GET") {
+      const db = await readDb(store);
+      const requests = [...db.buildRequests]
+        .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0))
+        .slice(0, 12)
+        .map(publicBuildRequest);
+      return json(200, { requests });
+    }
+
+    if (path === "/api/build-requests" && event.httpMethod === "POST") {
+      const body = await readBody(event);
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const power = sanitizePowerText(body.power);
+      if (!power) return json(400, { error: "Power (CP) is required." });
+      const character = sanitizeRequestCharacter(body.character);
+      if (!character) return json(400, { error: "Desired character is required." });
+      const targetValue = sanitizeNumber(body.targetValue);
+      if (targetValue === null) return json(400, { error: "Target level is required." });
+      const targetLabel = sanitizeText(body.targetLabel, 64);
+      if (!targetLabel) return json(400, { error: "Target level label is required." });
+      const buildRequest = {
+        id: `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`,
+        userId: user.id,
+        author: sanitizeText(user.displayName, 32) || "Anonymous",
+        authorProfile: publicUser(user),
+        targetValue,
+        targetLabel,
+        power,
+        character,
+        mode: sanitizeText(body.mode, 24) || "stage",
+        createdAt: Date.now(),
+      };
+      db.buildRequests.push(buildRequest);
+      if (db.buildRequests.length > 500) {
+        db.buildRequests = db.buildRequests.slice(-500);
+      }
+      await writeDb(store, db);
+      return json(201, { request: publicBuildRequest(buildRequest) });
     }
 
     if (path === "/api/community-builds" && event.httpMethod === "GET") {

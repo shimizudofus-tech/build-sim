@@ -40,6 +40,14 @@
     "Avatar must be 1 MB or smaller.": "api.avatarSize",
     "Not enough energy.": "api.notEnoughEnergy",
     "API disabled": "api.apiDisabled",
+    fake_sparks_link_required: "api.fakeSparksLinkRequired",
+    fake_sparks_daily_claimed: "api.fakeSparksDailyClaimed",
+    fake_sparks_wheel_spun: "api.fakeSparksWheelSpun",
+    fake_sparks_referral_invalid: "api.fakeSparksReferralInvalid",
+    fake_sparks_referral_self: "api.fakeSparksReferralSelf",
+    fake_sparks_referral_already_referred: "api.fakeSparksReferralAlready",
+    fake_sparks_referral_limit: "api.fakeSparksReferralLimit",
+    fake_sparks_referral_sign_in: "api.fakeSparksReferralSignIn",
   };
 
   let locale = DEFAULT_LOCALE;

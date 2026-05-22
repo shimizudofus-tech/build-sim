@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="flag-fr" viewBox="0 0 21 14">
+    <rect width="7" height="14" fill="#0055a4"/>
+    <rect x="7" width="7" height="14" fill="#fff"/>
+    <rect x="14" width="7" height="14" fill="#ef4135"/>
+  </symbol>
+  <symbol id="flag-en" viewBox="0 0 21 14">
+    <rect width="21" height="14" fill="#012169"/>
+    <path fill="#fff" d="M0 0l21 14M21 0L0 14" stroke="#fff" stroke-width="2.2"/>
+    <path fill="none" stroke="#c8102e" stroke-width="1.2" d="M0 0l21 14M21 0L0 14"/>
+    <path fill="#fff" d="M9.5 0h2v14h-2zM0 5.5h21v3H0z"/>
+    <path fill="#c8102e" d="M10.2 0h1.6v14h-1.6zM0 6.2h21v1.6H0z"/>
+  </symbol>
+  <symbol id="flag-pt" viewBox="0 0 21 14">
+    <rect width="21" height="14" fill="#009b3a"/>
+    <polygon points="10.5,1.2 19.2,7 10.5,12.8 1.8,7" fill="#ffdf00"/>
+    <circle cx="10.5" cy="7" r="3.2" fill="#002776"/>
+    <path fill="#fff" d="M8.2 7.8c1.6-.9 3.4-.9 5 0-.8-1.2-2-2-3.5-2.1-1.5.1-2.7 1-3.5 2.1z"/>
+  </symbol>
+  <symbol id="flag-id" viewBox="0 0 21 14">
+    <rect width="21" height="7" fill="#ce1126"/>
+    <rect y="7" width="21" height="7" fill="#fff"/>
+  </symbol>
+  <symbol id="flag-vi" viewBox="0 0 21 14">
+    <rect width="21" height="14" fill="#da251d"/>
+    <polygon points="10.5,2.8 12.1,7.2 16.8,7.2 12.9,9.9 14.5,14.3 10.5,11.5 6.5,14.3 8.1,9.9 4.2,7.2 8.9,7.2" fill="#ffcd00"/>
+  </symbol>
+</svg>

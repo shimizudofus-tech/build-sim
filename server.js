@@ -41,6 +41,17 @@ const {
   publicCommunityStats,
   sanitizeVisitorId,
 } = require("./lib/presence-stats.cjs");
+const { normalizeReferrals } = require("./lib/fake-sparks-referrals.cjs");
+const { readSupportFields, publicSupportStats } = require("./lib/support-stats.cjs");
+const {
+  normalizeFakeSparksUsers,
+  getFakeSparksState,
+  claimDaily,
+  spinWheel,
+  acknowledgeDisclaimer,
+  registerReferralPending,
+  applyReferralAfterAuth,
+} = require("./lib/fake-sparks.cjs");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -72,12 +83,26 @@ function readDb() {
     return {
       visits: Number(parsed.visits) || 0,
       builds: Array.isArray(parsed.builds) ? parsed.builds : [],
+      buildRequests: Array.isArray(parsed.buildRequests) ? parsed.buildRequests : [],
       users: normalizeUsers(parsed.users),
       chatMessages: Array.isArray(parsed.chatMessages) ? parsed.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
       presence: parsed.presence && typeof parsed.presence === "object" ? parsed.presence : {},
+      fakeSparksUsers: normalizeFakeSparksUsers(parsed.fakeSparksUsers),
+      referrals: normalizeReferrals(parsed.referrals),
+      ...readSupportFields(parsed),
     };
   } catch {
-    return { visits: 0, builds: [], users: {}, chatMessages: [], presence: {} };
+    return {
+      visits: 0,
+      builds: [],
+      buildRequests: [],
+      users: {},
+      chatMessages: [],
+      presence: {},
+      fakeSparksUsers: {},
+      referrals: [],
+      ...readSupportFields({}),
+    };
   }
 }
 
@@ -146,6 +171,17 @@ function readBody(req) {
 function publicBuild(build) {
   const { ownerKey, voteKeys, voterKeys, voters, ...safe } = build;
   return safe;
+}
+
+const REQUEST_CHARACTERS = new Set(["nox", "vel", "zen", "shu"]);
+
+function sanitizeRequestCharacter(value) {
+  const id = String(value ?? "").trim().toLowerCase();
+  return REQUEST_CHARACTERS.has(id) ? id : "";
+}
+
+function publicBuildRequest(request) {
+  return request;
 }
 
 function publicChatMessage(message) {
@@ -575,7 +611,11 @@ async function handleTestApi(req, res, url) {
       avatarUrl: "",
     });
     user.progress = defaultTestProgress();
+    ensureLinkedIds(user);
+    user.linkedIds.discord = user.linkedIds.discord || "discord:test-local";
+    user.linkedIds.telegram = user.linkedIds.telegram || "telegram:test-local";
     db.users[user.id] = user;
+    applyReferralAfterAuth(db, user);
     writeDb(db);
     const session = signEnvelope(
       { uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 },
@@ -681,9 +721,14 @@ async function handleApi(req, res, url) {
           const primary = db.users[statePayload.uid];
           if (!primary) throw new Error("Link session expired. Sign in again.");
           linkProviderAccount(db, primary, profile);
+          applyReferralAfterAuth(db, primary);
           return primary;
         })()
-      : resolveAuthUser(db, profile, upsertUser);
+      : (() => {
+          const u = resolveAuthUser(db, profile, upsertUser);
+          applyReferralAfterAuth(db, u);
+          return u;
+        })();
     writeDb(db);
     const session = signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, process.env.SESSION_SECRET);
     const linkQuery = statePayload.mode === "link" ? "?linked=discord" : "";
@@ -704,6 +749,7 @@ async function handleApi(req, res, url) {
     const profile = validateTelegramPayload(body);
     const db = readDb();
     const user = resolveAuthUser(db, profile, upsertUser);
+    applyReferralAfterAuth(db, user);
     writeDb(db);
     const session = signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, process.env.SESSION_SECRET);
     return sendJson(res, 200, { user: publicUser(user) }, { "set-cookie": cookieHeader(SESSION_COOKIE, session, req) });
@@ -718,6 +764,7 @@ async function handleApi(req, res, url) {
       const body = await readBody(req);
       const profile = validateTelegramPayload(body);
       linkProviderAccount(db, primary, profile);
+      applyReferralAfterAuth(db, primary);
       writeDb(db);
       return sendJson(res, 200, { user: publicUser(primary), linked: "telegram" });
     } catch (err) {
@@ -834,6 +881,11 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, publicCommunityStats(db));
   }
 
+  if (url.pathname === "/api/support/stats" && req.method === "GET") {
+    const db = readDb();
+    return sendJson(res, 200, publicSupportStats(db));
+  }
+
   if (url.pathname === "/api/chat/messages" && req.method === "GET") {
     const db = readDb();
     return sendJson(res, 200, { messages: db.chatMessages.map(publicChatMessage) });
@@ -857,6 +909,59 @@ async function handleApi(req, res, url) {
     db.chatMessages = [...db.chatMessages, message].slice(-CHAT_RETENTION_LIMIT);
     writeDb(db);
     return sendJson(res, 201, { message: publicChatMessage(message), messages: db.chatMessages.map(publicChatMessage) });
+  }
+
+  if (url.pathname === "/api/build-requests" && req.method === "GET") {
+    const db = readDb();
+    const requests = [...db.buildRequests]
+      .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0))
+      .slice(0, 12)
+      .map(publicBuildRequest);
+    return sendJson(res, 200, { requests });
+  }
+
+  if (url.pathname === "/api/build-requests" && req.method === "POST") {
+    const body = await readBody(req);
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const power = sanitizePowerText(body.power);
+    if (!power) {
+      return sendJson(res, 400, { error: "Power (CP) is required." });
+    }
+    if (parsePowerValue(power) === null) {
+      return sendJson(res, 400, { error: "Invalid Power (CP) value." });
+    }
+    const character = sanitizeRequestCharacter(body.character);
+    if (!character) {
+      return sendJson(res, 400, { error: "Desired character is required." });
+    }
+    const targetValue = sanitizeNumber(body.targetValue);
+    if (targetValue === null) {
+      return sendJson(res, 400, { error: "Target level is required." });
+    }
+    const targetLabel = sanitizeText(body.targetLabel, 64);
+    if (!targetLabel) {
+      return sendJson(res, 400, { error: "Target level label is required." });
+    }
+    const request = {
+      id: `${Date.now().toString(36)}-${crypto.randomBytes(4).toString("hex")}`,
+      userId: user.id,
+      author: sanitizeText(user.displayName, 32) || "Anonymous",
+      authorProfile: publicUser(user),
+      targetValue,
+      targetLabel,
+      power,
+      character,
+      mode: sanitizeText(body.mode, 24) || "stage",
+      createdAt: Date.now(),
+    };
+    db.buildRequests.push(request);
+    if (db.buildRequests.length > 500) {
+      db.buildRequests = db.buildRequests.slice(-500);
+    }
+    writeDb(db);
+    return sendJson(res, 201, { request: publicBuildRequest(request) });
   }
 
   if (url.pathname === "/api/community-builds" && req.method === "GET") {
@@ -927,6 +1032,58 @@ async function handleApi(req, res, url) {
     build.votes = (Number(build.votes) || 0) + 1;
     writeDb(db);
     return sendJson(res, 200, { build: publicBuild(build) });
+  }
+
+  if (url.pathname === "/api/fake-sparks" && req.method === "GET") {
+    const db = readDb();
+    const user = sessionUser(req, db);
+    return sendJson(res, 200, getFakeSparksState(db, user));
+  }
+
+  if (url.pathname === "/api/fake-sparks/daily" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const result = claimDaily(db, user);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
+  if (url.pathname === "/api/fake-sparks/wheel" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const result = spinWheel(db, user);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
+  if (url.pathname === "/api/fake-sparks/disclaimer" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const result = acknowledgeDisclaimer(db, user);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
+  if (url.pathname === "/api/fake-sparks/referral/pending" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const body = await readBody(req);
+    const result = registerReferralPending(db, user, body.referrerId);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, {
+      ok: true,
+      referrals: result.referrals,
+      validation: result.validation,
+      ...getFakeSparksState(db, user),
+    });
   }
 
   const deleteMatch = url.pathname.match(/^\/api\/community-builds\/([^/]+)$/);

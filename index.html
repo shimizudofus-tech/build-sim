@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -197,6 +197,104 @@
       font-size: 0.68rem;
       line-height: 1.3;
       color: var(--muted);
+    }
+    .recent-requests-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+      min-width: 0;
+      padding: 0.38rem 0.45rem 0.42rem;
+      border: 1px solid rgba(255, 120, 120, 0.34);
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(99, 42, 54, 0.88), rgba(21, 26, 36, 0.94));
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+    .recent-requests-title {
+      margin: 0;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #f0a8a8;
+    }
+    .recent-requests-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+      max-height: 11.5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .recent-requests-item {
+      margin: 0;
+    }
+    .recent-requests-link {
+      width: 100%;
+      margin: 0;
+      padding: 0.32rem 0.38rem;
+      border: 1px solid rgba(255, 120, 120, 0.24);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .recent-requests-link:hover,
+    .recent-requests-link:focus-visible {
+      border-color: rgba(255, 120, 120, 0.5);
+      background: rgba(255, 120, 120, 0.12);
+      outline: none;
+    }
+    .recent-requests-link-title {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #ffe8e8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .recent-requests-link-date {
+      display: block;
+      margin-top: 0.08rem;
+      font-size: 0.62rem;
+      line-height: 1.2;
+      color: #ffb0b0;
+    }
+    .recent-requests-link-meta {
+      display: block;
+      margin-top: 0.06rem;
+      font-size: 0.6rem;
+      line-height: 1.2;
+      color: #e8b0b0;
+    }
+    .recent-requests-empty {
+      margin: 0;
+      font-size: 0.68rem;
+      line-height: 1.3;
+      color: var(--muted);
+    }
+    .recent-panels-row {
+      display: flex;
+      flex-direction: row;
+      gap: 0.5rem;
+      align-items: stretch;
+    }
+    .recent-panels-row > .recent-builds-panel,
+    .recent-panels-row > .recent-requests-panel {
+      flex: 1 1 0;
+      min-width: 0;
+    }
+    @media (max-width: 640px) {
+      .recent-panels-row {
+        flex-direction: column;
+      }
     }
     .community-build-card.is-highlighted {
       border-color: rgba(110, 168, 254, 0.75);
@@ -558,7 +656,7 @@
       }
     }
     .live-chat {
-      --live-chat-top: 13.5rem;
+      --live-chat-top: 14.5rem;
       position: fixed;
       top: var(--live-chat-top);
       left: 0.75rem;
@@ -854,6 +952,81 @@
     .support-banner .support-heart {
       color: #ff9eb8;
     }
+    .support-extras {
+      display: flex;
+      flex-direction: column;
+      gap: 0.42rem;
+      margin: 0.5rem auto 0;
+      max-width: min(100%, 34rem);
+      width: 100%;
+    }
+    .support-mini {
+      padding: 0.42rem 0.62rem;
+      border-radius: 10px;
+      border: 1px solid rgba(180, 130, 70, 0.32);
+      background: rgba(0, 0, 0, 0.24);
+      text-align: left;
+    }
+    .support-mini--stars {
+      border-color: rgba(255, 196, 72, 0.38);
+      background: linear-gradient(135deg, rgba(80, 58, 18, 0.28), rgba(12, 15, 20, 0.35));
+    }
+    .support-mini-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem 0.5rem;
+    }
+    .support-mini-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #f0dcc0;
+    }
+    .support-mini-amount,
+    .support-mini-count {
+      margin-left: auto;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #ffe8b8;
+    }
+    .support-mini-bar {
+      position: relative;
+      height: 0.42rem;
+      margin-top: 0.38rem;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(8, 12, 20, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .support-mini-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #c9a06a, #ffe08a, #9fd4ff);
+      transition: width 0.35s ease;
+    }
+    .support-star-icon {
+      width: 1.05rem;
+      height: 1.05rem;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 4px rgba(255, 200, 80, 0.55));
+    }
+    .support-mini-note {
+      margin: 0.32rem 0 0;
+      font-size: 0.7rem;
+      line-height: 1.35;
+      color: var(--muted);
+    }
+    @media (max-width: 480px) {
+      .support-mini-amount,
+      .support-mini-count {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
     .support-wallet-row {
       display: flex;
       flex-wrap: wrap;
@@ -1007,6 +1180,63 @@
       background: linear-gradient(180deg, rgba(22, 28, 42, 0.9), transparent);
     }
     h1 { margin: 0; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header-title-cluster {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.55rem 0.75rem;
+      min-width: 0;
+    }
+    .header-fake-sparks {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.2rem 0.45rem 0.2rem 0.3rem;
+      border: 1px solid rgba(120, 220, 255, 0.38);
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(120, 220, 255, 0.14), rgba(70, 42, 120, 0.12));
+      box-shadow: 0 0 12px rgba(120, 220, 255, 0.12);
+    }
+    .header-fake-sparks[hidden] {
+      display: none !important;
+    }
+    .header-fake-sparks-balance {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding-right: 0.15rem;
+      color: #b8ecff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+    .header-fake-sparks-balance img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      box-shadow: 0 0 8px rgba(120, 220, 255, 0.35);
+    }
+    .header-fake-sparks-claim {
+      padding: 0.28rem 0.55rem;
+      border: 1px solid rgba(120, 220, 255, 0.45);
+      border-radius: 999px;
+      background: rgba(120, 220, 255, 0.18);
+      color: #dff7ff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .header-fake-sparks-claim:hover:not(:disabled) {
+      background: rgba(120, 220, 255, 0.3);
+      border-color: rgba(120, 220, 255, 0.65);
+    }
+    .header-fake-sparks-claim:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
     .header-row {
       display: flex;
       flex-wrap: wrap;
@@ -1331,6 +1561,18 @@
       --nav-icon-glow: rgba(240, 193, 77, 0.32);
       --nav-icon-color: #ffe0a0;
     }
+    .app-nav button[data-app-tab="airdrop"] {
+      --nav-icon-border: rgba(120, 220, 255, 0.46);
+      --nav-icon-bg: rgba(120, 220, 255, 0.11);
+      --nav-icon-glow: rgba(120, 220, 255, 0.32);
+      --nav-icon-color: #b8ecff;
+    }
+    .app-nav button[data-app-tab="airdrop"] .app-nav-icon img {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
     .app-nav button[data-app-tab="mini-games"] {
       --nav-icon-border: rgba(186, 133, 255, 0.46);
       --nav-icon-bg: rgba(186, 133, 255, 0.11);
@@ -1474,7 +1716,8 @@
       flex-direction: column;
       gap: 0.65rem;
     }
-    .build-publish-sidebar .recent-builds-panel {
+    .build-publish-sidebar .recent-builds-panel,
+    .build-publish-sidebar .recent-requests-panel {
       box-shadow: none;
     }
     .builder-publish {
@@ -2612,6 +2855,351 @@
       margin: 0 auto;
       color: var(--muted);
     }
+    .fake-sparks {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 0.65rem 0 1rem;
+    }
+    .fake-sparks-hero {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.85rem 1rem;
+      align-items: center;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(186, 133, 255, 0.38);
+      border-radius: 14px;
+      background:
+        radial-gradient(420px 200px at 0% 0%, rgba(120, 220, 255, 0.12), transparent 70%),
+        linear-gradient(180deg, rgba(70, 42, 120, 0.2), rgba(0, 0, 0, 0.12));
+    }
+    .fake-sparks-hero img.fake-sparks-token {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      box-shadow: 0 0 18px rgba(120, 220, 255, 0.35);
+    }
+    .fake-sparks-hero h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: #d8f6ff;
+    }
+    .fake-sparks-hero p {
+      margin: 0.2rem 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+    .fake-sparks-balance {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.45rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      background: rgba(120, 220, 255, 0.12);
+      border: 1px solid rgba(120, 220, 255, 0.28);
+      color: #bdf6ff;
+      font-weight: 800;
+    }
+    .fake-sparks-balance img {
+      width: 22px;
+      height: 22px;
+    }
+    .fake-sparks-gate {
+      padding: 0.9rem 1rem;
+      border: 1px dashed rgba(255, 224, 138, 0.45);
+      border-radius: 12px;
+      background: rgba(255, 224, 138, 0.08);
+      color: #ffe7a8;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    .fake-sparks-missions {
+      display: grid;
+      gap: 0.65rem;
+    }
+    .fake-sparks-mission {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.5rem 0.75rem;
+      align-items: center;
+      padding: 0.75rem 0.85rem;
+      border: 1px solid rgba(62, 207, 142, 0.28);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    .fake-sparks-mission.is-disabled {
+      opacity: 0.62;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    .fake-sparks-mission h3 {
+      margin: 0;
+      font-size: 0.92rem;
+      color: #bdf6d5;
+    }
+    .fake-sparks-mission p {
+      margin: 0.15rem 0 0;
+      grid-column: 1;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .fake-sparks-mission button {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+      white-space: nowrap;
+    }
+    .fake-sparks-wheel-wrap {
+      display: grid;
+      gap: 0.75rem;
+      justify-items: center;
+      padding: 0.85rem;
+      border: 1px solid rgba(186, 133, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.16);
+    }
+    .fake-sparks-wheel-stage {
+      position: relative;
+      width: min(260px, 78vw);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+    }
+    .fake-sparks-wheel {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(186, 133, 255, 0.25), 0 10px 28px rgba(0, 0, 0, 0.45);
+      cursor: default;
+      overflow: hidden;
+    }
+    .fake-sparks-wheel.is-spinning {
+      cursor: wait;
+    }
+    .fake-sparks-wheel-pointer {
+      position: absolute;
+      top: 0.15rem;
+      left: 50%;
+      z-index: 4;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 11px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 20px solid #e8d4ff;
+      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55));
+      pointer-events: none;
+    }
+    .fake-sparks-wheel.is-spinning {
+      pointer-events: none;
+    }
+    .fake-sparks-wheel-result {
+      min-height: 1.2rem;
+      color: #d8f6ff;
+      font-weight: 700;
+      text-align: center;
+    }
+    .fake-sparks-leaderboard {
+      padding: 0.85rem;
+      border: 1px solid rgba(189, 246, 213, 0.24);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.14);
+    }
+    .fake-sparks-leaderboard h3 {
+      margin: 0 0 0.55rem;
+      color: #bdf6d5;
+      font-size: 1rem;
+    }
+    .fake-sparks-lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+    .fake-sparks-lb-table th,
+    .fake-sparks-lb-table td {
+      padding: 0.45rem 0.35rem;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .fake-sparks-lb-table th {
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .fake-sparks-lb-player {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+    }
+    .fake-sparks-lb-player img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex: 0 0 auto;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .fake-sparks-lb-player span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .fake-sparks-my-rank {
+      margin: 0.55rem 0 0;
+      padding: 0.5rem 0.65rem;
+      border-radius: 9px;
+      background: rgba(62, 207, 142, 0.12);
+      color: #bdf6d5;
+      font-weight: 700;
+      font-size: 0.86rem;
+    }
+    .fake-sparks-disclaimer {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+      background: rgba(4, 6, 12, 0.72);
+    }
+    .fake-sparks-disclaimer[hidden] {
+      display: none !important;
+    }
+    .fake-sparks-disclaimer-card {
+      max-width: 26rem;
+      padding: 1rem 1.1rem;
+      border: 1px solid rgba(255, 224, 138, 0.45);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(48, 32, 8, 0.95), rgba(12, 10, 18, 0.98));
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+    .fake-sparks-disclaimer-card p {
+      margin: 0 0 0.75rem;
+      color: #ffe7a8;
+      font-size: 0.88rem;
+      line-height: 1.45;
+    }
+    .fake-sparks-disclaimer-reward {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      color: #d8c1ff;
+      font-size: 0.8rem;
+    }
+    .fake-sparks-disclaimer-reward img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+    .profile-widget .header-invite-wrap {
+      width: 100%;
+      max-width: none;
+      flex: 0 0 auto;
+    }
+    .fake-sparks-invite-card {
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+    }
+    .fake-sparks-invite-card[hidden] {
+      display: none !important;
+    }
+    .fake-sparks-invite-trigger {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+      margin: 0;
+      padding: 0.45rem 0.55rem 0.45rem 0.45rem;
+      border: 1px solid rgba(186, 133, 255, 0.55);
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(88, 52, 140, 0.55), rgba(28, 22, 48, 0.92));
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      color: #f2e8ff;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: border-color 0.15s ease, filter 0.15s ease;
+    }
+    .fake-sparks-invite-trigger:hover:not(:disabled),
+    .fake-sparks-invite-trigger:focus-visible {
+      border-color: rgba(210, 170, 255, 0.75);
+      filter: brightness(1.06);
+      outline: none;
+    }
+    .fake-sparks-invite-trigger:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .fake-sparks-invite-trigger img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      box-shadow: 0 0 10px rgba(186, 133, 255, 0.4);
+    }
+    .fake-sparks-invite-text {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .fake-sparks-invite-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .fake-sparks-invite-sub {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #c8b4e8;
+      line-height: 1.2;
+    }
+    .fake-sparks-invite-badge {
+      flex: 0 0 auto;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #b8ecff;
+      white-space: nowrap;
+    }
+    .fake-sparks-invite-chevron {
+      flex: 0 0 auto;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1;
+      color: #e8d4ff;
+      opacity: 0.9;
+    }
+    .fake-sparks-invite-limit {
+      margin: 0.3rem 0 0;
+      padding: 0 0.15rem;
+      font-size: 0.62rem;
+      color: #f0b878;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+    }
+    @media (max-width: 520px) {
+      .fake-sparks-hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+      }
+      .fake-sparks-lb-table th:nth-child(2),
+      .fake-sparks-lb-table td:nth-child(2) {
+        max-width: 8rem;
+      }
+    }
     .app-nav-teaser {
       --float-offset: 5px;
       --float-duration: 5s;
@@ -2697,6 +3285,7 @@
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
     }
     .publish-community-copy {
+      position: relative;
       flex: 1 0 100%;
       display: flex;
       flex-wrap: wrap;
@@ -2713,6 +3302,155 @@
     .publish-community-hint {
       color: var(--muted);
       font-size: 0.76rem;
+    }
+    .publish-mode-toggle {
+      display: inline-flex;
+      flex: 0 0 auto;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.35rem;
+      margin-left: auto;
+      padding: 0.22rem 0.5rem;
+      border: 1px solid rgba(255, 120, 120, 0.45);
+      border-radius: 999px;
+      background: rgba(255, 80, 80, 0.12);
+      color: #ffc8c8;
+      font-size: 0.62rem;
+      font-weight: 750;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    .publish-mode-toggle-icon {
+      width: 0.85em;
+      height: 0.85em;
+      flex-shrink: 0;
+    }
+    .publish-mode-toggle:hover,
+    .publish-mode-toggle:focus-visible {
+      border-color: rgba(255, 140, 140, 0.7);
+      background: rgba(255, 80, 80, 0.22);
+      outline: none;
+    }
+    .publish-mode-toggle[aria-pressed="true"] {
+      border-color: rgba(62, 207, 142, 0.55);
+      background: rgba(62, 207, 142, 0.18);
+      color: #bdf6d5;
+    }
+    .publish-community-box.is-request-mode {
+      border-color: rgba(255, 90, 90, 0.48);
+      background: linear-gradient(180deg, rgba(255, 90, 90, 0.14), rgba(0, 0, 0, 0.14));
+    }
+    .publish-community-box.is-request-mode .publish-community-title {
+      color: #ffc8c8;
+    }
+    .publish-community-box:not(.is-request-mode) .request-only-field {
+      display: none !important;
+    }
+    .publish-community-box.is-request-mode .publish-only-field {
+      display: none !important;
+    }
+    .publish-community-box.is-request-mode .request-only-field,
+    .publish-community-box:not(.is-request-mode) .publish-only-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      min-width: 0;
+      width: 100%;
+    }
+    .publish-community-box.is-request-mode .builder-request-character-field {
+      flex: 1 1 100%;
+      width: 100%;
+      max-width: none;
+      order: 0;
+    }
+    .builder-request-character-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      min-width: 0;
+      width: 100%;
+    }
+    .builder-request-character-stack select {
+      width: 100%;
+    }
+    .builder-request-character-preview {
+      display: flex;
+      align-items: center;
+      min-height: 2.35rem;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid rgba(255, 120, 120, 0.38);
+      border-radius: 9px;
+      background: rgba(0, 0, 0, 0.22);
+      font-size: 0.8rem;
+      line-height: 1.2;
+      color: #ffe8e8;
+      width: 100%;
+    }
+    .builder-request-character-preview.is-empty {
+      color: var(--muted);
+      border-style: dashed;
+      font-style: italic;
+      font-size: 0.72rem;
+    }
+    .builder-request-character-preview-chip,
+    .request-character-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      min-width: 0;
+    }
+    .builder-request-character-preview-name,
+    .builder-publish-character-preview-name,
+    .request-character-chip-label {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .builder-publish-character-preview {
+      display: flex;
+      align-items: center;
+      min-height: 2.35rem;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid rgba(62, 207, 142, 0.35);
+      border-radius: 9px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+    .builder-publish-character-hint {
+      margin: 0.25rem 0 0;
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+    .recent-requests-link-head {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      min-width: 0;
+    }
+    .recent-requests-link-head .request-character-chip {
+      flex-shrink: 0;
+    }
+    .recent-requests-link-target {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #ffe8e8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .publish-community-box.is-request-mode .builder-publish-action {
+      border-color: rgba(255, 70, 70, 0.65);
+      background: linear-gradient(180deg, #ff5a5a, #c62828);
+      color: #fff;
+      font-weight: 800;
+    }
+    .publish-community-box.is-request-mode .builder-publish-action:hover,
+    .publish-community-box.is-request-mode .builder-publish-action:focus-visible {
+      background: linear-gradient(180deg, #ff7070, #d32f2f);
     }
     .community-form input,
     .community-form select,
@@ -3403,6 +4141,26 @@
         <span class="linked-members-label" data-i18n="profile.linkedMembersShort">Builders</span>
       </div>
     </div>
+    <div class="header-invite-wrap" data-i18n-aria-label="fakeSparks.inviteAria" aria-label="Invite friends for KRAPS">
+      <div id="fakeSparksInviteCard" class="fake-sparks-invite-card" hidden>
+        <button
+          type="button"
+          id="fakeSparksInviteCopyBtn"
+          class="fake-sparks-invite-trigger"
+          data-i18n-title="fakeSparks.inviteCopy"
+          title="Copy invitation link"
+        >
+          <img src="assets/fake-spark-token.png" width="28" height="28" alt="" decoding="async" />
+          <span class="fake-sparks-invite-text">
+            <span class="fake-sparks-invite-title" data-i18n="fakeSparks.inviteTitle">Invite your friend</span>
+            <span class="fake-sparks-invite-sub" data-i18n="fakeSparks.inviteRewardShort">Earn 10 KRAPS</span>
+          </span>
+          <span id="fakeSparksInviteUsage" class="fake-sparks-invite-badge" aria-live="polite"></span>
+          <span class="fake-sparks-invite-chevron" aria-hidden="true">›</span>
+        </button>
+        <p id="fakeSparksInviteLimitMsg" class="fake-sparks-invite-limit" hidden></p>
+      </div>
+    </div>
     <div class="player-progress player-progress--preview" data-i18n-aria-label="profile.xpPreviewAria" aria-label="XP and energy preview (coming soon)">
       <div class="player-progress-head">
         <span class="player-progress-badge" data-i18n="profile.comingSoon">Coming soon</span>
@@ -3527,6 +4285,41 @@
       If this builder helps you a little, feel free to send a small coffee
       <span class="support-heart" aria-hidden="true"> &lt;3</span>
     </p>
+    <div class="support-extras" id="supportExtras">
+      <div class="support-mini support-mini--server" id="supportServerBanner">
+        <div class="support-mini-head">
+          <span class="support-mini-title" data-i18n="support.serverTitle">Pay for the server</span>
+          <span class="support-mini-amount" id="supportServerAmount">$0 / $5</span>
+        </div>
+        <div
+          class="support-mini-bar"
+          id="supportServerBar"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <div class="support-mini-fill" id="supportServerFill"></div>
+        </div>
+      </div>
+      <div class="support-mini support-mini--stars" id="supportStarsBanner">
+        <div class="support-mini-head">
+          <svg class="support-star-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path
+              fill="#FFC94A"
+              stroke="#E8A820"
+              stroke-width="0.6"
+              d="M12 2.4l2.52 5.78 6.28.54-4.76 4.12 1.44 6.16L12 16.9l-5.48 2.14 1.44-6.16-4.76-4.12 6.28-.54L12 2.4z"
+            />
+          </svg>
+          <span class="support-mini-title" data-i18n="support.starsTitle">Telegram Stars</span>
+          <span class="support-mini-count" id="supportStarsCount">0</span>
+        </div>
+        <p class="support-mini-note" data-i18n="support.starsRedistribute">
+          100% of stars given will be redistributed to the community.
+        </p>
+      </div>
+    </div>
     <div class="support-links">
       <div class="support-game" aria-label="Spekter Agency game">
         <a
@@ -3571,7 +4364,16 @@
   <header>
     <div class="market-header">
       <div class="header-row">
-        <h1 data-i18n="nav.siteTitle">Spekter Agency Builder</h1>
+        <div class="header-title-cluster">
+          <h1 data-i18n="nav.siteTitle">Spekter Agency Builder</h1>
+          <div id="headerFakeSparks" class="header-fake-sparks" data-i18n-aria-label="fakeSparks.headerAria" aria-label="KRAPS balance and daily claim">
+            <span class="header-fake-sparks-balance" data-i18n-title="fakeSparks.balanceTitle" title="KRAPS">
+              <img src="assets/fake-spark-token.png" width="24" height="24" alt="" decoding="async" />
+              <strong id="headerFakeSparksCount">0</strong>
+            </span>
+            <button type="button" id="headerFakeSparksDailyBtn" class="header-fake-sparks-claim" data-i18n="fakeSparks.headerClaim">Claim daily</button>
+          </div>
+        </div>
         <div id="visitCounter" class="visit-counter" data-i18n-aria-label="nav.visitsAria">Visits: 0</div>
         <nav class="app-nav" data-i18n-aria-label="nav.aria">
           <button type="button" class="is-active" data-app-tab="build" aria-current="page">
@@ -3616,6 +4418,14 @@
               <span class="app-nav-sub" data-i18n="nav.bookSub">Recipes</span>
             </span>
           </button>
+          <button type="button" data-app-tab="airdrop">
+            <span class="app-nav-icon" aria-hidden="true">
+              <img src="assets/fake-spark-token.png" width="22" height="22" alt="" decoding="async" />
+            </span>
+            <span class="app-nav-copy">
+              <span class="app-nav-main" data-i18n="nav.airdropMain">Airdrop</span>
+            </span>
+          </button>
           <button type="button" data-app-tab="mini-games">
             <span class="app-nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" focusable="false">
@@ -3631,21 +4441,6 @@
               <span class="app-nav-sub" data-i18n="nav.miniGamesSub">Soon</span>
             </span>
           </button>
-          <div
-            class="app-nav-teaser app-nav-teaser--alt"
-            style="--float-delay: 0.35s; --float-duration: 4.8s"
-            aria-hidden="true"
-            data-i18n-title="nav.comingSoon" title="Coming soon"
-          >
-            <span class="app-nav-teaser-surface">
-              <span class="app-nav-icon app-nav-teaser-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" focusable="false">
-                  <rect x="5" y="5" width="14" height="14" rx="2"></rect>
-                </svg>
-              </span>
-            </span>
-            <span class="app-nav-teaser-frost" aria-hidden="true"></span>
-          </div>
           <div
             class="app-nav-teaser app-nav-teaser--gold"
             style="--float-delay: 1.1s; --float-duration: 5.4s"
@@ -3811,16 +4606,31 @@
       </div>
 
       <aside class="build-publish-sidebar" data-i18n-aria-label="builder.publishAria" aria-label="Publish build to Community">
-        <div class="community-form builder-publish publish-community-box">
+        <div id="builderPublishBox" class="community-form builder-publish publish-community-box">
           <div class="publish-community-copy">
-            <span class="publish-community-title" data-i18n="builder.publishTitle">Publish to Community</span>
-            <span class="publish-community-hint" data-i18n="builder.publishHint">This posts your current build to the Community tab.</span>
+            <span id="builderPublishTitle" class="publish-community-title" data-i18n="builder.publishTitle">Publish to Community</span>
+            <button
+              type="button"
+              id="builderPublishModeToggle"
+              class="publish-mode-toggle"
+              data-i18n-title="builder.publishModeSwapAria"
+              data-i18n-aria-label="builder.publishModeSwapAria"
+              aria-pressed="false"
+              title="Switch between publish and build request modes"
+              aria-label="Switch between publish and build request modes"
+            >
+              <svg class="publish-mode-toggle-icon" viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M2 5h8.6L9 3.5 10.5 2 14.5 6l-4 4L9 8.5 10.5 7H2V5zm12 6H5.4L7 12.5 5.5 14 1.5 10l4-4L7 7.5 5.5 9H14v2z"/>
+              </svg>
+              <span class="publish-mode-toggle-label">Build request</span>
+            </button>
+            <span id="builderPublishHint" class="publish-community-hint" data-i18n="builder.publishHint">This posts your current build to the Community tab.</span>
           </div>
           <div class="community-target-field">
             <label id="builderCommunityTargetLabel" for="builderCommunityTargetValue" data-i18n="builder.clearedLevel">Cleared level</label>
             <select id="builderCommunityTargetValue"></select>
           </div>
-          <div class="community-difficulty-field">
+          <div class="community-difficulty-field publish-only-field">
             <label for="builderCommunityDifficulty" data-i18n="builder.difficulty">Difficulty</label>
             <select id="builderCommunityDifficulty" data-i18n-aria-label="builder.difficultyAria" aria-label="Contextual boss difficulty">
               <option value="" data-i18n="difficulty.notRated">Not rated</option>
@@ -3832,7 +4642,7 @@
             </select>
           </div>
           <div class="community-difficulty-field community-power-field">
-            <label for="builderCommunityPower" data-i18n="builder.powerCp">Power (CP)</label>
+            <label id="builderCommunityPowerLabel" for="builderCommunityPower" data-i18n="builder.powerCp">Power (CP)</label>
             <select
               id="builderCommunityPower"
               class="community-power-input"
@@ -3842,18 +4652,53 @@
               <option value="" data-i18n="community.selectCp">Select Power (CP)</option>
             </select>
           </div>
-          <input id="builderCommunityVideoUrl" class="community-video-input" type="url" maxlength="240" data-i18n-placeholder="builder.videoOptional" placeholder="Video link (optional)" />
-          <div class="community-strategy-field">
+          <div class="community-difficulty-field publish-only-field builder-publish-character-field">
+            <label data-i18n="builder.character">Character</label>
+            <div
+              id="builderPublishCharacterPreview"
+              class="builder-publish-character-preview"
+              data-i18n-aria-label="builder.publishCharacterPreviewAria"
+              aria-live="polite"
+            ></div>
+            <p class="builder-publish-character-hint" data-i18n="builder.publishCharacterLinked">Uses the character selected in the build simulator above.</p>
+          </div>
+          <div class="community-difficulty-field request-only-field builder-request-character-field">
+            <label for="builderRequestCharacter" data-i18n="builder.requestCharacter">Desired character</label>
+            <div class="builder-request-character-stack">
+              <select id="builderRequestCharacter" required data-i18n-aria-label="builder.requestCharacter" aria-label="Desired character">
+                <option value="" data-i18n="community.selectCharacter">Select character</option>
+                <option value="nox">Nox</option>
+                <option value="vel">Vel</option>
+                <option value="zen">Zen</option>
+                <option value="shu">Shu</option>
+              </select>
+              <div
+                id="builderRequestCharacterPreview"
+                class="builder-request-character-preview is-empty"
+                data-i18n-aria-label="builder.requestCharacterPreviewAria"
+                aria-label="Selected character preview"
+                aria-live="polite"
+              ></div>
+            </div>
+          </div>
+          <input id="builderCommunityVideoUrl" class="community-video-input publish-only-field" type="url" maxlength="240" data-i18n-placeholder="builder.videoOptional" placeholder="Video link (optional)" />
+          <div class="community-strategy-field publish-only-field">
             <label for="builderCommunityStrategyNotes" data-i18n="community.strategyLabel">Strategy</label>
             <textarea id="builderCommunityStrategyNotes" class="community-strategy-input" rows="6" data-i18n-placeholder="builder.strategyPlaceholder" placeholder="Boss strategy / notes (optional). Example: Buldak helps block projectiles on this boss."></textarea>
             <span id="builderCommunityStrategyCounter" class="community-strategy-counter" aria-live="polite"></span>
           </div>
-          <button type="button" id="builderSaveCommunityBuild" data-i18n="builder.publish">Publish current build</button>
+          <button type="button" id="builderSaveCommunityBuild" class="builder-publish-action" data-i18n="builder.publish">Publish current build</button>
         </div>
-        <nav class="recent-builds-panel" data-i18n-aria-label="recentBuilds.aria" aria-label="Latest community builds">
-          <h3 class="recent-builds-title" data-i18n="recentBuilds.title">Latest builds</h3>
-          <ul id="recentBuildsList" class="recent-builds-list"></ul>
-        </nav>
+        <div class="recent-panels-row">
+          <nav class="recent-builds-panel" data-i18n-aria-label="recentBuilds.aria" aria-label="Latest community builds">
+            <h3 class="recent-builds-title" data-i18n="recentBuilds.title">Latest builds</h3>
+            <ul id="recentBuildsList" class="recent-builds-list"></ul>
+          </nav>
+          <nav class="recent-requests-panel" data-i18n-aria-label="recentRequests.aria" aria-label="Latest build requests">
+            <h3 class="recent-requests-title" data-i18n="recentRequests.title">Latest build requests</h3>
+            <ul id="recentBuildRequestsList" class="recent-requests-list"></ul>
+          </nav>
+        </div>
       </aside>
     </div>
   </main>
@@ -3908,6 +4753,74 @@
     </section>
   </main>
 
+  <main id="panelAirdrop" class="app-panel" hidden>
+    <section class="fake-sparks" data-i18n-aria-label="fakeSparks.aria" aria-label="KRAPS airdrop">
+      <header class="fake-sparks-hero">
+        <img class="fake-sparks-token" src="assets/fake-spark-token.png" width="72" height="72" alt="" decoding="async" />
+        <div>
+          <h2 data-i18n="fakeSparks.title">KRAPS</h2>
+          <p data-i18n="fakeSparks.subtitle">Community fun airdrop — not affiliated with Spekter Agency.</p>
+          <div class="fake-sparks-balance" id="fakeSparksBalance" hidden>
+            <img src="assets/fake-spark-token.png" width="22" height="22" alt="" decoding="async" />
+            <span id="fakeSparksBalanceText">0</span>
+          </div>
+        </div>
+      </header>
+
+      <p id="fakeSparksGate" class="fake-sparks-gate" hidden></p>
+
+      <div id="fakeSparksMissions" class="fake-sparks-missions" hidden>
+        <article class="fake-sparks-mission">
+          <div class="fake-sparks-wheel-wrap">
+            <h3 data-i18n="fakeSparks.wheelTitle">Daily wheel</h3>
+            <p data-i18n="fakeSparks.wheelDesc">One spin per day — rewards are configurable.</p>
+            <div class="fake-sparks-wheel-stage">
+              <div class="fake-sparks-wheel-pointer" aria-hidden="true"></div>
+              <canvas id="fakeSparksWheel" class="fake-sparks-wheel" width="260" height="260" role="img" data-i18n-aria-label="fakeSparks.wheelAria" aria-label="KRAPS daily wheel"></canvas>
+            </div>
+            <p id="fakeSparksWheelResult" class="fake-sparks-wheel-result" aria-live="polite"></p>
+            <button type="button" id="fakeSparksWheelBtn" data-i18n="fakeSparks.wheelSpin">Spin wheel</button>
+          </div>
+        </article>
+        <article class="fake-sparks-mission is-disabled">
+          <div>
+            <h3 data-i18n="fakeSparks.miniGameTitle">Mini-game</h3>
+            <p data-i18n="fakeSparks.miniGameSoon">Coming soon.</p>
+          </div>
+          <button type="button" disabled data-i18n="fakeSparks.soon">Soon</button>
+        </article>
+      </div>
+
+      <section class="fake-sparks-leaderboard" aria-labelledby="fakeSparksLeaderboardTitle">
+        <h3 id="fakeSparksLeaderboardTitle" data-i18n="fakeSparks.leaderboardTitle">Leaderboard</h3>
+        <table class="fake-sparks-lb-table">
+          <thead>
+            <tr>
+              <th data-i18n="fakeSparks.leaderboardRank">#</th>
+              <th data-i18n="fakeSparks.leaderboardPlayer">Player</th>
+              <th data-i18n="fakeSparks.leaderboardSparks">KRAPS</th>
+            </tr>
+          </thead>
+          <tbody id="fakeSparksLeaderboardBody"></tbody>
+        </table>
+        <p id="fakeSparksMyRank" class="fake-sparks-my-rank" hidden></p>
+      </section>
+    </section>
+
+    <div id="fakeSparksDisclaimer" class="fake-sparks-disclaimer" hidden role="dialog" aria-modal="true" aria-labelledby="fakeSparksDisclaimerTitle">
+      <div class="fake-sparks-disclaimer-card">
+        <div class="fake-sparks-disclaimer-reward">
+          <img src="assets/spek-token.png" width="28" height="28" alt="" decoding="async" />
+          <span data-i18n="fakeSparks.disclaimerReward">Some SPEK token rewards may be distributed.</span>
+        </div>
+        <p id="fakeSparksDisclaimerTitle" data-i18n="fakeSparks.disclaimer">
+          ⚠️ KRAPS is a community fun airdrop. It is not officially affiliated with Spekter Agency. Some SPEK token rewards may be distributed.
+        </p>
+        <button type="button" id="fakeSparksDisclaimerOk" data-i18n="fakeSparks.disclaimerAck">Got it</button>
+      </div>
+    </div>
+  </main>
+
   <main id="panelMiniGames" class="app-panel" hidden>
     <section class="mini-games-progress" data-i18n-aria-label="miniGames.progressAria" aria-label="Progression preview">
       <div class="player-progress mini-games-progress-card player-progress--preview" data-i18n-aria-label="profile.xpPreviewAria" aria-label="XP and energy preview (coming soon)">
@@ -3928,7 +4841,6 @@
       </div>
       <p class="player-progress-hint" data-i18n="miniGames.xpHint">XP and energy will unlock with mini games — full system coming soon.</p>
     </section>
-
     <section class="mini-games-placeholder" data-i18n-aria-label="miniGames.placeholderAria" aria-label="Mini games">
       <h2 data-i18n="miniGames.comingTitle">Coming soon</h2>
       <p data-i18n="miniGames.comingBody">Mini games are on the way. XP and energy (30/30) will power each run.</p>
@@ -3951,10 +4863,15 @@
       updateLiveChatUi();
       renderCommunityStats();
       renderRecentBuildsRail();
+      renderRecentBuildRequests();
       renderFunctionSkills();
       renderBuildLevel();
       syncBuilderCommunityTargetLabel();
+      if (typeof syncBuilderPublishModeUi === "function") syncBuilderPublishModeUi();
       if (typeof updateCommunityPublishFields === "function") updateCommunityPublishFields();
+      if (fakeSparksCache) renderFakeSparks();
+      renderFakeSparksWheel();
+      if (supportStatsCache) renderSupportStats(supportStatsCache);
       if (functionRarityModalBackdropEl && !functionRarityModalBackdropEl.hidden && window.I18n?.applyDocument) {
         window.I18n.applyDocument(functionRarityModalBackdropEl);
       }
@@ -4359,6 +5276,7 @@
     const panelBuild = document.getElementById("panelBuild");
     const panelCommunity = document.getElementById("panelCommunity");
     const panelBook = document.getElementById("panelBook");
+    const panelAirdrop = document.getElementById("panelAirdrop");
     const panelMiniGames = document.getElementById("panelMiniGames");
     let bookRendered = false;
 
@@ -4391,10 +5309,12 @@
       const isBuild = tab === "build";
       const isCommunity = tab === "community";
       const isBook = tab === "book";
+      const isAirdrop = tab === "airdrop";
       const isMiniGames = tab === "mini-games";
       if (panelBuild) panelBuild.hidden = !isBuild;
       if (panelCommunity) panelCommunity.hidden = !isCommunity;
       if (panelBook) panelBook.hidden = !isBook;
+      if (panelAirdrop) panelAirdrop.hidden = !isAirdrop;
       if (panelMiniGames) panelMiniGames.hidden = !isMiniGames;
       document.querySelectorAll("[data-app-tab]").forEach((btn) => {
         const active = btn.dataset.appTab === tab;
@@ -4403,6 +5323,7 @@
       });
       if (isBook && !bookRendered) renderBook();
       if (isCommunity) refreshCommunityBuildsFromServer();
+      if (isAirdrop) refreshFakeSparks();
     }
 
     function bindAppTabs() {
@@ -4418,6 +5339,57 @@
       } catch {
         showPassiveHint(failMsg);
       }
+    }
+
+    let supportStatsCache = null;
+
+    function formatSupportUsd(amount) {
+      const n = Math.max(0, Number(amount) || 0);
+      const rounded = Math.round(n * 100) / 100;
+      return `$${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;
+    }
+
+    function renderSupportStats(stats) {
+      const amountEl = document.getElementById("supportServerAmount");
+      const fillEl = document.getElementById("supportServerFill");
+      const barEl = document.getElementById("supportServerBar");
+      const starsEl = document.getElementById("supportStarsCount");
+      if (!amountEl || !fillEl || !barEl || !starsEl) return;
+
+      const fund = Math.max(0, Number(stats?.serverFundUsd) || 0);
+      const goal = Math.max(0, Number(stats?.serverGoalUsd) || 5) || 5;
+      const pct = goal > 0 ? Math.min(100, (fund / goal) * 100) : 0;
+      amountEl.textContent = t("support.serverProgress", {
+        current: formatSupportUsd(fund),
+        goal: formatSupportUsd(goal),
+      });
+      fillEl.style.width = `${pct}%`;
+      barEl.setAttribute("aria-valuenow", String(Math.round(pct)));
+      barEl.setAttribute("aria-valuetext", amountEl.textContent);
+
+      const stars = Math.max(0, Math.floor(Number(stats?.telegramStarsTotal) || 0));
+      starsEl.textContent = t("support.starsCount", {
+        count: stars.toLocaleString(localeTag()),
+      });
+    }
+
+    async function loadSupportStats() {
+      const defaults = { serverFundUsd: 0, serverGoalUsd: 5, telegramStarsTotal: 0 };
+      if (API_ENABLED) {
+        try {
+          const data = await apiRequest("/api/support/stats");
+          supportStatsCache = {
+            serverFundUsd: Number(data.serverFundUsd) || 0,
+            serverGoalUsd: Number(data.serverGoalUsd) || 5,
+            telegramStarsTotal: Math.floor(Number(data.telegramStarsTotal) || 0),
+          };
+        } catch {
+          supportStatsCache = { ...defaults };
+        }
+      } else {
+        supportStatsCache = { ...defaults };
+      }
+      renderSupportStats(supportStatsCache);
     }
 
     function bindSupportCopy() {
@@ -4513,6 +5485,14 @@
     const builderCommunityPowerEl = document.getElementById("builderCommunityPower");
     const builderCommunityVideoUrlEl = document.getElementById("builderCommunityVideoUrl");
     const builderCommunityStrategyNotesEl = document.getElementById("builderCommunityStrategyNotes");
+    const builderPublishBoxEl = document.getElementById("builderPublishBox");
+    const builderPublishTitleEl = document.getElementById("builderPublishTitle");
+    const builderPublishHintEl = document.getElementById("builderPublishHint");
+    const builderPublishModeToggleEl = document.getElementById("builderPublishModeToggle");
+    const builderCommunityPowerLabelEl = document.getElementById("builderCommunityPowerLabel");
+    const builderPublishCharacterPreviewEl = document.getElementById("builderPublishCharacterPreview");
+    const builderRequestCharacterEl = document.getElementById("builderRequestCharacter");
+    const builderRequestCharacterPreviewEl = document.getElementById("builderRequestCharacterPreview");
     const builderSaveCommunityBuildEl = document.getElementById("builderSaveCommunityBuild");
     const communityCharacterEl = document.getElementById("communityCharacter");
     const communityModeEl = document.getElementById("communityMode");
@@ -4553,6 +5533,7 @@
     const linkedMembersValueEl = document.getElementById("linkedMembersValue");
     const linkedMembersCounterEl = document.getElementById("linkedMembersCounter");
     const recentBuildsListEl = document.getElementById("recentBuildsList");
+    const recentBuildRequestsListEl = document.getElementById("recentBuildRequestsList");
     const FUNCTION_SKILL_SLOT_COUNT = 6;
     const FUNCTION_SKILLS_STORAGE_KEY = "builderFunctionSkills:v1";
     const FUNCTION_RARITIES = [
@@ -4588,6 +5569,11 @@
     }
     const COMMUNITY_DIFFICULTY_VALUES = new Set(COMMUNITY_DIFFICULTY_KEYS.map(([v]) => v));
     const RECENT_BUILDS_LIMIT = 5;
+    const RECENT_REQUESTS_LIMIT = 8;
+    const BUILD_REQUESTS_KEY = "builderBuildRequests:v1";
+    let builderPublishMode = "publish";
+    let buildRequestCache = null;
+    let buildRequestFetchInFlight = null;
     const CHAT_POLL_MS = 12000;
     const PRESENCE_PING_MS = 120000;
     const VISIT_COUNT_SESSION_KEY = "builder_visit_counted:v1";
@@ -5205,9 +6191,7 @@
         authModalStatusEl.textContent = parts.join(" ");
       }
       mountTelegramLoginWidget();
-      if (builderSaveCommunityBuildEl) {
-        builderSaveCommunityBuildEl.textContent = API_ENABLED && !currentUser ? t("builder.signInToPublish") : t("builder.publish");
-      }
+      syncBuilderPublishModeUi();
       renderLiveChatComposer();
     }
 
@@ -5503,6 +6487,8 @@
         }
         renderProfile();
         renderCommunityBuilds();
+        await refreshFakeSparks();
+        await syncPendingReferral();
         consumeAccountLinkNotice();
         pingPresence();
       })();
@@ -5737,6 +6723,44 @@
       return CHARACTERS.find((character) => character.id === characterId)?.label || characterId || "Unknown";
     }
 
+    function characterById(characterId) {
+      const id = String(characterId || "").trim().toLowerCase();
+      return CHARACTERS.find((character) => character.id === id) || null;
+    }
+
+    function requestCharacterChipMarkup(characterId, iconSize = 22) {
+      const ch = characterById(characterId);
+      if (!ch) return "";
+      const icon = iconMarkup("skill", ch.exclusiveSkill, iconSize, ch.label);
+      return `<span class="request-character-chip">${icon}<span class="request-character-chip-label">${escapeHtml(ch.label)}</span></span>`;
+    }
+
+    function syncBuilderPublishCharacterPreview() {
+      if (!builderPublishCharacterPreviewEl) return;
+      const ch = currentCharacter();
+      const icon = iconMarkup("skill", ch.exclusiveSkill, 28, ch.label);
+      builderPublishCharacterPreviewEl.innerHTML = `<span class="builder-request-character-preview-chip">${icon}<span class="builder-publish-character-preview-name">${escapeHtml(ch.label)}</span></span>`;
+    }
+
+    function syncBuilderRequestCharacterPreview() {
+      if (!builderRequestCharacterPreviewEl) return;
+      const ch = characterById(builderRequestCharacterEl?.value);
+      if (!ch) {
+        builderRequestCharacterPreviewEl.classList.add("is-empty");
+        builderRequestCharacterPreviewEl.innerHTML = `<span class="builder-request-character-preview-empty">${escapeHtml(t("community.selectCharacter"))}</span>`;
+        return;
+      }
+      builderRequestCharacterPreviewEl.classList.remove("is-empty");
+      const icon = iconMarkup("skill", ch.exclusiveSkill, 28, ch.label);
+      builderRequestCharacterPreviewEl.innerHTML = `<span class="builder-request-character-preview-chip">${icon}<span class="builder-request-character-preview-name">${escapeHtml(ch.label)}</span></span>`;
+    }
+
+    function initBuilderRequestCharacterPreview() {
+      if (!builderRequestCharacterPreviewEl) return;
+      builderRequestCharacterPreviewEl.classList.add("is-empty");
+      builderRequestCharacterPreviewEl.innerHTML = `<span class="builder-request-character-preview-empty">${escapeHtml(t("community.selectCharacter"))}</span>`;
+    }
+
     function modeUsesUniqueSkills(modeId = modeEl?.value) {
       return modeConfig(modeId).uniqueSkills;
     }
@@ -5849,6 +6873,7 @@
     function updateCommunityPublishFields() {
       builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
       syncBuilderCommunityPowerControl();
+      syncBuilderPublishModeUi();
     }
 
     function communityFilterValues(modeId = modeEl?.value) {
@@ -7170,6 +8195,257 @@
         .slice(0, limit);
     }
 
+    function syncBuilderPublishModeUi() {
+      const isRequest = builderPublishMode === "request";
+      builderPublishBoxEl?.classList.toggle("is-request-mode", isRequest);
+      if (builderPublishModeToggleEl) {
+        builderPublishModeToggleEl.setAttribute("aria-pressed", isRequest ? "true" : "false");
+        const toggleLabelEl = builderPublishModeToggleEl.querySelector(".publish-mode-toggle-label");
+        if (toggleLabelEl) {
+          toggleLabelEl.textContent = t(isRequest ? "builder.publishTitle" : "builder.requestTitle");
+        }
+        const swapAria = t("builder.publishModeSwapAria");
+        builderPublishModeToggleEl.setAttribute("aria-label", swapAria);
+        builderPublishModeToggleEl.setAttribute("title", swapAria);
+      }
+      if (builderPublishTitleEl) {
+        builderPublishTitleEl.textContent = t(isRequest ? "builder.requestTitle" : "builder.publishTitle");
+      }
+      if (builderPublishHintEl) {
+        builderPublishHintEl.textContent = t(isRequest ? "builder.requestHint" : "builder.publishHint");
+      }
+      if (builderCommunityTargetLabelEl) {
+        builderCommunityTargetLabelEl.textContent = t(isRequest ? "builder.requestLevel" : "builder.clearedLevel");
+      }
+      if (builderCommunityPowerLabelEl) {
+        builderCommunityPowerLabelEl.textContent = t(isRequest ? "builder.requestYourPower" : "builder.powerCp");
+      }
+      if (builderSaveCommunityBuildEl) {
+        if (API_ENABLED && !currentUser) {
+          builderSaveCommunityBuildEl.textContent = t(isRequest ? "builder.signInToRequest" : "builder.signInToPublish");
+        } else {
+          builderSaveCommunityBuildEl.textContent = t(isRequest ? "builder.requestSubmit" : "builder.publish");
+        }
+      }
+      builderCommunityTargetValueEl = applyCommunityTargetConfig(builderCommunityTargetLabelEl, builderCommunityTargetValueEl);
+      if (builderCommunityTargetLabelEl) {
+        builderCommunityTargetLabelEl.textContent = t(isRequest ? "builder.requestLevel" : "builder.clearedLevel");
+      }
+      if (isRequest) {
+        syncBuilderRequestCharacterPreview();
+        if (builderRequestCharacterEl) builderRequestCharacterEl.required = true;
+      } else {
+        syncBuilderPublishCharacterPreview();
+        if (builderRequestCharacterEl) builderRequestCharacterEl.required = false;
+      }
+    }
+
+    function toggleBuilderPublishMode() {
+      builderPublishMode = builderPublishMode === "request" ? "publish" : "request";
+      syncBuilderPublishModeUi();
+    }
+
+    function loadBuildRequests() {
+      if (buildRequestCache) return buildRequestCache;
+      try {
+        const raw = localStorage.getItem(BUILD_REQUESTS_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBuildRequests(requests) {
+      buildRequestCache = requests;
+      try {
+        localStorage.setItem(BUILD_REQUESTS_KEY, JSON.stringify(requests));
+      } catch {}
+    }
+
+    function latestBuildRequests(limit = RECENT_REQUESTS_LIMIT) {
+      return [...loadBuildRequests()]
+        .sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0))
+        .slice(0, limit);
+    }
+
+    async function refreshBuildRequestsFromServer() {
+      if (!API_ENABLED) return loadBuildRequests();
+      if (buildRequestFetchInFlight) return buildRequestFetchInFlight;
+      buildRequestFetchInFlight = apiRequest("/api/build-requests")
+        .then((data) => {
+          buildRequestCache = Array.isArray(data.requests) ? data.requests : [];
+          try {
+            localStorage.setItem(BUILD_REQUESTS_KEY, JSON.stringify(buildRequestCache));
+          } catch {}
+          renderRecentBuildRequests();
+          return buildRequestCache;
+        })
+        .catch(() => loadBuildRequests())
+        .finally(() => {
+          buildRequestFetchInFlight = null;
+        });
+      return buildRequestFetchInFlight;
+    }
+
+    function buildRequestDisplayTitle(req) {
+      const mode = modeLabel(req.mode || "stage");
+      const target = req.targetLabel || buildTargetLabel(req);
+      return `${mode} · ${target}`;
+    }
+
+    function buildRequestDisplayHint(req) {
+      const character = characterLabel(req.character || "");
+      const title = buildRequestDisplayTitle(req);
+      return character ? `${character} · ${title}` : title;
+    }
+
+    function readBuildRequestMetadata() {
+      const mode = modeEl.value;
+      const cfg = communityTargetConfig(mode);
+      const targetValue = readIntegerInput(builderCommunityTargetValueEl);
+      if (targetValue === null) {
+        showPassiveHint(t("community.targetRequired", { label: t("builder.requestLevel") }));
+        builderCommunityTargetValueEl?.focus();
+        return null;
+      }
+      if (targetValue < cfg.min || (cfg.max !== "" && targetValue > cfg.max)) {
+        showPassiveHint(
+          cfg.max === ""
+            ? t("community.targetMin", { label: t("builder.requestLevel"), min: cfg.min })
+            : t("community.targetRange", { label: t("builder.requestLevel"), min: cfg.min, max: cfg.max }),
+        );
+        builderCommunityTargetValueEl?.focus();
+        return null;
+      }
+      if ((targetValue - cfg.min) % cfg.step !== 0) {
+        showPassiveHint(t("community.targetStep", { label: t("builder.requestLevel"), step: cfg.step }));
+        builderCommunityTargetValueEl?.focus();
+        return null;
+      }
+      const powerRaw = builderCommunityPowerEl?.value;
+      if (!powerRaw) {
+        showPassiveHint(t("community.powerRequired"));
+        builderCommunityPowerEl?.focus();
+        return null;
+      }
+      const powerNum = Number(powerRaw);
+      if (!Number.isFinite(powerNum) || powerNum <= 0) {
+        showPassiveHint(t("community.powerRequired"));
+        builderCommunityPowerEl?.focus();
+        return null;
+      }
+      const character = String(builderRequestCharacterEl?.value || "").trim().toLowerCase();
+      if (!["nox", "vel", "zen", "shu"].includes(character)) {
+        showPassiveHint(t("community.requestCharacterRequired"));
+        builderRequestCharacterEl?.focus();
+        return null;
+      }
+      return {
+        targetValue,
+        targetLabel: communityTargetLabel(mode, targetValue),
+        power: formatPowerCap(powerNum),
+        character,
+        mode,
+      };
+    }
+
+    async function publishBuildRequest() {
+      if (API_ENABLED && !requireSignedIn("request")) return;
+      const metadata = readBuildRequestMetadata();
+      if (!metadata) return;
+      const payload = {
+        targetValue: metadata.targetValue,
+        targetLabel: metadata.targetLabel,
+        power: metadata.power,
+        character: metadata.character,
+        mode: metadata.mode,
+      };
+      const requests = loadBuildRequests();
+      const localRequest = {
+        id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+        author: currentUser?.displayName || t("community.anonymous"),
+        authorProfile: authorProfileSnapshot(),
+        ...payload,
+        createdAt: Date.now(),
+      };
+      if (API_ENABLED) {
+        try {
+          const data = await apiRequest("/api/build-requests", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          requests.unshift(data.request || localRequest);
+          saveBuildRequests(requests.slice(0, 500));
+          builderCommunityTargetValueEl && (builderCommunityTargetValueEl.value = "");
+          if (builderCommunityPowerEl) builderCommunityPowerEl.value = "";
+          if (builderRequestCharacterEl) builderRequestCharacterEl.value = "";
+          syncBuilderRequestCharacterPreview();
+          showPassiveHint(t("community.requestPublishedOnline"));
+          renderRecentBuildRequests();
+          return;
+        } catch (err) {
+          if (err.status === 401) {
+            currentUser = null;
+            renderProfile();
+            requireSignedIn("request");
+            return;
+          }
+        }
+      }
+      requests.unshift(localRequest);
+      saveBuildRequests(requests.slice(0, 500));
+      builderCommunityTargetValueEl && (builderCommunityTargetValueEl.value = "");
+      if (builderCommunityPowerEl) builderCommunityPowerEl.value = "";
+      if (builderRequestCharacterEl) builderRequestCharacterEl.value = "";
+      syncBuilderRequestCharacterPreview();
+      showPassiveHint(t("community.requestPublished"));
+      renderRecentBuildRequests();
+    }
+
+    function renderRecentBuildRequests() {
+      if (!recentBuildRequestsListEl) return;
+      const requests = latestBuildRequests();
+      if (!requests.length) {
+        recentBuildRequestsListEl.innerHTML = `<li class="recent-requests-empty"><p data-i18n="recentRequests.empty">${escapeHtml(t("recentRequests.empty"))}</p></li>`;
+        window.I18n?.applyDocument(recentBuildRequestsListEl);
+        return;
+      }
+      recentBuildRequestsListEl.innerHTML = requests
+        .map((req) => {
+          const charChip = requestCharacterChipMarkup(req.character, 20);
+          const targetLine = buildRequestDisplayTitle(req);
+          const metaParts = [req.author || t("community.anonymous"), req.power || ""].filter(Boolean);
+          const meta = metaParts.join(" · ");
+          const hint = buildRequestDisplayHint(req);
+          return `
+            <li class="recent-requests-item">
+              <button type="button" class="recent-requests-link" data-recent-request-id="${escapeHtml(req.id)}" title="${escapeHtml(hint)}">
+                <span class="recent-requests-link-head">
+                  ${charChip || `<span class="request-character-chip-label">${escapeHtml(characterLabel(req.character || ""))}</span>`}
+                  <span class="recent-requests-link-target">${escapeHtml(targetLine)}</span>
+                </span>
+                <span class="recent-requests-link-date">${escapeHtml(formatBuildPublishedAt(req.createdAt))}</span>
+                <span class="recent-requests-link-meta">${escapeHtml(meta)}</span>
+              </button>
+            </li>
+          `;
+        })
+        .join("");
+    }
+
+    function bindRecentBuildRequestsRail() {
+      recentBuildRequestsListEl?.addEventListener("click", (ev) => {
+        const btn = ev.target.closest("[data-recent-request-id]");
+        if (!btn) return;
+        const req = loadBuildRequests().find((r) => r.id === btn.getAttribute("data-recent-request-id"));
+        if (!req) return;
+        showPassiveHint(
+          `${buildRequestDisplayHint(req)} — ${req.author || t("community.anonymous")} · ${req.power || ""}`,
+        );
+      });
+    }
+
     function scrollToCommunityBuildCard(buildId) {
       requestAnimationFrame(() => {
         const card = communityBuildsEl?.querySelector(`[data-build-id="${CSS.escape(buildId)}"]`);
@@ -8114,6 +9390,7 @@
       if (!communityBuildsEl) return;
       updateCommunityPublishFields();
       renderRecentBuildsRail();
+      renderRecentBuildRequests();
       renderCommunityFilters();
       renderCommunityStageBossPreview();
       if (API_ENABLED && !communityBuildCache) {
@@ -8211,18 +9488,561 @@
       counter.classList.toggle("is-near-limit", len >= COMMUNITY_STRATEGY_NOTES_MAX * 0.9);
     }
 
+    let fakeSparksCache = null;
+    let fakeSparksWheelBusy = false;
+    let fakeSparksWheelRotation = 0;
+    let fsWheelWinner = null;
+    let fsWheelHubImg = null;
+    let fsWheelRafId = null;
+    let fsWheelAnimStart = null;
+    let fsWheelAnimFrom = 0;
+    let fsWheelAnimTo = 0;
+    const FS_WHEEL_SPIN_MS = 4500;
+
+    const WHEEL_CANVAS_SEGMENTS = [
+      { id: "fs1",    lines: ["+1",  "KRAPS"], bg: "#6b52a8", rare: false },
+      { id: "fs2",    lines: ["+2",  "KRAPS"], bg: "#4f3a78", rare: false },
+      { id: "fs3",    lines: ["+3",  "KRAPS"], bg: "#7a60b5", rare: false },
+      { id: "fs5",    lines: ["+5",  "KRAPS"], bg: "#5a4498", rare: false },
+      { id: "fs10",   lines: ["+10", "KRAPS"], bg: "#9678cc", rare: true  },
+      { id: "fs_lost",lines: ["LOST"],         bg: "#3a2848", rare: false },
+    ];
+
+    const FAKE_SPARKS_REF_KEY = "fake_sparks_ref";
+
+    const headerFakeSparksEl = document.getElementById("headerFakeSparks");
+    const headerFakeSparksCountEl = document.getElementById("headerFakeSparksCount");
+    const headerFakeSparksDailyBtnEl = document.getElementById("headerFakeSparksDailyBtn");
+    const fakeSparksBalanceEl = document.getElementById("fakeSparksBalance");
+    const fakeSparksBalanceTextEl = document.getElementById("fakeSparksBalanceText");
+    const fakeSparksGateEl = document.getElementById("fakeSparksGate");
+    const fakeSparksMissionsEl = document.getElementById("fakeSparksMissions");
+    const fakeSparksWheelEl = document.getElementById("fakeSparksWheel");
+    const fakeSparksWheelBtnEl = document.getElementById("fakeSparksWheelBtn");
+    const fakeSparksWheelResultEl = document.getElementById("fakeSparksWheelResult");
+    const fakeSparksLeaderboardBodyEl = document.getElementById("fakeSparksLeaderboardBody");
+    const fakeSparksMyRankEl = document.getElementById("fakeSparksMyRank");
+    const fakeSparksDisclaimerEl = document.getElementById("fakeSparksDisclaimer");
+    const fakeSparksDisclaimerOkEl = document.getElementById("fakeSparksDisclaimerOk");
+    const fakeSparksInviteCardEl = document.getElementById("fakeSparksInviteCard");
+    const fakeSparksInviteUsageEl = document.getElementById("fakeSparksInviteUsage");
+    const fakeSparksInviteCopyBtnEl = document.getElementById("fakeSparksInviteCopyBtn");
+    const fakeSparksInviteLimitMsgEl = document.getElementById("fakeSparksInviteLimitMsg");
+
+    function fakeSparksGateMessage(code) {
+      if (!currentUser) return t("fakeSparks.gateSignIn");
+      if (code === "fake_sparks_link_required") return t("api.fakeSparksLinkRequired");
+      return t("api.fakeSparksLinkRequired");
+    }
+
+    function loadFsWheelHubImg() {
+      if (fsWheelHubImg) return;
+      fsWheelHubImg = new Image();
+      fsWheelHubImg.src = "assets/fake-spark-token.png";
+      fsWheelHubImg.onload = () => drawFakeSparksWheel();
+    }
+
+    function drawFakeSparksWheel() {
+      const canvas = fakeSparksWheelEl;
+      if (!(canvas instanceof HTMLCanvasElement)) return;
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+      const cx = W / 2;
+      const cy = H / 2;
+      const R = Math.min(cx, cy) - 3;
+      const hubR = Math.round(R * 0.155);
+      const segs = WHEEL_CANVAS_SEGMENTS;
+      const N = segs.length;
+      const sliceAngle = (2 * Math.PI) / N;
+      const rotRad = (fakeSparksWheelRotation * Math.PI) / 180;
+
+      ctx.clearRect(0, 0, W, H);
+
+      for (let i = 0; i < N; i++) {
+        const seg = segs[i];
+        const startA = rotRad - Math.PI / 2 + i * sliceAngle;
+        const endA = startA + sliceAngle;
+        const isWinner = fsWheelWinner && seg.id === fsWheelWinner;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R, startA, endA);
+        ctx.closePath();
+        if (isWinner) {
+          ctx.fillStyle = seg.rare ? "#c8a8ff" : "#9870d8";
+        } else {
+          ctx.fillStyle = seg.bg;
+        }
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + R * Math.cos(startA), cy + R * Math.sin(startA));
+        ctx.strokeStyle = "rgba(255,255,255,0.22)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+      ctx.strokeStyle = "rgba(186,133,255,0.55)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      for (let i = 0; i < N; i++) {
+        const seg = segs[i];
+        const startA = rotRad - Math.PI / 2 + i * sliceAngle;
+        const endA = startA + sliceAngle;
+        const midA = startA + sliceAngle / 2;
+        const labelR = R * 0.62;
+        const lx = cx + labelR * Math.cos(midA);
+        const ly = cy + labelR * Math.sin(midA);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R - 2, startA, endA);
+        ctx.closePath();
+        ctx.clip();
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        if (seg.lines.length >= 2) {
+          ctx.font = `bold ${seg.rare ? 15 : 14}px "Segoe UI",system-ui,sans-serif`;
+          ctx.shadowColor = "rgba(0,0,0,0.9)";
+          ctx.shadowBlur = 5;
+          ctx.fillStyle = seg.rare ? "#ffe9a8" : "#f5fcff";
+          ctx.fillText(seg.lines[0], lx, ly - 7);
+
+          ctx.font = `bold 8px "Segoe UI",system-ui,sans-serif`;
+          ctx.shadowBlur = 3;
+          ctx.fillStyle = seg.rare ? "#fff3cc" : "#c8e0ff";
+          ctx.fillText(seg.lines[1], lx, ly + 7);
+        } else {
+          ctx.font = `bold 12px "Segoe UI",system-ui,sans-serif`;
+          ctx.shadowColor = "rgba(0,0,0,0.9)";
+          ctx.shadowBlur = 5;
+          ctx.fillStyle = "#ffd8f0";
+          ctx.fillText(seg.lines[0], lx, ly);
+        }
+
+        ctx.restore();
+      }
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, hubR + 1, 0, 2 * Math.PI);
+      ctx.fillStyle = "rgba(12,8,20,0.97)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      if (fsWheelHubImg?.complete && fsWheelHubImg.naturalWidth) {
+        const s = hubR * 1.55;
+        ctx.drawImage(fsWheelHubImg, cx - s / 2, cy - s / 2, s, s);
+      }
+    }
+
+    function renderFakeSparksWheel() {
+      loadFsWheelHubImg();
+      drawFakeSparksWheel();
+    }
+
+    function renderFakeSparksLeaderboard(leaderboard) {
+      if (!fakeSparksLeaderboardBodyEl) return;
+      const entries = leaderboard?.entries || [];
+      if (!entries.length) {
+        fakeSparksLeaderboardBodyEl.innerHTML = `<tr><td colspan="3">${escapeHtml(t("fakeSparks.leaderboardEmpty"))}</td></tr>`;
+        return;
+      }
+      fakeSparksLeaderboardBodyEl.innerHTML = entries
+        .map((row) => {
+          const avatar = row.avatarUrl
+            ? `<img src="${escapeHtml(row.avatarUrl)}" alt="" loading="lazy" decoding="async" />`
+            : `<img src="assets/fake-spark-token.png" alt="" decoding="async" />`;
+          return `<tr>
+            <td>${formatNumber(row.rank)}</td>
+            <td><div class="fake-sparks-lb-player">${avatar}<span>${escapeHtml(row.username)}</span></div></td>
+            <td>${formatNumber(row.fakeSparksTotal)}</td>
+          </tr>`;
+        })
+        .join("");
+    }
+
+    function renderFakeSparks() {
+      const data = fakeSparksCache;
+      if (!data) return;
+      const eligible = Boolean(data.eligible);
+      const signedIn = Boolean(currentUser);
+      const total = signedIn ? data.me?.fakeSparksTotal || 0 : 0;
+      const dailyClaimed = Boolean(data.missions?.daily?.claimedToday);
+
+      if (headerFakeSparksEl) {
+        headerFakeSparksEl.hidden = !API_ENABLED;
+      }
+      if (headerFakeSparksCountEl) {
+        headerFakeSparksCountEl.textContent = signedIn ? formatNumber(total) : "—";
+      }
+      if (headerFakeSparksDailyBtnEl) {
+        if (!signedIn) {
+          headerFakeSparksDailyBtnEl.disabled = false;
+          headerFakeSparksDailyBtnEl.textContent = t("fakeSparks.headerClaim");
+        } else if (!eligible) {
+          headerFakeSparksDailyBtnEl.disabled = false;
+          headerFakeSparksDailyBtnEl.textContent = t("fakeSparks.headerClaim");
+        } else {
+          headerFakeSparksDailyBtnEl.disabled = dailyClaimed;
+          headerFakeSparksDailyBtnEl.textContent = dailyClaimed
+            ? t("fakeSparks.dailyDone")
+            : t("fakeSparks.headerClaim");
+        }
+      }
+
+      if (fakeSparksBalanceEl && fakeSparksBalanceTextEl) {
+        fakeSparksBalanceEl.hidden = !signedIn;
+        fakeSparksBalanceTextEl.textContent = t("fakeSparks.balance", { n: formatNumber(total) });
+      }
+
+      if (fakeSparksGateEl) {
+        const showGate = !signedIn || !eligible;
+        fakeSparksGateEl.hidden = !showGate;
+        fakeSparksGateEl.textContent = showGate ? fakeSparksGateMessage(data.participationMessage) : "";
+      }
+
+      if (fakeSparksMissionsEl) {
+        fakeSparksMissionsEl.hidden = !signedIn || !eligible;
+      }
+
+      const wheelCanSpin = Boolean(data.missions?.wheel?.canSpin);
+      if (fakeSparksWheelBtnEl) {
+        fakeSparksWheelBtnEl.disabled = !eligible || !wheelCanSpin || fakeSparksWheelBusy;
+        fakeSparksWheelBtnEl.textContent = wheelCanSpin ? t("fakeSparks.wheelSpin") : t("fakeSparks.wheelDone");
+      }
+
+      renderFakeSparksLeaderboard(data.leaderboard);
+
+      if (fakeSparksMyRankEl) {
+        const mine = data.leaderboard?.myRank;
+        if (signedIn && mine) {
+          fakeSparksMyRankEl.hidden = false;
+          fakeSparksMyRankEl.textContent = t("fakeSparks.myRank", {
+            rank: formatNumber(mine.rank),
+            n: formatNumber(mine.fakeSparksTotal),
+          });
+        } else {
+          fakeSparksMyRankEl.hidden = true;
+          fakeSparksMyRankEl.textContent = "";
+        }
+      }
+
+      renderFakeSparksWheel();
+      renderFakeSparksInviteCard(data, signedIn);
+    }
+
+    function buildReferralInviteUrl(referrals) {
+      if (!referrals?.referralCode) return "";
+      const path = referrals.invitePath || `?ref=${encodeURIComponent(referrals.referralCode)}`;
+      return `${location.origin}${location.pathname}${path}`;
+    }
+
+    function renderFakeSparksInviteCard(data, signedIn) {
+      if (!fakeSparksInviteCardEl) return;
+      if (!API_ENABLED) {
+        fakeSparksInviteCardEl.hidden = true;
+        return;
+      }
+      fakeSparksInviteCardEl.hidden = false;
+      const ref = data?.referrals || {};
+      const max = ref.max || 3;
+      const used = ref.used || 0;
+      const limitReached = Boolean(ref.limitReached);
+
+      if (fakeSparksInviteUsageEl) {
+        if (!signedIn) {
+          fakeSparksInviteUsageEl.textContent = "";
+          fakeSparksInviteUsageEl.hidden = true;
+        } else {
+          fakeSparksInviteUsageEl.hidden = false;
+          fakeSparksInviteUsageEl.textContent = t("fakeSparks.inviteUsageShort", {
+            used: formatNumber(used),
+            max: formatNumber(max),
+          });
+        }
+      }
+
+      if (fakeSparksInviteLimitMsgEl) {
+        fakeSparksInviteLimitMsgEl.hidden = !signedIn || !limitReached;
+        fakeSparksInviteLimitMsgEl.textContent = limitReached ? t("fakeSparks.inviteLimit") : "";
+      }
+
+      if (fakeSparksInviteCopyBtnEl) {
+        const canCopy = signedIn && ref.referralCode && !limitReached;
+        fakeSparksInviteCopyBtnEl.disabled = limitReached;
+        fakeSparksInviteCopyBtnEl.title = canCopy
+          ? t("fakeSparks.inviteCopy")
+          : signedIn
+            ? limitReached
+              ? t("fakeSparks.inviteLimit")
+              : t("fakeSparks.inviteSignIn")
+            : t("fakeSparks.inviteSignIn");
+      }
+    }
+
+    function captureReferralFromUrl() {
+      const params = new URLSearchParams(location.search);
+      const ref = params.get("ref");
+      if (!ref) return;
+      const trimmed = ref.trim().slice(0, 128);
+      if (!trimmed) return;
+      try {
+        localStorage.setItem(FAKE_SPARKS_REF_KEY, trimmed);
+      } catch {}
+      params.delete("ref");
+      const rest = params.toString();
+      const nextUrl = `${location.pathname}${rest ? `?${rest}` : ""}${location.hash}`;
+      history.replaceState({}, "", nextUrl);
+    }
+
+    async function syncPendingReferral() {
+      if (!API_ENABLED || !currentUser) return;
+      let ref = "";
+      try {
+        ref = localStorage.getItem(FAKE_SPARKS_REF_KEY) || "";
+      } catch {}
+      if (!ref) return;
+      try {
+        const data = await apiRequest("/api/fake-sparks/referral/pending", {
+          method: "POST",
+          body: { referrerId: ref },
+        });
+        try {
+          localStorage.removeItem(FAKE_SPARKS_REF_KEY);
+        } catch {}
+        fakeSparksCache = { ...fakeSparksCache, ...data };
+        renderFakeSparks();
+        if (data.validation?.validated) {
+          showPassiveHint(t("fakeSparks.inviteValidated"));
+        }
+      } catch (err) {
+        const msg = translateApiError(err.message) || err.message;
+        if (msg) showPassiveHint(msg);
+      }
+    }
+
+    async function copyReferralInviteLink() {
+      if (!currentUser) {
+        openAuthModal(t("fakeSparks.inviteSignIn"));
+        return;
+      }
+      const ref = fakeSparksCache?.referrals;
+      if (ref?.limitReached) {
+        showPassiveHint(t("fakeSparks.inviteLimit"));
+        return;
+      }
+      if (!ref?.referralCode) return;
+      const url = buildReferralInviteUrl(ref);
+      try {
+        await navigator.clipboard.writeText(url);
+        showPassiveHint(t("fakeSparks.inviteCopied"));
+      } catch {
+        showPassiveHint(t("fakeSparks.inviteCopyFail"));
+      }
+    }
+
+    function showFakeSparksDisclaimer() {
+      if (!fakeSparksDisclaimerEl) return;
+      fakeSparksDisclaimerEl.hidden = false;
+    }
+
+    function hideFakeSparksDisclaimer() {
+      if (fakeSparksDisclaimerEl) fakeSparksDisclaimerEl.hidden = true;
+    }
+
+    async function acknowledgeFakeSparksDisclaimer() {
+      if (!API_ENABLED || !currentUser) {
+        hideFakeSparksDisclaimer();
+        return;
+      }
+      try {
+        await apiRequest("/api/fake-sparks/disclaimer", { method: "POST" });
+        if (fakeSparksCache?.me) fakeSparksCache.me.disclaimerAck = true;
+      } catch {}
+      hideFakeSparksDisclaimer();
+    }
+
+    function maybeShowFakeSparksDisclaimer(showFlag) {
+      if (!showFlag || fakeSparksCache?.me?.disclaimerAck) return;
+      showFakeSparksDisclaimer();
+    }
+
+    async function refreshFakeSparks() {
+      if (!API_ENABLED) {
+        fakeSparksCache = {
+          eligible: false,
+          participationMessage: "fake_sparks_link_required",
+          me: null,
+          missions: { daily: { claimedToday: false }, wheel: { canSpin: false }, miniGame: { status: "soon" } },
+          leaderboard: { entries: [], myRank: null, totalPlayers: 0 },
+          referrals: { used: 0, max: 3, rewardPerInvite: 10, limitReached: false, canInvite: false },
+        };
+        renderFakeSparks();
+        return;
+      }
+      try {
+        const data = await apiRequest("/api/fake-sparks");
+        fakeSparksCache = data;
+        renderFakeSparks();
+        if (window.I18n?.applyDocument) {
+          if (headerFakeSparksEl) window.I18n.applyDocument(headerFakeSparksEl);
+          if (fakeSparksInviteCardEl) window.I18n.applyDocument(fakeSparksInviteCardEl);
+          const panel = document.getElementById("panelAirdrop");
+          if (panel) window.I18n.applyDocument(panel);
+        }
+      } catch {
+        if (fakeSparksGateEl) {
+          fakeSparksGateEl.hidden = false;
+          fakeSparksGateEl.textContent = t("fakeSparks.loadError");
+        }
+      }
+    }
+
+    async function claimFakeSparksDaily() {
+      if (!API_ENABLED) return;
+      if (!currentUser) {
+        openAuthModal(t("fakeSparks.gateSignIn"));
+        return;
+      }
+      if (fakeSparksCache && !fakeSparksCache.eligible) {
+        showPassiveHint(t("api.fakeSparksLinkRequired"));
+        return;
+      }
+      if (fakeSparksCache?.missions?.daily?.claimedToday) return;
+      try {
+        const data = await apiRequest("/api/fake-sparks/daily", { method: "POST" });
+        fakeSparksCache = { ...fakeSparksCache, me: data.me, missions: data.missions };
+        renderFakeSparks();
+        maybeShowFakeSparksDisclaimer(data.showDisclaimer);
+        showPassiveHint(t("fakeSparks.dailySuccess", { n: formatNumber(data.gain || 0) }));
+      } catch (err) {
+        showPassiveHint(translateApiError(err.message) || err.message);
+      }
+    }
+
+    function fsWheelEaseOut(t) {
+      return 1 - Math.pow(1 - t, 4);
+    }
+
+    function fsWheelAnimFrame(ts) {
+      if (!fsWheelAnimStart) fsWheelAnimStart = ts;
+      const progress = Math.min((ts - fsWheelAnimStart) / FS_WHEEL_SPIN_MS, 1);
+      fakeSparksWheelRotation = fsWheelAnimFrom + (fsWheelAnimTo - fsWheelAnimFrom) * fsWheelEaseOut(progress);
+      drawFakeSparksWheel();
+      if (progress < 1) {
+        fsWheelRafId = requestAnimationFrame(fsWheelAnimFrame);
+      } else {
+        fakeSparksWheelRotation = fsWheelAnimTo;
+        fsWheelRafId = null;
+      }
+    }
+
+    function startFsWheelSpin(segmentId, onComplete) {
+      if (fsWheelRafId) cancelAnimationFrame(fsWheelRafId);
+      const segs = WHEEL_CANVAS_SEGMENTS;
+      const N = segs.length;
+      const sliceDeg = 360 / N;
+      const idx = Math.max(0, segs.findIndex((s) => s.id === segmentId));
+      const jitter = (Math.random() - 0.5) * sliceDeg * 0.45;
+      const targetNorm = (((-(idx + 0.5) * sliceDeg + jitter) % 360) + 360) % 360;
+      const curNorm = ((fakeSparksWheelRotation % 360) + 360) % 360;
+      let delta = (targetNorm - curNorm + 360) % 360;
+      if (delta < 20) delta += 360;
+      const fullTurns = (4 + Math.floor(Math.random() * 3)) * 360;
+      fsWheelAnimFrom = fakeSparksWheelRotation;
+      fsWheelAnimTo = fakeSparksWheelRotation + fullTurns + delta;
+      fsWheelAnimStart = null;
+      fsWheelRafId = requestAnimationFrame(function animStep(ts) {
+        if (!fsWheelAnimStart) fsWheelAnimStart = ts;
+        const progress = Math.min((ts - fsWheelAnimStart) / FS_WHEEL_SPIN_MS, 1);
+        fakeSparksWheelRotation = fsWheelAnimFrom + (fsWheelAnimTo - fsWheelAnimFrom) * fsWheelEaseOut(progress);
+        drawFakeSparksWheel();
+        if (progress < 1) {
+          fsWheelRafId = requestAnimationFrame(animStep);
+        } else {
+          fakeSparksWheelRotation = fsWheelAnimTo;
+          fsWheelRafId = null;
+          drawFakeSparksWheel();
+          onComplete?.();
+        }
+      });
+    }
+
+    async function spinFakeSparksWheel() {
+      if (!API_ENABLED || !requireSignedIn(t("fakeSparks.title"))) return;
+      if (fakeSparksWheelBusy) return;
+      fakeSparksWheelBusy = true;
+      fsWheelWinner = null;
+      if (fakeSparksWheelBtnEl) fakeSparksWheelBtnEl.disabled = true;
+      if (fakeSparksWheelResultEl) fakeSparksWheelResultEl.textContent = "";
+      if (fakeSparksWheelEl) fakeSparksWheelEl.classList.add("is-spinning");
+      try {
+        const data = await apiRequest("/api/fake-sparks/wheel", { method: "POST" });
+        const segment = data.segment || {};
+        const gain = Math.max(0, Math.floor(Number(data.gain ?? segment.sparks) || 0));
+        const label = segment.label || (gain > 0 ? `+${gain}` : t("fakeSparks.wheelLostLabel"));
+        await new Promise((resolve) => startFsWheelSpin(segment.id, resolve));
+        fsWheelWinner = segment.id;
+        drawFakeSparksWheel();
+        fakeSparksCache = { ...fakeSparksCache, me: data.me, missions: data.missions };
+        renderFakeSparks();
+        if (fakeSparksWheelResultEl) {
+          fakeSparksWheelResultEl.textContent = gain > 0
+            ? t("fakeSparks.wheelResult", { label, n: formatNumber(gain) })
+            : t("fakeSparks.wheelLost", { label });
+        }
+        maybeShowFakeSparksDisclaimer(data.showDisclaimer);
+        await refreshFakeSparks();
+      } catch (err) {
+        if (fakeSparksWheelResultEl) fakeSparksWheelResultEl.textContent = "";
+        showPassiveHint(translateApiError(err.message) || err.message);
+      } finally {
+        fakeSparksWheelBusy = false;
+        if (fakeSparksWheelEl) fakeSparksWheelEl.classList.remove("is-spinning");
+        renderFakeSparks();
+      }
+    }
+
+    function bindFakeSparks() {
+      renderFakeSparksWheel();
+      headerFakeSparksDailyBtnEl?.addEventListener("click", () => void claimFakeSparksDaily());
+      fakeSparksInviteCopyBtnEl?.addEventListener("click", () => void copyReferralInviteLink());
+      fakeSparksWheelBtnEl?.addEventListener("click", () => void spinFakeSparksWheel());
+      fakeSparksDisclaimerOkEl?.addEventListener("click", () => void acknowledgeFakeSparksDisclaimer());
+    }
+
     function bindCommunityBuilds() {
+      bindFakeSparks();
       builderCommunityStrategyNotesEl?.addEventListener("input", syncBuilderStrategyNotesCounter);
       syncBuilderStrategyNotesCounter();
-      builderSaveCommunityBuildEl?.addEventListener("click", () =>
+      builderPublishModeToggleEl?.addEventListener("click", toggleBuilderPublishMode);
+      builderRequestCharacterEl?.addEventListener("change", syncBuilderRequestCharacterPreview);
+      initBuilderRequestCharacterPreview();
+      builderSaveCommunityBuildEl?.addEventListener("click", () => {
+        if (builderPublishMode === "request") {
+          void publishBuildRequest();
+          return;
+        }
         publishCurrentCommunityBuild(
           builderCommunityTargetValueEl,
           builderCommunityDifficultyEl,
           builderCommunityPowerEl,
           builderCommunityVideoUrlEl,
           builderCommunityStrategyNotesEl
-        )
-      );
+        );
+      });
+      bindRecentBuildRequestsRail();
+      syncBuilderPublishModeUi();
       communityModeEl?.addEventListener("change", () => {
         communityModeFilter = communityModeEl.value;
         communityTargetFilter = null;
@@ -9343,6 +11163,7 @@
       renderPlanner();
       renderBuildLevel();
       syncUndo();
+      if (builderPublishMode !== "request") syncBuilderPublishCharacterPreview();
     }
 
     function resetBuildSlots() {
@@ -9351,6 +11172,10 @@
       applyCharacterStarterSlot();
       stripIllegalExclusiveSkills();
     }
+
+    characterEl?.addEventListener("change", () => {
+      if (builderPublishMode !== "request") syncBuilderPublishCharacterPreview();
+    });
 
     modeEl.addEventListener("change", () => {
       resetEvoAndFusions();
@@ -9422,10 +11247,12 @@
       panelBuild?.prepend(fatal);
     } else {
       window.I18n.init().then(() => {
+        captureReferralFromUrl();
         loadIconCacheVer().then(() => {
           loadFunctionSkillsStore();
           initMarketWidgets();
           updateVisitCounter();
+          loadSupportStats();
           resetBuildSlots();
           bindAppTabs();
           bindSupportCopy();
@@ -9434,6 +11261,8 @@
           bindRecentBuildsRail();
           bindCommunityBuilds();
           renderRecentBuildsRail();
+          renderRecentBuildRequests();
+          if (API_ENABLED) refreshBuildRequestsFromServer();
           bindPlanner();
           bindPickerClicks();
           bindStarClicks();
