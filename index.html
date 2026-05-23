@@ -6539,9 +6539,18 @@
 
     async function apiRequest(path, options = {}) {
       if (!API_ENABLED) throw new Error("API disabled");
+      const fetchOptions = { ...options };
+      if (
+        fetchOptions.body != null &&
+        typeof fetchOptions.body === "object" &&
+        !(fetchOptions.body instanceof FormData) &&
+        !(fetchOptions.body instanceof URLSearchParams)
+      ) {
+        fetchOptions.body = JSON.stringify(fetchOptions.body);
+      }
       const res = await fetch(path, {
-        headers: { "content-type": "application/json", ...(options.headers || {}) },
-        ...options,
+        headers: { "content-type": "application/json", ...(fetchOptions.headers || {}) },
+        ...fetchOptions,
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -6693,6 +6702,8 @@
         if (profileMenuEl) profileMenuEl.hidden = true;
         renderProfile();
         renderCommunityBuilds();
+        await refreshFakeSparks();
+        await syncPendingReferral();
         showPassiveHint(t("profile.signedInTelegram"));
       } catch (err) {
         const message = err.message || "Telegram sign-in failed.";
@@ -6704,7 +6715,12 @@
     function startAuthProvider(provider) {
       if (provider === "telegram") return;
       if (!provider) return;
-      location.href = `/api/auth/login/${provider}`;
+      let href = `/api/auth/login/${provider}`;
+      try {
+        const ref = (localStorage.getItem(FAKE_SPARKS_REF_KEY) || "").trim().slice(0, 128);
+        if (ref) href += `?ref=${encodeURIComponent(ref)}`;
+      } catch {}
+      location.href = href;
     }
 
     function startAuthLink(provider) {
@@ -10459,14 +10475,16 @@
           method: "POST",
           body: { referrerId: ref },
         });
-        try {
-          localStorage.removeItem(FAKE_SPARKS_REF_KEY);
-        } catch {}
+        if (data.validation?.validated) {
+          try {
+            localStorage.removeItem(FAKE_SPARKS_REF_KEY);
+          } catch {}
+          showPassiveHint(t("fakeSparks.inviteValidated"));
+        } else if (data.validation?.reason) {
+          showPassiveHint(translateApiError(data.validation.reason) || data.validation.reason);
+        }
         fakeSparksCache = { ...fakeSparksCache, ...data };
         renderFakeSparks();
-        if (data.validation?.validated) {
-          showPassiveHint(t("fakeSparks.inviteValidated"));
-        }
       } catch (err) {
         const msg = translateApiError(err.message) || err.message;
         if (msg) showPassiveHint(msg);

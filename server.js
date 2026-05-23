@@ -754,10 +754,14 @@ async function handleApi(req, res, url) {
     if (!providers[provider]) return sendJson(res, 503, { error: `${provider} login is not configured.`, providers });
     const origin = siteOrigin(req);
     const redirectUri = `${origin}/api/auth/callback/${provider}`;
-    const state = signEnvelope(
-      { provider, nonce: crypto.randomBytes(16).toString("hex"), exp: Date.now() + 10 * 60 * 1000 },
-      process.env.SESSION_SECRET
-    );
+    const refParam = url.searchParams.get("ref")?.trim().slice(0, 128) || "";
+    const statePayload = {
+      provider,
+      nonce: crypto.randomBytes(16).toString("hex"),
+      exp: Date.now() + 10 * 60 * 1000,
+    };
+    if (refParam) statePayload.referrerId = refParam;
+    const state = signEnvelope(statePayload, process.env.SESSION_SECRET);
     const authUrl = new URL("https://discord.com/api/oauth2/authorize");
     authUrl.searchParams.set("client_id", process.env.DISCORD_CLIENT_ID);
     authUrl.searchParams.set("redirect_uri", redirectUri);
@@ -796,7 +800,11 @@ async function handleApi(req, res, url) {
         })()
       : (() => {
           const u = resolveAuthUser(db, profile, upsertUser);
-          applyReferralAfterAuth(db, u);
+          if (statePayload.referrerId) {
+            registerReferralPending(db, u, statePayload.referrerId);
+          } else {
+            applyReferralAfterAuth(db, u);
+          }
           return u;
         })();
     writeDb(db);
