@@ -3588,6 +3588,37 @@
       line-height: 1.25;
       text-align: center;
     }
+    .fake-sparks-invite-link {
+      margin: 0.35rem 0 0;
+      padding: 0.32rem 0.4rem;
+      border: 1px dashed rgba(186, 133, 255, 0.35);
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.22);
+      color: #c8b4e8;
+      font-size: 0.58rem;
+      line-height: 1.35;
+      word-break: break-all;
+      font-family: ui-monospace, Consolas, monospace;
+    }
+    .fake-sparks-referral-banner {
+      margin: 0;
+      padding: 0.42rem 0.5rem;
+      border: 1px solid rgba(120, 220, 255, 0.45);
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(42, 63, 99, 0.92), rgba(21, 26, 36, 0.96));
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    }
+    .fake-sparks-referral-banner[hidden] {
+      display: none !important;
+    }
+    .fake-sparks-referral-banner p {
+      margin: 0;
+      color: #b8ecff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      line-height: 1.35;
+      text-align: center;
+    }
     .invite-toast-backdrop {
       position: fixed;
       inset: 0;
@@ -4472,6 +4503,21 @@
 </head>
 <body>
   <script>
+    (function () {
+      try {
+        var params = new URLSearchParams(location.search);
+        var ref = params.get("ref");
+        if (ref) {
+          ref = ref.trim().slice(0, 128);
+          if (ref) {
+            localStorage.setItem("fake_sparks_ref", ref);
+            params.delete("ref");
+            var rest = params.toString();
+            history.replaceState({}, "", location.pathname + (rest ? "?" + rest : "") + location.hash);
+          }
+        }
+      } catch (e) {}
+    })();
     document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(".player-progress").forEach(function (el) {
         el.remove();
@@ -4602,6 +4648,12 @@
           <span class="fake-sparks-invite-chevron" aria-hidden="true">›</span>
         </button>
         <p id="fakeSparksInviteLimitMsg" class="fake-sparks-invite-limit" hidden></p>
+        <p id="fakeSparksInviteLinkPreview" class="fake-sparks-invite-link" hidden></p>
+      </div>
+      <div id="fakeSparksReferralBanner" class="fake-sparks-referral-banner" hidden>
+        <p id="fakeSparksReferralBannerText" data-i18n="fakeSparks.invitePending">
+          Invitation received — sign in with Discord or Telegram to validate it.
+        </p>
       </div>
     </div>
     <div id="profileMenu" class="profile-menu" hidden>
@@ -7122,6 +7174,7 @@
         await refreshFakeSparks();
         await refreshSkillSurvivor();
         await syncPendingReferral();
+        renderReferralLandingBanner();
         consumeAccountLinkNotice();
         pingPresence();
       })();
@@ -7147,6 +7200,7 @@
       currentUser = null;
       renderProfile();
       renderCommunityBuilds();
+      renderReferralLandingBanner();
       showPassiveHint(t("profile.signedOut"));
     }
 
@@ -10182,6 +10236,9 @@
     const fakeSparksInviteUsageEl = document.getElementById("fakeSparksInviteUsage");
     const fakeSparksInviteCopyBtnEl = document.getElementById("fakeSparksInviteCopyBtn");
     const fakeSparksInviteLimitMsgEl = document.getElementById("fakeSparksInviteLimitMsg");
+    const fakeSparksInviteLinkPreviewEl = document.getElementById("fakeSparksInviteLinkPreview");
+    const fakeSparksReferralBannerEl = document.getElementById("fakeSparksReferralBanner");
+    const fakeSparksReferralBannerTextEl = document.getElementById("fakeSparksReferralBannerText");
     const inviteCopiedToastEl = document.getElementById("inviteCopiedToast");
     const inviteCopiedToastMsgEl = document.getElementById("inviteCopiedToastMsg");
     const inviteCopiedToastOkEl = document.getElementById("inviteCopiedToastOk");
@@ -10399,10 +10456,35 @@
       renderFakeSparksInviteCard(data, signedIn);
     }
 
+    function getPendingReferralCode() {
+      try {
+        return (localStorage.getItem(FAKE_SPARKS_REF_KEY) || "").trim().slice(0, 128);
+      } catch {
+        return "";
+      }
+    }
+
+    function getReferralInviteCode(referrals) {
+      const fromReferrals = referrals?.referralCode || fakeSparksCache?.referrals?.referralCode;
+      if (fromReferrals) return fromReferrals;
+      if (currentUser?.id) return currentUser.id;
+      return "";
+    }
+
     function buildReferralInviteUrl(referrals) {
-      if (!referrals?.referralCode) return "";
-      const path = referrals.invitePath || `?ref=${encodeURIComponent(referrals.referralCode)}`;
-      return `${location.origin}${location.pathname}${path}`;
+      const code = getReferralInviteCode(referrals);
+      if (!code) return "";
+      return `${location.origin}/?ref=${encodeURIComponent(code)}`;
+    }
+
+    function renderReferralLandingBanner() {
+      if (!fakeSparksReferralBannerEl) return;
+      const pending = getPendingReferralCode();
+      const show = API_ENABLED && !currentUser && pending;
+      fakeSparksReferralBannerEl.hidden = !show;
+      if (show && fakeSparksReferralBannerTextEl) {
+        fakeSparksReferralBannerTextEl.textContent = t("fakeSparks.invitePending");
+      }
     }
 
     function renderFakeSparksInviteCard(data, signedIn) {
@@ -10436,7 +10518,8 @@
       }
 
       if (fakeSparksInviteCopyBtnEl) {
-        const canCopy = signedIn && ref.referralCode && !limitReached;
+        const inviteCode = getReferralInviteCode(ref);
+        const canCopy = signedIn && inviteCode && !limitReached;
         fakeSparksInviteCopyBtnEl.disabled = limitReached;
         fakeSparksInviteCopyBtnEl.title = canCopy
           ? t("fakeSparks.inviteCopy")
@@ -10446,14 +10529,33 @@
               : t("fakeSparks.inviteSignIn")
             : t("fakeSparks.inviteSignIn");
       }
+
+      if (fakeSparksInviteLinkPreviewEl) {
+        const url = buildReferralInviteUrl(ref);
+        if (signedIn && url && !limitReached) {
+          fakeSparksInviteLinkPreviewEl.hidden = false;
+          fakeSparksInviteLinkPreviewEl.textContent = url;
+          fakeSparksInviteLinkPreviewEl.title = url;
+        } else {
+          fakeSparksInviteLinkPreviewEl.hidden = true;
+          fakeSparksInviteLinkPreviewEl.textContent = "";
+          fakeSparksInviteLinkPreviewEl.title = "";
+        }
+      }
     }
 
     function captureReferralFromUrl() {
       const params = new URLSearchParams(location.search);
       const ref = params.get("ref");
-      if (!ref) return;
+      if (!ref) {
+        renderReferralLandingBanner();
+        return;
+      }
       const trimmed = ref.trim().slice(0, 128);
-      if (!trimmed) return;
+      if (!trimmed) {
+        renderReferralLandingBanner();
+        return;
+      }
       try {
         localStorage.setItem(FAKE_SPARKS_REF_KEY, trimmed);
       } catch {}
@@ -10461,6 +10563,7 @@
       const rest = params.toString();
       const nextUrl = `${location.pathname}${rest ? `?${rest}` : ""}${location.hash}`;
       history.replaceState({}, "", nextUrl);
+      renderReferralLandingBanner();
     }
 
     async function syncPendingReferral() {
@@ -10479,6 +10582,7 @@
           try {
             localStorage.removeItem(FAKE_SPARKS_REF_KEY);
           } catch {}
+          renderReferralLandingBanner();
           showPassiveHint(t("fakeSparks.inviteValidated"));
         } else if (data.validation?.reason) {
           showPassiveHint(translateApiError(data.validation.reason) || data.validation.reason);
@@ -10520,11 +10624,11 @@
         showPassiveHint(t("fakeSparks.inviteLimit"));
         return;
       }
-      if (!ref?.referralCode) return;
       const url = buildReferralInviteUrl(ref);
+      if (!url) return;
       try {
         await navigator.clipboard.writeText(url);
-        showInviteCopiedToast(t("fakeSparks.inviteCopied"));
+        showInviteCopiedToast(t("fakeSparks.inviteCopiedUrl", { url }));
       } catch {
         showPassiveHint(t("fakeSparks.inviteCopyFail"));
       }

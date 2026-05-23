@@ -238,6 +238,8 @@
   "fakeSparks.headerClaim": "Resgatar diário",
   "fakeSparks.inviteAria": "Convidar amigos para KRAPS",
   "fakeSparks.inviteCopied": "Link de convite copiado!",
+  "fakeSparks.inviteCopiedUrl": "Link copiado: {url}",
+  "fakeSparks.invitePending": "Convite recebido — entre com Discord ou Telegram para validar.",
   "fakeSparks.inviteCopy": "Copiar link de convite",
   "fakeSparks.inviteCopyFail": "Não foi possível copiar o link.",
   "fakeSparks.inviteLimit": "Você já usou seus 3 convites.",

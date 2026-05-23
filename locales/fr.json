@@ -389,6 +389,8 @@
   "fakeSparks.inviteUsage": "Invitations utilisées : {used} / {max}",
   "fakeSparks.inviteCopy": "Copier le lien d’invitation",
   "fakeSparks.inviteCopied": "Lien d’invitation copié !",
+  "fakeSparks.inviteCopiedUrl": "Lien copié : {url}",
+  "fakeSparks.invitePending": "Invitation reçue — connecte-toi avec Discord ou Telegram pour valider.",
   "fakeSparks.inviteCopyFail": "Impossible de copier le lien.",
   "fakeSparks.inviteLimit": "Tu as déjà utilisé tes 3 invitations.",
   "fakeSparks.inviteSignIn": "Connecte-toi pour inviter des amis.",

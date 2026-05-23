@@ -238,6 +238,8 @@
   "fakeSparks.headerClaim": "Nhận hàng ngày",
   "fakeSparks.inviteAria": "Mời bạn bè nhận KRAPS",
   "fakeSparks.inviteCopied": "Đã sao chép liên kết mời!",
+  "fakeSparks.inviteCopiedUrl": "Đã sao chép: {url}",
+  "fakeSparks.invitePending": "Đã nhận lời mời — đăng nhập bằng Discord hoặc Telegram để xác nhận.",
   "fakeSparks.inviteCopy": "Sao chép liên kết mời",
   "fakeSparks.inviteCopyFail": "Không thể sao chép liên kết.",
   "fakeSparks.inviteLimit": "Bạn đã dùng hết 3 lời mời.",

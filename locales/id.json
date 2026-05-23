@@ -238,6 +238,8 @@
   "fakeSparks.headerClaim": "Klaim harian",
   "fakeSparks.inviteAria": "Undang teman untuk KRAPS",
   "fakeSparks.inviteCopied": "Tautan undangan disalin!",
+  "fakeSparks.inviteCopiedUrl": "Tautan disalin: {url}",
+  "fakeSparks.invitePending": "Undangan diterima — masuk dengan Discord atau Telegram untuk validasi.",
   "fakeSparks.inviteCopy": "Salin tautan undangan",
   "fakeSparks.inviteCopyFail": "Tidak dapat menyalin tautan.",
   "fakeSparks.inviteLimit": "Anda sudah memakai 3 undangan.",
