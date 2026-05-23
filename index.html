@@ -11451,11 +11451,13 @@
       });
       skillSurvivorMusicToggleEl?.addEventListener("change", () => {
         BuilderAudioSettings.setMusic(skillSurvivorMusicToggleEl.checked);
+        skillSurvivorGame?._syncBgmEnabled?.();
       });
       BuilderAudioSettings?.onChange((prefs) => {
         if (skillSurvivorSoundToggleEl) skillSurvivorSoundToggleEl.checked = prefs.sound;
         if (skillSurvivorMusicToggleEl) skillSurvivorMusicToggleEl.checked = prefs.music;
         skillSurvivorGame?._syncSfxEnabled?.();
+        skillSurvivorGame?._syncBgmEnabled?.();
       });
       skillSurvivorStartBtnEl?.addEventListener("click", () => void startSkillSurvivorRunUi());
       skillSurvivorLbTabDailyEl?.addEventListener("click", () => {

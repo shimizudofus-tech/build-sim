@@ -253,6 +253,163 @@
     }
   }
 
+  const BGM_SRC = "assets/skill-survivor-bgm.mp3";
+
+  /** Musique de fond — fichier Suno (assets/skill-survivor-bgm.mp3) ou boucle procédurale. */
+  class SurvivorBgm {
+    constructor(options = {}) {
+      this.src = options.src || BGM_SRC;
+      this.volume = options.volume ?? 0.28;
+      this.audio = null;
+      this.mode = null;
+      this.playing = false;
+      this.fileReady = null;
+      this.proc = null;
+    }
+
+    _musicAllowed() {
+      return !global.BuilderAudioSettings || global.BuilderAudioSettings.isMusicEnabled();
+    }
+
+    async _ensureFile() {
+      if (this.fileReady) return this.fileReady;
+      this.fileReady = new Promise((resolve) => {
+        const audio = new Audio(this.src);
+        audio.loop = true;
+        audio.preload = "auto";
+        audio.volume = this.volume;
+        const finish = (ok) => resolve(ok ? audio : null);
+        audio.addEventListener("canplaythrough", () => finish(true), { once: true });
+        audio.addEventListener("error", () => finish(null), { once: true });
+        setTimeout(() => finish(audio.readyState >= 2 ? audio : null), 3500);
+      });
+      return this.fileReady;
+    }
+
+    _ensureProcCtx() {
+      const Ctx = global.AudioContext || global.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!this.proc?.ctx) this.proc = { ctx: new Ctx(), pad: null, timer: null, master: null };
+      const ctx = this.proc.ctx;
+      if (ctx.state === "suspended") ctx.resume().catch(() => {});
+      return ctx;
+    }
+
+    _startProcedural() {
+      this._stopProcedural();
+      const ctx = this._ensureProcCtx();
+      if (!ctx) return;
+      const master = ctx.createGain();
+      master.gain.value = this.volume * 0.55;
+      master.connect(ctx.destination);
+      const pad = ctx.createOscillator();
+      pad.type = "sawtooth";
+      pad.frequency.value = 55;
+      const filt = ctx.createBiquadFilter();
+      filt.type = "lowpass";
+      filt.frequency.value = 520;
+      filt.Q.value = 0.6;
+      const padG = ctx.createGain();
+      padG.gain.value = 0.07;
+      pad.connect(filt).connect(padG).connect(master);
+      pad.start();
+      const notes = [220, 277.18, 329.63, 392, 329.63, 277.18, 220, 196];
+      let idx = 0;
+      const tick = () => {
+        if (!this.playing || this.mode !== "procedural") return;
+        const t0 = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        osc.type = "triangle";
+        osc.frequency.value = notes[idx % notes.length];
+        idx += 1;
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.1 * this.volume), t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+        osc.connect(g).connect(master);
+        osc.start(t0);
+        osc.stop(t0 + 0.24);
+      };
+      tick();
+      const timer = setInterval(tick, 380);
+      this.proc.master = master;
+      this.proc.pad = pad;
+      this.proc.timer = timer;
+      this.mode = "procedural";
+      this.playing = true;
+    }
+
+    _stopProcedural() {
+      if (!this.proc) return;
+      if (this.proc.timer) clearInterval(this.proc.timer);
+      try {
+        this.proc.pad?.stop();
+      } catch {
+        /* already stopped */
+      }
+      this.proc.timer = null;
+      this.proc.pad = null;
+    }
+
+    async start() {
+      if (!this._musicAllowed()) return;
+      if (this.playing) return;
+      const file = await this._ensureFile();
+      if (file) {
+        this.audio = file;
+        this.mode = "file";
+        file.volume = this.volume;
+        try {
+          await file.play();
+          this.playing = true;
+          return;
+        } catch {
+          /* autoplay blocked or decode error — fallback */
+        }
+      }
+      this._startProcedural();
+    }
+
+    pause() {
+      if (!this.playing) return;
+      if (this.mode === "file" && this.audio) this.audio.pause();
+      if (this.mode === "procedural" && this.proc?.ctx) this.proc.ctx.suspend().catch(() => {});
+    }
+
+    resume() {
+      if (!this.playing || !this._musicAllowed()) return;
+      if (this.mode === "file" && this.audio) this.audio.play().catch(() => {});
+      if (this.mode === "procedural" && this.proc?.ctx) this.proc.ctx.resume().catch(() => {});
+    }
+
+    stop() {
+      this.playing = false;
+      if (this.audio) {
+        this.audio.pause();
+        this.audio.currentTime = 0;
+      }
+      this._stopProcedural();
+      if (this.proc?.ctx) this.proc.ctx.suspend().catch(() => {});
+    }
+
+    setEnabled(on) {
+      if (on && this._musicAllowed()) {
+        void this.start();
+      } else {
+        this.stop();
+      }
+    }
+
+    destroy() {
+      this.stop();
+      if (this.proc?.ctx) this.proc.ctx.close().catch(() => {});
+      this.proc = null;
+      this.audio = null;
+      this.mode = null;
+      this.fileReady = null;
+    }
+  }
+
   class SkillSurvivorGame {
     constructor(canvas, options = {}) {
       this.canvas = canvas;
@@ -266,6 +423,7 @@
       this.onGameOver = options.onGameOver || (() => {});
       this.onFatalHit = options.onFatalHit || null;
       this.sfx = options.sfx instanceof SurvivorSfx ? options.sfx : new SurvivorSfx(options.sound !== false);
+      this.bgm = options.bgm instanceof SurvivorBgm ? options.bgm : new SurvivorBgm({ src: options.bgmSrc });
       this.effects = buildUpgradeEffects(options.upgrades);
 
       this.running = false;
@@ -309,6 +467,19 @@
       const userOn = !global.BuilderAudioSettings || global.BuilderAudioSettings.isSoundEnabled();
       const runtimeOn = userOn && this.sessionActive && this.running && !this.paused;
       this.sfx.setEnabled(runtimeOn);
+    }
+
+    _syncBgmEnabled() {
+      const userOn = !global.BuilderAudioSettings || global.BuilderAudioSettings.isMusicEnabled();
+      if (!userOn || !this.sessionActive) {
+        this.bgm.stop();
+        return;
+      }
+      if (this.running && !this.paused) {
+        void this.bgm.start();
+      } else if (this.paused) {
+        this.bgm.pause();
+      }
     }
 
     _bindInput() {
@@ -443,6 +614,7 @@
       this._wasRunningBeforePause = false;
       this.sessionActive = true;
       this._syncSfxEnabled();
+      this._syncBgmEnabled();
       if (!global.BuilderAudioSettings || global.BuilderAudioSettings.isSoundEnabled()) {
         this.sfx.startRun();
       }
@@ -459,6 +631,7 @@
         this.running = true;
         this.lastFrame = performance.now();
         this._syncSfxEnabled();
+        this._syncBgmEnabled();
         requestAnimationFrame((t) => this._loop(t));
       }
     }
@@ -470,6 +643,7 @@
       this._pauseStarted = 0;
       this._wasRunningBeforePause = false;
       this.sfx.setEnabled(false);
+      this.bgm.stop();
     }
 
     pause() {
@@ -479,6 +653,7 @@
       this.running = false;
       if (this._wasRunningBeforePause) this._pauseStarted = performance.now();
       this._syncSfxEnabled();
+      this.bgm.pause();
     }
 
     resume() {
@@ -492,6 +667,7 @@
         this.running = true;
         this.lastFrame = performance.now();
         this._syncSfxEnabled();
+        this._syncBgmEnabled();
         requestAnimationFrame((t) => this._loop(t));
       }
       this._wasRunningBeforePause = false;
@@ -500,6 +676,7 @@
     destroy() {
       this.stop();
       this.sfx.destroy();
+      this.bgm.destroy();
       window.removeEventListener("keydown", this._onKeyDown);
       window.removeEventListener("keyup", this._onKeyUp);
       this.canvas.removeEventListener("touchstart", this._onTouchStart);
@@ -1060,5 +1237,7 @@
     },
     difficultyAt,
     SurvivorSfx,
+    SurvivorBgm,
+    BGM_SRC,
   };
 })(typeof window !== "undefined" ? window : globalThis);

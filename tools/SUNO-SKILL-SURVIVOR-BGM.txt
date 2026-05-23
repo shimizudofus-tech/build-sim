@@ -1,0 +1,61 @@
+Skill Survivor — brief Suno.com pour la musique de fond
+======================================================
+
+Objectif : piste INSTRUMENTALE en boucle (~2–3 min seamless loop), à exporter en MP3
+puis placer dans : assets/skill-survivor-bgm.mp3
+
+---
+
+PROMPT SUNO (copier-coller — version FR)
+----------------------------------------
+
+Style tags (ligne Style of Music) :
+dark synthwave, cyber arena, action survivor, instrumental, loopable, tense, neon, 118 bpm
+
+Description / Lyrics (mettre « instrumental only » ou laisser vide selon Suno) :
+
+Jeu vidéo top-down « Skill Survivor » dans l’univers Spekter Builder.
+Le héros survit dans une arène sombre néon bleu/violet, tire des shurikens automatiques,
+esquive des vagues d’ennemis (icônes de sorts magiques).
+La difficulté monte toutes les 10 secondes. Boss elite EVO toutes les 10 s.
+À 1 minute : boss mythique fantôme invincible lent qui rebondit sur les murs.
+Ambiance : tension croissante, adrénaline, arcade compétitif, leaderboard KRAPS.
+Pas de voix. Boucle fluide pour parties de 2 à 10 minutes.
+Références mood : Vampire Survivors OST, synthwave combat, pulse électronique discret,
+basse profonde, arpèges synthé, pads atmosphériques, percussions légères mid-tempo.
+
+---
+
+PROMPT SUNO (English — if the model works better in EN)
+-------------------------------------------------------
+
+Style tags :
+dark synthwave, cyber arena, action survivor, instrumental, loopable, tense, neon, 118 bpm
+
+Description :
+
+Top-down arena survivor mini-game « Skill Survivor » (Spekter Builder universe).
+Hero auto-fires shurikens in a dark neon blue/purple arena, dodging waves of skill-icon enemies.
+Difficulty ramps every 10 seconds. Elite EVO bosses every 10 s. Mythic ghost boss at 1:00.
+Competitive arcade mood, rising tension, KRAPS leaderboard grind.
+Instrumental only, seamless loop for 2–10 minute runs.
+Mood refs: survivor-like OST, synthwave combat, deep bass, arpeggiated synths, light driving drums.
+
+---
+
+Réglages Suno recommandés
+-------------------------
+- Mode : Instrumental / Custom (sans paroles)
+- Durée : 2:00 à 2:30 (puis boucle dans le jeu)
+- Eviter : voix, paroles, breaks trop longs, fade-out final (préférer une fin qui boucle)
+- Exporter : MP3 192 kbps ou plus
+
+Installation dans le projet
+---------------------------
+1. Télécharger le MP3 depuis Suno
+2. Renommer en skill-survivor-bgm.mp3
+3. Copier dans assets/skill-survivor-bgm.mp3
+4. git add assets/skill-survivor-bgm.mp3 && push (Cloudflare redéploie)
+5. Tant que le fichier n’existe pas, une musique procédurale temporaire joue en jeu.
+
+Test : lancer une run Skill Survivor, case « Musique » cochée dans le HUD.
