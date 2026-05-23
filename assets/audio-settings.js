@@ -5,9 +5,15 @@
   "use strict";
 
   const STORAGE_KEY = "builder_audio_prefs_v1";
-  const defaults = { sound: true, music: true };
+  const defaults = { sound: true, music: true, musicVolume: 0.55 };
   const listeners = new Set();
   let prefs = loadPrefs();
+
+  function clampVolume(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return defaults.musicVolume;
+    return Math.max(0, Math.min(1, n));
+  }
 
   function loadPrefs() {
     try {
@@ -17,6 +23,7 @@
       return {
         sound: parsed.sound !== false,
         music: parsed.music !== false,
+        musicVolume: clampVolume(parsed.musicVolume ?? defaults.musicVolume),
       };
     } catch {
       return { ...defaults };
@@ -42,7 +49,11 @@
   }
 
   function getPrefs() {
-    return { sound: prefs.sound, music: prefs.music };
+    return {
+      sound: prefs.sound,
+      music: prefs.music,
+      musicVolume: prefs.musicVolume,
+    };
   }
 
   function isSoundEnabled() {
@@ -51,6 +62,10 @@
 
   function isMusicEnabled() {
     return prefs.music !== false;
+  }
+
+  function getMusicVolume() {
+    return prefs.musicVolume;
   }
 
   function setSound(on) {
@@ -65,6 +80,12 @@
     notify();
   }
 
+  function setMusicVolume(value) {
+    prefs.musicVolume = clampVolume(value);
+    savePrefs();
+    notify();
+  }
+
   function onChange(fn) {
     listeners.add(fn);
     return () => listeners.delete(fn);
@@ -74,8 +95,10 @@
     getPrefs,
     isSoundEnabled,
     isMusicEnabled,
+    getMusicVolume,
     setSound,
     setMusic,
+    setMusicVolume,
     onChange,
   };
 })(typeof window !== "undefined" ? window : globalThis);

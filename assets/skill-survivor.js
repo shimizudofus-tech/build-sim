@@ -259,7 +259,10 @@
   class SurvivorBgm {
     constructor(options = {}) {
       this.src = options.src || BGM_SRC;
-      this.volume = options.volume ?? 0.28;
+      this.volume =
+        typeof options.volume === "number"
+          ? Math.max(0, Math.min(1, options.volume))
+          : global.BuilderAudioSettings?.getMusicVolume?.() ?? 0.55;
       this.audio = null;
       this.mode = null;
       this.playing = false;
@@ -269,6 +272,19 @@
 
     _musicAllowed() {
       return !global.BuilderAudioSettings || global.BuilderAudioSettings.isMusicEnabled();
+    }
+
+    _readVolume() {
+      if (global.BuilderAudioSettings?.getMusicVolume) {
+        return global.BuilderAudioSettings.getMusicVolume();
+      }
+      return this.volume;
+    }
+
+    setVolume(value) {
+      this.volume = Math.max(0, Math.min(1, Number(value) || 0));
+      if (this.audio) this.audio.volume = this.volume;
+      if (this.proc?.master) this.proc.master.gain.value = this.volume * 0.55;
     }
 
     async _ensureFile() {

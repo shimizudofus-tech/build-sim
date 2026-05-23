@@ -3129,6 +3129,24 @@
       accent-color: #6ea8fe;
       cursor: pointer;
     }
+    .skill-survivor-music-volume {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      min-width: 0;
+    }
+    .skill-survivor-music-volume input[type="range"] {
+      width: 4.75rem;
+      max-width: 22vw;
+      height: 0.35rem;
+      margin: 0;
+      accent-color: #6ea8fe;
+      cursor: pointer;
+    }
+    .skill-survivor-music-volume input[type="range"]:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
     .skill-survivor-canvas-wrap {
       position: relative;
       border-radius: 12px;
@@ -5409,6 +5427,17 @@
             <label class="skill-survivor-audio-toggle">
               <input type="checkbox" id="skillSurvivorMusicToggle" checked />
               <span data-i18n="settings.music">Music</span>
+            </label>
+            <label class="skill-survivor-music-volume">
+              <input
+                type="range"
+                id="skillSurvivorMusicVolume"
+                min="0"
+                max="100"
+                value="55"
+                data-i18n-aria-label="skillSurvivor.musicVolume"
+                aria-label="Music volume"
+              />
             </label>
           </span>
         </div>
@@ -10868,12 +10897,17 @@
     const skillSurvivorUpgradesHintEl = document.getElementById("skillSurvivorUpgradesHint");
     const skillSurvivorSoundToggleEl = document.getElementById("skillSurvivorSoundToggle");
     const skillSurvivorMusicToggleEl = document.getElementById("skillSurvivorMusicToggle");
+    const skillSurvivorMusicVolumeEl = document.getElementById("skillSurvivorMusicVolume");
 
     function syncAudioSettingsUi() {
       if (!window.BuilderAudioSettings) return;
       const prefs = BuilderAudioSettings.getPrefs();
       if (skillSurvivorSoundToggleEl) skillSurvivorSoundToggleEl.checked = prefs.sound;
       if (skillSurvivorMusicToggleEl) skillSurvivorMusicToggleEl.checked = prefs.music;
+      if (skillSurvivorMusicVolumeEl) {
+        skillSurvivorMusicVolumeEl.value = String(Math.round((prefs.musicVolume ?? 0.55) * 100));
+        skillSurvivorMusicVolumeEl.disabled = !prefs.music;
+      }
     }
 
     function formatSurvivorHp(st) {
@@ -11451,13 +11485,26 @@
       });
       skillSurvivorMusicToggleEl?.addEventListener("change", () => {
         BuilderAudioSettings.setMusic(skillSurvivorMusicToggleEl.checked);
+        if (skillSurvivorMusicVolumeEl) {
+          skillSurvivorMusicVolumeEl.disabled = !skillSurvivorMusicToggleEl.checked;
+        }
         skillSurvivorGame?._syncBgmEnabled?.();
+      });
+      skillSurvivorMusicVolumeEl?.addEventListener("input", () => {
+        const vol = Math.max(0, Math.min(100, Number(skillSurvivorMusicVolumeEl.value) || 0)) / 100;
+        BuilderAudioSettings.setMusicVolume(vol);
+        skillSurvivorGame?._syncBgmVolume?.();
       });
       BuilderAudioSettings?.onChange((prefs) => {
         if (skillSurvivorSoundToggleEl) skillSurvivorSoundToggleEl.checked = prefs.sound;
         if (skillSurvivorMusicToggleEl) skillSurvivorMusicToggleEl.checked = prefs.music;
+        if (skillSurvivorMusicVolumeEl) {
+          skillSurvivorMusicVolumeEl.value = String(Math.round((prefs.musicVolume ?? 0.55) * 100));
+          skillSurvivorMusicVolumeEl.disabled = !prefs.music;
+        }
         skillSurvivorGame?._syncSfxEnabled?.();
         skillSurvivorGame?._syncBgmEnabled?.();
+        skillSurvivorGame?._syncBgmVolume?.();
       });
       skillSurvivorStartBtnEl?.addEventListener("click", () => void startSkillSurvivorRunUi());
       skillSurvivorLbTabDailyEl?.addEventListener("click", () => {
