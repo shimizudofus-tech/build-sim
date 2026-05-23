@@ -8053,8 +8053,22 @@
       errorsEl.innerHTML = errs.length ? `<div class="err">${errs.map((e) => `• ${e}`).join("<br/>")}</div>` : "";
     }
 
+    /** Sort de base réellement visible (pas masqué par une EVO ou une mythique sur le slot). */
+    function skillPresentInSlot(slotIndex, skillId) {
+      if (slots[slotIndex]?.skill !== skillId) return false;
+      if (mythicOnSlot(slotIndex) || evoOnSlot(slotIndex)) return false;
+      return true;
+    }
+
     function skillUsedElsewhere(slotIndex, skillId) {
-      return slots.some((sl, j) => j !== slotIndex && sl.skill === skillId);
+      return slots.some((sl, j) => j !== slotIndex && skillPresentInSlot(j, skillId));
+    }
+
+    /** Abyss : mythique incluant le sort exclusif du héros → on peut reprendre ce sort en doublon. */
+    function abyssExclusiveRepickAfterMythic(skillId) {
+      if (modeUsesUniqueSkills()) return false;
+      const ch = currentCharacter();
+      return skillId === ch.exclusiveSkill && Boolean(mythicEmbodyingExclusive(ch));
     }
 
     /** Unique-skill modes: base skill already on the board, in EVO, or in a mythic fusion. */
@@ -8070,7 +8084,8 @@
 
     function skillBlockedInSlot(slotIndex, skillId) {
       if (EXCLUSIVE_SKILL_OWNER.has(skillId)) {
-        return slots.some((sl, j) => j !== slotIndex && sl.skill === skillId);
+        if (abyssExclusiveRepickAfterMythic(skillId)) return false;
+        return skillUsedElsewhere(slotIndex, skillId);
       }
       if (modeUsesUniqueSkills()) return skillBaseUsedInBuild(skillId, slotIndex);
       return false;
@@ -8115,6 +8130,7 @@
             locked ||
             (!modeUsesUniqueSkills() &&
               EXCLUSIVE_SKILL_OWNER.has(s.id) &&
+              !abyssExclusiveRepickAfterMythic(s.id) &&
               skillUsedElsewhere(focusSkillSlot, s.id));
           return pickButton("skill", s.id, s.label, disabled, locked);
         })
