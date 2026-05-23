@@ -296,7 +296,7 @@
   "skillSurvivor.lifeRequired": "A life is required to play (1 KRAPS or today's free life).",
   "skillSurvivor.difficulty": "Diff ×{n}",
   "skillSurvivor.finalScore": "Score {score} · {time} · {kills} kills",
-  "skillSurvivor.freeAvailable": "Today's free life is available",
+  "skillSurvivor.freeAvailable": "First life always free · Extra lives: {cost} KRAPS",
   "skillSurvivor.gameAria": "Skill Survivor game",
   "skillSurvivor.gameOver": "Run over",
   "skillSurvivor.heroAria": "Skill Survivor",

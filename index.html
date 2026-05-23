@@ -10953,13 +10953,12 @@
       const cost = cfg.lifeCostKraps || 1;
       const maxLives = cfg.maxLives || 3;
       const nextLife = livesPurchased + 1;
-      const freeNext = livesPurchased === 0 && skillSurvivorCache?.freeAvailable;
-      const message = freeNext
-        ? t("skillSurvivor.continueFree", { life: nextLife, max: maxLives })
-        : t("skillSurvivor.continuePaid", { life: nextLife, max: maxLives, cost: formatNumber(cost) });
-      const continueLabel = freeNext
-        ? t("skillSurvivor.continueFreeBtn", { life: nextLife })
-        : t("skillSurvivor.continuePaidBtn", { cost: formatNumber(cost) });
+      const message = t("skillSurvivor.continuePaid", {
+        life: nextLife,
+        max: maxLives,
+        cost: formatNumber(cost),
+      });
+      const continueLabel = t("skillSurvivor.continuePaidBtn", { cost: formatNumber(cost) });
 
       const wantsContinue = await showSkillSurvivorContinue({ message, continueLabel });
       if (!wantsContinue) return null;
@@ -11216,12 +11215,9 @@
       }
 
       if (skillSurvivorCostHintEl) {
-        skillSurvivorCostHintEl.textContent = s.freeAvailable
-          ? t("skillSurvivor.freeAvailable")
-          : t("skillSurvivor.costPaid", {
-              cost: formatNumber(s.config?.lifeCostKraps || 1),
-              balance: formatNumber(s.balance || 0),
-            });
+        skillSurvivorCostHintEl.textContent = t("skillSurvivor.freeAvailable", {
+          cost: formatNumber(s.config?.lifeCostKraps || 1),
+        });
       }
 
       if (skillSurvivorStartBtnEl) {
@@ -11232,9 +11228,7 @@
           ? t("skillSurvivor.playing")
           : s.canResume
             ? t("skillSurvivor.resume")
-            : s.freeAvailable
-              ? t("skillSurvivor.startFree")
-              : t("skillSurvivor.startPaid", { cost: formatNumber(s.config?.lifeCostKraps || 1) });
+            : t("skillSurvivor.startFree");
       }
     }
 
@@ -11423,8 +11417,8 @@
         await launchSkillSurvivorGame({
           runId: data.runId,
           seed: data.seed,
-          livesPurchased: 0,
-          buyFirstLife: true,
+          livesPurchased: data.livesPurchased ?? 1,
+          buyFirstLife: false,
         });
       } catch (err) {
         showPassiveHint(translateApiError(err.message) || err.message);
