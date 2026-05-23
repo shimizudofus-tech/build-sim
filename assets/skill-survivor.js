@@ -88,6 +88,40 @@
   }
 
   const PICKUP_LIFE_MS = 4000;
+
+  const MOVEMENT_BLOCK_KEYS = new Set([
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "w",
+    "a",
+    "s",
+    "d",
+    "W",
+    "A",
+    "S",
+    "D",
+    "z",
+    "q",
+    "Z",
+    "Q",
+  ]);
+
+  function useAzertyMovementKeys() {
+    return global.I18n?.locale === "fr";
+  }
+
+  function movementVector(keys) {
+    const azerty = useAzertyMovementKeys();
+    let vx = 0;
+    let vy = 0;
+    if (keys.has("arrowleft") || keys.has("a") || (azerty && keys.has("q"))) vx -= 1;
+    if (keys.has("arrowright") || keys.has("d")) vx += 1;
+    if (keys.has("arrowup") || keys.has("w") || (azerty && keys.has("z"))) vy -= 1;
+    if (keys.has("arrowdown") || keys.has("s")) vy += 1;
+    return { vx, vy };
+  }
   const PICKUP_SPAWN_MIN = 1800;
   const PICKUP_SPAWN_MAX = 3200;
 
@@ -279,7 +313,7 @@
 
     _bindInput() {
       this._onKeyDown = (e) => {
-        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"].includes(e.key)) {
+        if (MOVEMENT_BLOCK_KEYS.has(e.key)) {
           e.preventDefault();
         }
         this.keys.add(e.key.toLowerCase());
@@ -508,12 +542,7 @@
       const diff = difficultyAt(sec);
 
       if (this._touchId == null) {
-        let vx = 0;
-        let vy = 0;
-        if (this.keys.has("arrowleft") || this.keys.has("a")) vx -= 1;
-        if (this.keys.has("arrowright") || this.keys.has("d")) vx += 1;
-        if (this.keys.has("arrowup") || this.keys.has("w")) vy -= 1;
-        if (this.keys.has("arrowdown") || this.keys.has("s")) vy += 1;
+        const { vx, vy } = movementVector(this.keys);
         const len = Math.hypot(vx, vy) || 1;
         const speed = (175 + Math.min(40, sec * 0.4)) * this.effects.moveSpeedMult;
         this.player.vx = (vx / len) * speed;

@@ -286,6 +286,7 @@
   "miniGames.placeholderAria": "Mini games",
   "miniGames.progressAria": "Progression preview",
   "miniGames.xpHint": "XP and energy will unlock with mini games — full system coming soon.",
+  "skillSurvivor.controlsHint": "Move: WASD or arrow keys · drag on touch screens",
   "skillSurvivor.costHint": "1 free life / day · then 1 KRAPS per life (×3 max)",
   "skillSurvivor.costPaid": "Next life: {cost} KRAPS · Balance: {balance}",
   "skillSurvivor.continueFree": "Life {life}/{max} — today's free life is available.",
