@@ -1,6 +1,6 @@
 @echo off
 cd /d "%~dp0.."
-echo === BUILDER - publication GitHub Pages ===
+echo === BUILDER - publication Cloudflare Pages ===
 echo.
 
 where gh >nul 2>&1
@@ -38,9 +38,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo Quand GitHub Pages a fini (1-2 min) :
-echo   https://%GHUSER%.github.io/%REPO%/
-echo.
-echo Si la page est vide : repo ^> Settings ^> Pages ^> Source = GitHub Actions
+echo Quand Cloudflare Pages a fini (1-2 min) :
+echo   https://build-sim.pages.dev/
 echo.
 pause

@@ -33,7 +33,6 @@ if (-not $exists) {
   git push -u origin main 2>&1 | ForEach-Object { Log $_ }
 }
 
-gh workflow run pages.yml 2>&1 | ForEach-Object { Log $_ }
-$url = "https://$user.github.io/$repo/"
+$url = "https://build-sim.pages.dev/"
 Log "URL=$url"
 Log "DONE"

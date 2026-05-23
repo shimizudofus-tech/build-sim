@@ -1,7 +1,9 @@
 BUILDER — Cloudflare Pages setup
 ================================
 
-Recommended free hosting for updates:
+Production URL: https://build-sim.pages.dev/
+
+Recommended free hosting:
 GitHub repo -> Cloudflare Pages -> automatic deploy on every push to main.
 
 Pages settings
@@ -12,8 +14,8 @@ Build output directory: dist
 Root directory: leave empty
 Functions directory: functions
 
-Global visit counter + Community builds
----------------------------------------
+Global visit counter + Community builds + KRAPS + Skill Survivor
+----------------------------------------------------------------
 Create a KV namespace in Cloudflare:
 Workers & Pages -> KV -> Create namespace
 Name: builder-global-data
@@ -24,10 +26,12 @@ Variable name: BUILDER_KV
 KV namespace: builder-global-data
 
 After deploy, test:
-https://YOUR-CLOUDFLARE-DOMAIN/api/community-builds
+https://build-sim.pages.dev/api/community-builds
+https://build-sim.pages.dev/api/minigames/skill-survivor
 
-Expected response:
-{"builds":[]}
+Expected responses:
+{"builds":[]}  (or existing builds)
+Skill Survivor JSON with upgrades catalog
 
 If you see "Missing Cloudflare KV binding: BUILDER_KV", the Function is deployed
 but the KV binding is not configured yet.
@@ -38,7 +42,7 @@ The builder stays usable without login, but online publish, vote, delete, and
 avatar upload require a signed session.
 
 Set these Cloudflare Pages environment variables:
-- PUBLIC_SITE_URL=https://YOUR-CLOUDFLARE-DOMAIN
+- PUBLIC_SITE_URL=https://build-sim.pages.dev
 - SESSION_SECRET=a long random secret, at least 32 characters
 - DISCORD_CLIENT_ID=from the Discord developer portal
 - DISCORD_CLIENT_SECRET=from the Discord developer portal
@@ -46,8 +50,8 @@ Set these Cloudflare Pages environment variables:
 - TELEGRAM_BOT_USERNAME=bot username without @ (same bot as the token)
 
 OAuth redirect URLs to register externally:
-- Discord: https://YOUR-CLOUDFLARE-DOMAIN/api/auth/callback/discord
+- Discord: https://build-sim.pages.dev/api/auth/callback/discord
 
 Telegram (@BotFather):
-- /setdomain → YOUR-CLOUDFLARE-DOMAIN (e.g. build-sim.pages.dev)
+- /setdomain → build-sim.pages.dev
 - Local test: set domain to localhost only if BotFather allows it; otherwise test on production

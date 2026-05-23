@@ -2,5 +2,4 @@ data/db.json
 data/db.test.json
 .env.test
 node_modules/
-.netlify/
 dist/
