@@ -26,6 +26,14 @@ import {
   registerReferralPending,
   applyReferralAfterAuth,
 } from "../../lib/fake-sparks.cjs";
+import {
+  normalizeSkillSurvivorDb,
+  getSkillSurvivorState,
+  startSkillSurvivorRun,
+  buySkillSurvivorLife,
+  buySkillSurvivorUpgrade,
+  completeSkillSurvivorRun,
+} from "../../lib/skill-survivor.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -470,6 +478,7 @@ async function readDb(env) {
     presence: db.presence && typeof db.presence === "object" ? db.presence : {},
     fakeSparksUsers: normalizeFakeSparksUsers(db.fakeSparksUsers),
     referrals: normalizeReferrals(db.referrals),
+    skillSurvivor: normalizeSkillSurvivorDb(db.skillSurvivor),
     ...readSupportFields(db),
   };
 }
@@ -908,6 +917,57 @@ export async function onRequest(context) {
         validation: result.validation,
         ...getFakeSparksState(db, user),
       });
+    }
+
+    if (path === "/api/minigames/skill-survivor" && method === "GET") {
+      const db = await readDb(env);
+      const user = await sessionUser(request, env, db);
+      const payload = getSkillSurvivorState(db, user);
+      await writeDb(env, db);
+      return json(payload);
+    }
+
+    if (path === "/api/minigames/skill-survivor/start" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const result = startSkillSurvivorRun(db, user);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
+    }
+
+    if (path === "/api/minigames/skill-survivor/buy-life" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const body = await readBody(request);
+      const result = buySkillSurvivorLife(db, user, body);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
+    }
+
+    if (path === "/api/minigames/skill-survivor/buy-upgrade" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const body = await readBody(request);
+      const result = buySkillSurvivorUpgrade(db, user, body);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
+    }
+
+    if (path === "/api/minigames/skill-survivor/complete" && method === "POST") {
+      const db = await readDb(env);
+      const user = await requireUser(request, env, db);
+      if (!user) return json({ error: "Sign in required." }, 401);
+      const body = await readBody(request);
+      const result = completeSkillSurvivorRun(db, user, body);
+      if (result.error) return json({ error: result.error }, result.status);
+      await writeDb(env, db);
+      return json(result);
     }
 
     const deleteMatch = path.match(/^\/api\/community-builds\/([^/]+)$/);

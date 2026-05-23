@@ -48,6 +48,15 @@
     fake_sparks_referral_already_referred: "api.fakeSparksReferralAlready",
     fake_sparks_referral_limit: "api.fakeSparksReferralLimit",
     fake_sparks_referral_sign_in: "api.fakeSparksReferralSignIn",
+    skill_survivor_insufficient_kraps: "api.skillSurvivorInsufficientKraps",
+    skill_survivor_run_active: "api.skillSurvivorRunActive",
+    skill_survivor_run_not_found: "api.skillSurvivorRunNotFound",
+    skill_survivor_run_expired: "api.skillSurvivorRunExpired",
+    skill_survivor_invalid_score: "api.skillSurvivorInvalidScore",
+    skill_survivor_max_lives: "api.skillSurvivorMaxLives",
+    skill_survivor_upgrade_owned: "api.skillSurvivorUpgradeOwned",
+    skill_survivor_upgrade_unknown: "api.skillSurvivorUpgradeUnknown",
+    sign_in_required: "api.signInRequired",
   };
 
   let locale = DEFAULT_LOCALE;

@@ -51,7 +51,25 @@ const {
   acknowledgeDisclaimer,
   registerReferralPending,
   applyReferralAfterAuth,
+  ensureFakeSparksRecord,
 } = require("./lib/fake-sparks.cjs");
+const {
+  normalizeSkillSurvivorDb,
+  getSkillSurvivorState,
+  startSkillSurvivorRun,
+  buySkillSurvivorLife,
+  buySkillSurvivorUpgrade,
+  completeSkillSurvivorRun,
+} = require("./lib/skill-survivor.cjs");
+const {
+  localDevEnabled,
+  bootstrapLocalDevUser,
+  LOCAL_DEV_KRAPS,
+} = require("./lib/local-dev.cjs");
+
+if (!process.env.SESSION_SECRET && process.env.BUILDER_LOCAL_DEV !== "0") {
+  process.env.SESSION_SECRET = "dev-only-local-secret-min-32-characters-long";
+}
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -89,6 +107,7 @@ function readDb() {
       presence: parsed.presence && typeof parsed.presence === "object" ? parsed.presence : {},
       fakeSparksUsers: normalizeFakeSparksUsers(parsed.fakeSparksUsers),
       referrals: normalizeReferrals(parsed.referrals),
+      skillSurvivor: normalizeSkillSurvivorDb(parsed.skillSurvivor),
       ...readSupportFields(parsed),
     };
   } catch {
@@ -101,6 +120,7 @@ function readDb() {
       presence: {},
       fakeSparksUsers: {},
       referrals: [],
+      skillSurvivor: normalizeSkillSurvivorDb(null),
       ...readSupportFields({}),
     };
   }
@@ -658,7 +678,50 @@ async function handleTestApi(req, res, url) {
   return false;
 }
 
+async function handleLocalDevApi(req, res, url) {
+  if (!localDevEnabled(req)) return false;
+
+  if (url.pathname === "/api/local/dev-status" && req.method === "GET") {
+    return sendJson(res, 200, {
+      enabled: true,
+      kraps: LOCAL_DEV_KRAPS,
+      fakeDiscord: true,
+      fakeTelegram: true,
+    });
+  }
+
+  if (url.pathname === "/api/local/dev-login" && req.method === "POST") {
+    if (!process.env.SESSION_SECRET) {
+      return sendJson(res, 503, { error: "SESSION_SECRET is required for local dev login." });
+    }
+    const db = readDb();
+    const user = bootstrapLocalDevUser(db, {
+      upsertUser,
+      ensureLinkedIds,
+      ensureFakeSparksRecord,
+      applyReferralAfterAuth,
+    });
+    writeDb(db);
+    const session = signEnvelope(
+      { uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 },
+      process.env.SESSION_SECRET
+    );
+    return sendJson(
+      res,
+      200,
+      {
+        user: publicUser(user),
+        fakeSparks: getFakeSparksState(db, user).me,
+      },
+      { "set-cookie": cookieHeader(SESSION_COOKIE, session, req) }
+    );
+  }
+
+  return false;
+}
+
 async function handleApi(req, res, url) {
+  if (await handleLocalDevApi(req, res, url)) return;
   if (await handleTestApi(req, res, url)) return;
 
   if (url.pathname === "/api/auth/me" && req.method === "GET") {
@@ -1086,6 +1149,57 @@ async function handleApi(req, res, url) {
     });
   }
 
+  if (url.pathname === "/api/minigames/skill-survivor" && req.method === "GET") {
+    const db = readDb();
+    const user = sessionUser(req, db);
+    const payload = getSkillSurvivorState(db, user);
+    writeDb(db);
+    return sendJson(res, 200, payload);
+  }
+
+  if (url.pathname === "/api/minigames/skill-survivor/start" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const result = startSkillSurvivorRun(db, user);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
+  if (url.pathname === "/api/minigames/skill-survivor/buy-life" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const body = await readBody(req);
+    const result = buySkillSurvivorLife(db, user, body);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
+  if (url.pathname === "/api/minigames/skill-survivor/buy-upgrade" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const body = await readBody(req);
+    const result = buySkillSurvivorUpgrade(db, user, body);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
+  if (url.pathname === "/api/minigames/skill-survivor/complete" && req.method === "POST") {
+    const db = readDb();
+    const user = requireUser(req, db, res);
+    if (!user) return;
+    const body = await readBody(req);
+    const result = completeSkillSurvivorRun(db, user, body);
+    if (result.error) return sendJson(res, result.status, { error: result.error });
+    writeDb(db);
+    return sendJson(res, 200, result);
+  }
+
   const deleteMatch = url.pathname.match(/^\/api\/community-builds\/([^/]+)$/);
   if (deleteMatch && req.method === "DELETE") {
     const body = await readBody(req);
@@ -1144,6 +1258,9 @@ server.listen(PORT, () => {
   ensureDb();
   if (TEST_MODE) seedTestDatabase();
   console.log(`BUILDER server: http://localhost:${PORT}/`);
+  if (process.env.BUILDER_LOCAL_DEV !== "0") {
+    console.log(`  Local dev: POST http://localhost:${PORT}/api/local/dev-login (fake Discord/Telegram + ${LOCAL_DEV_KRAPS} KRAPS)`);
+  }
   if (TEST_MODE) {
     console.log(`TEST MODE — db: ${path.relative(ROOT, DB_FILE)}`);
     console.log(`  Site:  http://localhost:${PORT}/`);

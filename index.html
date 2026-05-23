@@ -611,6 +611,11 @@
       min-height: 2.8rem;
       font-size: 0.95rem;
     }
+    .auth-local-dev-button {
+      border-color: rgba(62, 207, 142, 0.45);
+      background: linear-gradient(180deg, rgba(62, 207, 142, 0.16), rgba(12, 24, 18, 0.5));
+      color: #bdf6d5;
+    }
     .auth-discord-button {
       border-color: rgba(110, 168, 254, 0.72);
       background: linear-gradient(135deg, rgba(88, 101, 242, 0.44), rgba(42, 63, 99, 0.92));
@@ -3039,6 +3044,282 @@
       margin: 0 auto;
       color: var(--muted);
     }
+    .skill-survivor-hero {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.85rem 1rem;
+      align-items: center;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(186, 133, 255, 0.38);
+      border-radius: 14px;
+      background:
+        radial-gradient(420px 200px at 0% 0%, rgba(186, 133, 255, 0.14), transparent 70%),
+        linear-gradient(180deg, rgba(70, 42, 120, 0.2), rgba(0, 0, 0, 0.12));
+    }
+    .skill-survivor-hero img {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      box-shadow: 0 0 16px rgba(186, 133, 255, 0.35);
+    }
+    .skill-survivor-hero h2 {
+      margin: 0 0 0.25rem;
+      font-size: 1.05rem;
+      color: #d8c1ff;
+    }
+    .skill-survivor-hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+    .skill-survivor-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 13.5rem) minmax(0, 28rem) minmax(0, 1fr);
+      gap: 1rem;
+      align-items: start;
+    }
+    @media (max-width: 1100px) {
+      .skill-survivor-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .skill-survivor-game {
+      padding: 0.85rem;
+      border: 1px solid rgba(110, 168, 254, 0.28);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(21, 28, 42, 0.95), rgba(8, 11, 18, 0.92));
+    }
+    .skill-survivor-hud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem 0.75rem;
+      align-items: center;
+      margin-bottom: 0.65rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .skill-survivor-hud strong {
+      color: #e9edf5;
+      font-size: 0.92rem;
+    }
+    .skill-survivor-hud .skill-survivor-hp {
+      letter-spacing: 0.08em;
+      color: #ff8aa0;
+    }
+    .skill-survivor-audio-toggles {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .skill-survivor-audio-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.28rem;
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+      font-size: 0.72rem;
+    }
+    .skill-survivor-audio-toggle input {
+      width: 0.85rem;
+      height: 0.85rem;
+      margin: 0;
+      accent-color: #6ea8fe;
+      cursor: pointer;
+    }
+    .skill-survivor-canvas-wrap {
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(110, 168, 254, 0.22);
+      background: #0a0e16;
+    }
+    #skillSurvivorCanvas {
+      display: block;
+      width: 100%;
+      touch-action: none;
+    }
+    .skill-survivor-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      align-items: center;
+      margin-top: 0.75rem;
+    }
+    .skill-survivor-controls .hint {
+      margin: 0;
+      font-size: 0.72rem;
+      color: var(--muted);
+      flex: 1 1 12rem;
+    }
+    .skill-survivor-side {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .skill-survivor-panel {
+      padding: 0.85rem;
+      border: 1px solid rgba(126, 151, 194, 0.28);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(21, 26, 39, 0.92), rgba(8, 11, 18, 0.88));
+    }
+    .skill-survivor-panel h3 {
+      margin: 0 0 0.55rem;
+      font-size: 0.92rem;
+      color: #aecdff;
+    }
+    .skill-survivor-lb-tabs {
+      display: flex;
+      gap: 0.35rem;
+      margin-bottom: 0.55rem;
+    }
+    .skill-survivor-lb-tabs button {
+      flex: 1;
+      min-width: 0;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.72rem;
+      border-radius: 999px;
+      border: 1px solid rgba(110, 168, 254, 0.28);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .skill-survivor-lb-tabs button.is-active {
+      border-color: rgba(110, 168, 254, 0.55);
+      background: rgba(110, 168, 254, 0.16);
+      color: #e9edf5;
+    }
+    .skill-survivor-lb-reset {
+      margin: 0 0 0.5rem;
+      font-size: 0.72rem;
+      color: #ffe0a0;
+    }
+    .skill-survivor-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.74rem;
+    }
+    .skill-survivor-table th,
+    .skill-survivor-table td {
+      padding: 0.35rem 0.25rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: left;
+      vertical-align: middle;
+    }
+    .skill-survivor-table th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .skill-survivor-table tr.is-me td {
+      color: #bdf6d5;
+    }
+    .skill-survivor-reward-tier {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 0.74rem;
+    }
+    .skill-survivor-upgrades {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .skill-survivor-upgrade-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      max-height: min(70vh, 34rem);
+      overflow-y: auto;
+      padding-right: 0.15rem;
+    }
+    .skill-survivor-upgrade-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding: 0.55rem 0.6rem;
+      border: 1px solid rgba(126, 151, 194, 0.24);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .skill-survivor-upgrade-item.is-owned {
+      border-color: rgba(141, 255, 178, 0.35);
+      background: rgba(141, 255, 178, 0.06);
+    }
+    .skill-survivor-upgrade-item strong {
+      font-size: 0.78rem;
+      color: #e9edf5;
+    }
+    .skill-survivor-upgrade-item p {
+      margin: 0;
+      font-size: 0.68rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .skill-survivor-upgrade-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .skill-survivor-upgrade-item button {
+      align-self: flex-start;
+      padding: 0.28rem 0.55rem;
+      font-size: 0.68rem;
+    }
+    .skill-survivor-upgrade-item .owned-badge {
+      font-size: 0.68rem;
+      color: #8dffb2;
+      font-weight: 600;
+    }
+    .skill-survivor-reward-tier:last-child {
+      border-bottom: 0;
+    }
+    .skill-survivor-result {
+      margin-top: 0.75rem;
+      padding: 0.65rem 0.75rem;
+      border-radius: 10px;
+      border: 1px solid rgba(62, 207, 142, 0.35);
+      background: rgba(62, 207, 142, 0.08);
+      font-size: 0.78rem;
+    }
+    .skill-survivor-result.is-hidden {
+      display: none;
+    }
+    .skill-survivor-gate {
+      margin-top: 0.65rem;
+      padding: 0.55rem 0.65rem;
+      border-radius: 10px;
+      border: 1px dashed rgba(240, 193, 77, 0.35);
+      background: rgba(240, 193, 77, 0.06);
+      color: #ffe0a0;
+      font-size: 0.74rem;
+    }
+    .skill-survivor-continue {
+      margin-top: 0.65rem;
+      padding: 0.75rem;
+      border-radius: 10px;
+      border: 1px solid rgba(110, 168, 254, 0.45);
+      background: rgba(10, 14, 22, 0.92);
+      text-align: center;
+    }
+    .skill-survivor-continue.is-hidden {
+      display: none;
+    }
+    .skill-survivor-continue p {
+      margin: 0 0 0.65rem;
+      font-size: 0.78rem;
+      color: var(--text);
+    }
+    .skill-survivor-continue-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
     .fake-sparks {
       display: flex;
       flex-direction: column;
@@ -4708,7 +4989,7 @@
             </span>
             <span class="app-nav-copy">
               <span class="app-nav-main" data-i18n="nav.miniGamesMain">Mini Games</span>
-              <span class="app-nav-sub" data-i18n="nav.miniGamesSub">Soon</span>
+              <span class="app-nav-sub" data-i18n="nav.miniGamesSub">Survivor</span>
             </span>
           </button>
           <div
@@ -5059,12 +5340,12 @@
             <button type="button" id="fakeSparksWheelBtn" data-i18n="fakeSparks.wheelSpin">Spin wheel</button>
           </div>
         </article>
-        <article class="fake-sparks-mission is-disabled">
+        <article class="fake-sparks-mission">
           <div>
             <h3 data-i18n="fakeSparks.miniGameTitle">Mini-game</h3>
-            <p data-i18n="fakeSparks.miniGameSoon">Coming soon.</p>
+            <p data-i18n="fakeSparks.miniGameLive">Skill Survivor — 1 free run/day, then 1 KRAPS.</p>
           </div>
-          <button type="button" disabled data-i18n="fakeSparks.soon">Soon</button>
+          <button type="button" id="fakeSparksMiniGameBtn" data-i18n="fakeSparks.playMiniGame">Play</button>
         </article>
       </div>
 
@@ -5099,30 +5380,87 @@
   </main>
 
   <main id="panelMiniGames" class="app-panel" hidden>
-    <section class="mini-games-progress" data-i18n-aria-label="miniGames.progressAria" aria-label="Progression preview">
-      <div class="player-progress mini-games-progress-card player-progress--preview" data-i18n-aria-label="profile.xpPreviewAria" aria-label="XP and energy preview (coming soon)">
-        <div class="player-progress-head">
-          <span class="player-progress-badge" data-i18n="profile.comingSoon">Coming soon</span>
-        </div>
-        <div class="player-progress-meta">
-          <span data-i18n="profile.level">Lv</span> <strong>1</strong>
-          <span class="player-progress-energy" data-i18n-title="profile.energyPreview" title="Energy preview">⚡ 30/30</span>
-        </div>
-        <div class="player-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria-label="profile.xpPreview" aria-label="XP preview">
-          <div class="player-progress-fill player-progress-fill--xp"></div>
-        </div>
-        <p class="player-progress-label" data-i18n="profile.xpLabel">0 / 100 XP</p>
-        <div class="player-progress-bar player-progress-bar--energy" role="progressbar" aria-valuemin="0" aria-valuemax="30" aria-valuenow="30" aria-label="Energy preview">
-          <div class="player-progress-fill player-progress-fill--energy"></div>
-        </div>
+    <section class="skill-survivor-hero" data-i18n-aria-label="skillSurvivor.heroAria" aria-label="Skill Survivor">
+      <img src="assets/fake-spark-token.png" width="64" height="64" alt="" decoding="async" />
+      <div>
+        <h2 data-i18n="skillSurvivor.title">Skill Survivor</h2>
       </div>
-      <p class="player-progress-hint" data-i18n="miniGames.xpHint">XP and energy will unlock with mini games — full system coming soon.</p>
     </section>
-    <section class="mini-games-placeholder" data-i18n-aria-label="miniGames.placeholderAria" aria-label="Mini games">
-      <h2 data-i18n="miniGames.comingTitle">Coming soon</h2>
-      <p data-i18n="miniGames.comingBody">Mini games are on the way. XP and energy (30/30) will power each run.</p>
-    </section>
+    <div class="skill-survivor-layout">
+      <aside class="skill-survivor-upgrades">
+        <section class="skill-survivor-panel">
+          <h3 data-i18n="skillSurvivor.upgradesTitle">Skill upgrades</h3>
+          <p class="hint" id="skillSurvivorUpgradesHint" data-i18n="skillSurvivor.upgradesHint">Permanent bonuses — price doubles after each level.</p>
+          <div class="skill-survivor-upgrade-list" id="skillSurvivorUpgradesList"></div>
+        </section>
+      </aside>
+      <section class="skill-survivor-game" data-i18n-aria-label="skillSurvivor.gameAria" aria-label="Skill Survivor game">
+        <div class="skill-survivor-hud">
+          <span><span data-i18n="skillSurvivor.time">Time</span> <strong id="skillSurvivorTime">0:00</strong></span>
+          <span><span data-i18n="skillSurvivor.score">Score</span> <strong id="skillSurvivorScore">0</strong></span>
+          <span><span data-i18n="skillSurvivor.kills">Kills</span> <strong id="skillSurvivorKills">0</strong></span>
+          <span class="skill-survivor-hp" id="skillSurvivorHp" aria-label="HP">···</span>
+          <span id="skillSurvivorDiff"></span>
+          <span class="skill-survivor-audio-toggles">
+            <label class="skill-survivor-audio-toggle">
+              <input type="checkbox" id="skillSurvivorSoundToggle" checked />
+              <span data-i18n="settings.sound">Sound</span>
+            </label>
+            <label class="skill-survivor-audio-toggle">
+              <input type="checkbox" id="skillSurvivorMusicToggle" checked />
+              <span data-i18n="settings.music">Music</span>
+            </label>
+          </span>
+        </div>
+        <div class="skill-survivor-canvas-wrap">
+          <canvas id="skillSurvivorCanvas" width="420" height="420" aria-label="Skill Survivor arena"></canvas>
+        </div>
+        <div class="skill-survivor-controls">
+          <button type="button" id="skillSurvivorStartBtn" data-i18n="skillSurvivor.start">Start run</button>
+          <p class="hint" id="skillSurvivorCostHint" data-i18n="skillSurvivor.costHint">1 free life / day · then 1 KRAPS per life (×3 max)</p>
+        </div>
+        <div class="skill-survivor-continue is-hidden" id="skillSurvivorContinue" hidden>
+          <p id="skillSurvivorContinueText"></p>
+          <div class="skill-survivor-continue-actions">
+            <button type="button" id="skillSurvivorContinueBtn"></button>
+            <button type="button" class="secondary" id="skillSurvivorEndBtn" data-i18n="skillSurvivor.endRun">End run</button>
+          </div>
+        </div>
+        <div class="skill-survivor-gate is-hidden" id="skillSurvivorGate" hidden></div>
+        <div class="skill-survivor-result is-hidden" id="skillSurvivorResult" hidden></div>
+      </section>
+      <aside class="skill-survivor-side">
+        <section class="skill-survivor-panel">
+          <div class="skill-survivor-lb-tabs" role="tablist" aria-label="Leaderboard period">
+            <button type="button" id="skillSurvivorLbTabDaily" class="is-active" role="tab" aria-selected="true" data-i18n="skillSurvivor.leaderboardDaily">Daily</button>
+            <button type="button" id="skillSurvivorLbTabMonthly" role="tab" aria-selected="false" data-i18n="skillSurvivor.leaderboardMonthly">Monthly</button>
+          </div>
+          <p class="skill-survivor-lb-reset" id="skillSurvivorLbReset"></p>
+          <p class="hint" id="skillSurvivorMyRank" style="margin:0 0 0.5rem;font-size:0.72rem;color:var(--muted);"></p>
+          <div style="overflow-x:auto;">
+            <table class="skill-survivor-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th data-i18n="skillSurvivor.player">Player</th>
+                  <th data-i18n="skillSurvivor.score">Score</th>
+                  <th data-i18n="skillSurvivor.time">Time</th>
+                </tr>
+              </thead>
+              <tbody id="skillSurvivorLeaderboardBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="skill-survivor-panel">
+          <h3 id="skillSurvivorLbRewardsTitle" data-i18n="skillSurvivor.lbDailyRewardsTitle">Daily rewards</h3>
+          <div id="skillSurvivorLbRewards"></div>
+        </section>
+      </aside>
+    </div>
   </main>
+
+  <script src="assets/audio-settings.js"></script>
+  <script src="assets/skill-survivor.js"></script>
 
   <script src="assets/i18n.js"></script>
   <script>
@@ -5149,6 +5487,8 @@
       if (typeof syncBuilderPublishModeUi === "function") syncBuilderPublishModeUi();
       if (typeof updateCommunityPublishFields === "function") updateCommunityPublishFields();
       if (fakeSparksCache) renderFakeSparks();
+      if (skillSurvivorCache) renderSkillSurvivorUi();
+      syncAudioSettingsUi();
       renderFakeSparksWheel();
       if (supportStatsCache) renderSupportStats(supportStatsCache);
       if (functionRarityModalBackdropEl && !functionRarityModalBackdropEl.hidden && window.I18n?.applyDocument) {
@@ -5603,6 +5943,8 @@
       if (isBook && !bookRendered) renderBook();
       if (isCommunity) refreshCommunityBuildsFromServer();
       if (isAirdrop) refreshFakeSparks();
+      if (isMiniGames) refreshSkillSurvivor();
+      syncSkillSurvivorPlayback();
     }
 
     function bindAppTabs() {
@@ -5925,6 +6267,7 @@
     let communityTargetFilter = null;
     let communityModeFilter = modeEl?.value || "stage";
     let currentUser = null;
+    let localDevEnabled = false;
     let authProviders = { discord: false, telegram: false, telegramBotUsername: "" };
     let telegramBotUsername = "";
     let authStateReady = Promise.resolve();
@@ -6313,11 +6656,14 @@
     }
 
     function authProviderButtonsHtml() {
+      const localDevBtn = localDevEnabled
+        ? `<button type="button" class="auth-local-dev-button" data-auth-action="local-dev">${escapeHtml(t("localDev.login"))}</button>`
+        : "";
       const discordBtn = `<button type="button" class="auth-discord-button" data-auth-provider="discord"${authProviders.discord ? "" : " disabled"}>${authProviders.discord ? t("profile.signInDiscord") : t("profile.signInDiscordUnavailable")}</button>`;
       const telegramBlock = authProviders.telegram
         ? `<div class="auth-telegram-login" data-i18n-aria-label="profile.signInTelegram"></div>`
         : `<button type="button" class="auth-telegram-pending" disabled>${t("profile.signInTelegramUnavailable")}</button>`;
-      return `${discordBtn}${telegramBlock}`;
+      return `${localDevBtn}${discordBtn}${telegramBlock}`;
     }
 
     function telegramLoginMountEl() {
@@ -6783,6 +7129,39 @@
       presencePollTimer = window.setInterval(() => pingPresence(), PRESENCE_PING_MS);
     }
 
+    const LOCAL_DEV_KRAPS_DISPLAY = 100;
+
+    async function fetchLocalDevStatus() {
+      if (!API_ENABLED) return;
+      const host = location.hostname;
+      if (host !== "localhost" && host !== "127.0.0.1") return;
+      try {
+        const data = await apiRequest("/api/local/dev-status");
+        localDevEnabled = Boolean(data.enabled);
+      } catch {
+        localDevEnabled = false;
+      }
+    }
+
+    async function localDevLogin() {
+      if (!localDevEnabled) return;
+      try {
+        if (authModalStatusEl) authModalStatusEl.textContent = t("localDev.connecting");
+        const data = await apiRequest("/api/local/dev-login", { method: "POST", body: "{}" });
+        currentUser = data.user || null;
+        closeAuthModal();
+        renderProfile();
+        renderCommunityBuilds();
+        await refreshFakeSparks();
+        await refreshSkillSurvivor();
+        showPassiveHint(t("localDev.connected", { kraps: formatNumber(LOCAL_DEV_KRAPS_DISPLAY) }));
+      } catch (err) {
+        const message = translateApiError(err.message) || err.message;
+        if (authModalStatusEl) authModalStatusEl.textContent = message;
+        showPassiveHint(message);
+      }
+    }
+
     function loadAuthState() {
       if (!API_ENABLED) {
         authStateReady = Promise.resolve();
@@ -6791,6 +7170,7 @@
       }
       authStateReady = (async () => {
         try {
+          await fetchLocalDevStatus();
           const data = await apiRequest("/api/auth/me");
           currentUser = data.user || null;
           authProviders = { ...authProviders, ...(data.providers || {}) };
@@ -6801,6 +7181,7 @@
         renderProfile();
         renderCommunityBuilds();
         await refreshFakeSparks();
+        await refreshSkillSurvivor();
         await syncPendingReferral();
         consumeAccountLinkNotice();
         pingPresence();
@@ -6891,6 +7272,11 @@
         if (actionBtn?.dataset.authAction === "logout") logoutProfile();
       });
       authModalActionsEl?.addEventListener("click", (ev) => {
+        const localBtn = ev.target.closest("[data-auth-action='local-dev']");
+        if (localBtn) {
+          void localDevLogin();
+          return;
+        }
         const providerBtn = ev.target.closest("[data-auth-provider]");
         if (providerBtn && !providerBtn.disabled) startAuthProvider(providerBtn.dataset.authProvider);
       });
@@ -10365,6 +10751,730 @@
       }
     }
 
+    let skillSurvivorCache = null;
+    let skillSurvivorGame = null;
+    let skillSurvivorRun = null;
+    let skillSurvivorBusy = false;
+    let skillSurvivorLbPeriod = "daily";
+    let skillSurvivorLbTimerId = null;
+
+    /** Catalogue complet — complète l’API si serveur pas à jour. */
+    const SKILL_SURVIVOR_UPGRADE_FALLBACK = [
+      {
+        id: "attackSpeed2x",
+        costKraps: 20,
+        labelKey: "skillSurvivor.upgradeAttackSpeed2x",
+        descKey: "skillSurvivor.upgradeAttackSpeed2xDesc",
+      },
+      {
+        id: "damage2x",
+        costKraps: 25,
+        labelKey: "skillSurvivor.upgradeDamage2x",
+        descKey: "skillSurvivor.upgradeDamage2xDesc",
+      },
+      {
+        id: "moveSpeed",
+        costKraps: 15,
+        labelKey: "skillSurvivor.upgradeMoveSpeed",
+        descKey: "skillSurvivor.upgradeMoveSpeedDesc",
+      },
+      {
+        id: "bulletSpeed",
+        costKraps: 25,
+        labelKey: "skillSurvivor.upgradeBulletSpeed",
+        descKey: "skillSurvivor.upgradeBulletSpeedDesc",
+      },
+      {
+        id: "pickupMagnet",
+        costKraps: 35,
+        labelKey: "skillSurvivor.upgradePickupMagnet",
+        descKey: "skillSurvivor.upgradePickupMagnetDesc",
+      },
+      {
+        id: "scoreBoost",
+        costKraps: 50,
+        labelKey: "skillSurvivor.upgradeScoreBoost",
+        descKey: "skillSurvivor.upgradeScoreBoostDesc",
+      },
+      {
+        id: "thickSkin",
+        costKraps: 60,
+        labelKey: "skillSurvivor.upgradeThickSkin",
+        descKey: "skillSurvivor.upgradeThickSkinDesc",
+      },
+      {
+        id: "multishot",
+        costKraps: 100,
+        labelKey: "skillSurvivor.upgradeMultishot",
+        descKey: "skillSurvivor.upgradeMultishotDesc",
+      },
+    ];
+
+    function normalizeSkillSurvivorUpgradesClient(raw) {
+      const catalog = getSkillSurvivorUpgradeCatalog();
+      const out = {};
+      for (const item of catalog) {
+        out[item.id] = skillSurvivorUpgradeLevel(raw, item.id);
+      }
+      return out;
+    }
+
+    function getSkillSurvivorUpgradeCatalog() {
+      const fromApi =
+        skillSurvivorCache?.upgradeCatalog ||
+        skillSurvivorCache?.config?.upgradeCatalog ||
+        [];
+      const byId = new Map(fromApi.map((item) => [item.id, item]));
+      return SKILL_SURVIVOR_UPGRADE_FALLBACK.map((fb) => ({ ...fb, ...(byId.get(fb.id) || {}) }));
+    }
+
+    function skillSurvivorUpgradeLevel(upgrades, id) {
+      const raw = upgrades?.[id];
+      if (typeof raw === "boolean") return raw ? 1 : 0;
+      return Math.max(0, Math.floor(Number(raw) || 0));
+    }
+
+    function skillSurvivorUpgradeNextCost(baseCost, level) {
+      const base = Math.max(0, Math.floor(Number(baseCost) || 0));
+      const lv = Math.max(0, Math.floor(Number(level) || 0));
+      const cost = base * Math.pow(2, lv);
+      if (!Number.isFinite(cost) || cost > 2_000_000_000) return 2_000_000_000;
+      return Math.floor(cost);
+    }
+
+    const skillSurvivorCanvasEl = document.getElementById("skillSurvivorCanvas");
+    const skillSurvivorStartBtnEl = document.getElementById("skillSurvivorStartBtn");
+    const skillSurvivorTimeEl = document.getElementById("skillSurvivorTime");
+    const skillSurvivorScoreEl = document.getElementById("skillSurvivorScore");
+    const skillSurvivorKillsEl = document.getElementById("skillSurvivorKills");
+    const skillSurvivorHpEl = document.getElementById("skillSurvivorHp");
+    const skillSurvivorDiffEl = document.getElementById("skillSurvivorDiff");
+    const skillSurvivorCostHintEl = document.getElementById("skillSurvivorCostHint");
+    const skillSurvivorGateEl = document.getElementById("skillSurvivorGate");
+    const skillSurvivorContinueEl = document.getElementById("skillSurvivorContinue");
+    const skillSurvivorContinueTextEl = document.getElementById("skillSurvivorContinueText");
+    const skillSurvivorContinueBtnEl = document.getElementById("skillSurvivorContinueBtn");
+    const skillSurvivorEndBtnEl = document.getElementById("skillSurvivorEndBtn");
+    const skillSurvivorResultEl = document.getElementById("skillSurvivorResult");
+    const skillSurvivorLeaderboardBodyEl = document.getElementById("skillSurvivorLeaderboardBody");
+    const skillSurvivorMyRankEl = document.getElementById("skillSurvivorMyRank");
+    const skillSurvivorLbRewardsEl = document.getElementById("skillSurvivorLbRewards");
+    const skillSurvivorLbRewardsTitleEl = document.getElementById("skillSurvivorLbRewardsTitle");
+    const skillSurvivorLbResetEl = document.getElementById("skillSurvivorLbReset");
+    const skillSurvivorLbTabDailyEl = document.getElementById("skillSurvivorLbTabDaily");
+    const skillSurvivorLbTabMonthlyEl = document.getElementById("skillSurvivorLbTabMonthly");
+    const skillSurvivorUpgradesListEl = document.getElementById("skillSurvivorUpgradesList");
+    const skillSurvivorUpgradesHintEl = document.getElementById("skillSurvivorUpgradesHint");
+    const skillSurvivorSoundToggleEl = document.getElementById("skillSurvivorSoundToggle");
+    const skillSurvivorMusicToggleEl = document.getElementById("skillSurvivorMusicToggle");
+
+    function syncAudioSettingsUi() {
+      if (!window.BuilderAudioSettings) return;
+      const prefs = BuilderAudioSettings.getPrefs();
+      if (skillSurvivorSoundToggleEl) skillSurvivorSoundToggleEl.checked = prefs.sound;
+      if (skillSurvivorMusicToggleEl) skillSurvivorMusicToggleEl.checked = prefs.music;
+    }
+
+    function formatSurvivorHp(st) {
+      const max = st?.maxLives || 3;
+      const purchased = Math.max(0, Math.min(max, st?.livesPurchased || 0));
+      const hp = Math.max(0, Math.min(purchased, st?.hp || 0));
+      return "♥".repeat(hp) + "♡".repeat(Math.max(0, purchased - hp)) + "·".repeat(Math.max(0, max - purchased));
+    }
+
+    function syncSkillSurvivorBalance(balance, freeAvailable) {
+      if (typeof balance === "number") {
+        skillSurvivorCache = {
+          ...skillSurvivorCache,
+          balance,
+          freeAvailable: typeof freeAvailable === "boolean" ? freeAvailable : skillSurvivorCache?.freeAvailable,
+        };
+        if (fakeSparksCache) {
+          fakeSparksCache = {
+            ...fakeSparksCache,
+            me: { ...fakeSparksCache.me, fakeSparksTotal: balance },
+          };
+          renderFakeSparks();
+        }
+      }
+    }
+
+    function hideSkillSurvivorContinue() {
+      if (!skillSurvivorContinueEl) return;
+      skillSurvivorContinueEl.hidden = true;
+      skillSurvivorContinueEl.classList.add("is-hidden");
+    }
+
+    function showSkillSurvivorContinue({ message, continueLabel, onContinue, onEnd }) {
+      return new Promise((resolve) => {
+        if (!skillSurvivorContinueEl) {
+          resolve(false);
+          return;
+        }
+        skillSurvivorContinueEl.hidden = false;
+        skillSurvivorContinueEl.classList.remove("is-hidden");
+        if (skillSurvivorContinueTextEl) skillSurvivorContinueTextEl.textContent = message;
+        if (skillSurvivorContinueBtnEl) skillSurvivorContinueBtnEl.textContent = continueLabel;
+
+        const cleanup = () => {
+          hideSkillSurvivorContinue();
+          skillSurvivorContinueBtnEl?.removeEventListener("click", onContinueClick);
+          skillSurvivorEndBtnEl?.removeEventListener("click", onEndClick);
+        };
+
+        const onContinueClick = () => {
+          cleanup();
+          resolve(true);
+          onContinue?.();
+        };
+        const onEndClick = () => {
+          cleanup();
+          resolve(false);
+          onEnd?.();
+        };
+
+        skillSurvivorContinueBtnEl?.addEventListener("click", onContinueClick);
+        skillSurvivorEndBtnEl?.addEventListener("click", onEndClick);
+      });
+    }
+
+    async function buySkillSurvivorLifeApi() {
+      if (!skillSurvivorRun?.runId) throw new Error("skill_survivor_run_not_found");
+      const data = await apiRequest("/api/minigames/skill-survivor/buy-life", {
+        method: "POST",
+        body: JSON.stringify({ runId: skillSurvivorRun.runId }),
+      });
+      syncSkillSurvivorBalance(data.balance, data.freeAvailable);
+      return data;
+    }
+
+    async function promptSkillSurvivorLifePurchase(livesPurchased) {
+      const cfg = skillSurvivorCache?.config || {};
+      const cost = cfg.lifeCostKraps || 1;
+      const maxLives = cfg.maxLives || 3;
+      const nextLife = livesPurchased + 1;
+      const freeNext = livesPurchased === 0 && skillSurvivorCache?.freeAvailable;
+      const message = freeNext
+        ? t("skillSurvivor.continueFree", { life: nextLife, max: maxLives })
+        : t("skillSurvivor.continuePaid", { life: nextLife, max: maxLives, cost: formatNumber(cost) });
+      const continueLabel = freeNext
+        ? t("skillSurvivor.continueFreeBtn", { life: nextLife })
+        : t("skillSurvivor.continuePaidBtn", { cost: formatNumber(cost) });
+
+      const wantsContinue = await showSkillSurvivorContinue({ message, continueLabel });
+      if (!wantsContinue) return null;
+      return buySkillSurvivorLifeApi();
+    }
+
+    function formatSurvivorTime(ms) {
+      const sec = Math.max(0, Math.floor(ms / 1000));
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function survivorPngUrl(type, id) {
+      const urls = pngUrlCandidates(type, id);
+      return urls[0] || "";
+    }
+
+    function formatSurvivorCountdown(ms) {
+      const sec = Math.max(0, Math.floor(ms / 1000));
+      const d = Math.floor(sec / 86400);
+      const h = Math.floor((sec % 86400) / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      if (d > 0) return `${d}j ${h}h ${String(m).padStart(2, "0")}m`;
+      if (h > 0) return `${h}h ${String(m).padStart(2, "0")}m ${String(s).padStart(2, "0")}s`;
+      return `${m}:${String(s).padStart(2, "0")}`;
+    }
+
+    function getSkillSurvivorLeaderboardView() {
+      const boards = skillSurvivorCache?.leaderboards;
+      if (!boards) return null;
+      return boards[skillSurvivorLbPeriod] || boards.daily || null;
+    }
+
+    function renderSkillSurvivorLbReset() {
+      const board = getSkillSurvivorLeaderboardView();
+      if (!skillSurvivorLbResetEl || !board) {
+        if (skillSurvivorLbResetEl) skillSurvivorLbResetEl.textContent = "";
+        return;
+      }
+      const left = Math.max(0, (board.resetsAt || 0) - Date.now());
+      const key =
+        skillSurvivorLbPeriod === "monthly"
+          ? "skillSurvivor.lbResetInMonthly"
+          : "skillSurvivor.lbResetInDaily";
+      skillSurvivorLbResetEl.textContent = t(key, { time: formatSurvivorCountdown(left) });
+    }
+
+    function syncSkillSurvivorLbTabs() {
+      const isDaily = skillSurvivorLbPeriod === "daily";
+      skillSurvivorLbTabDailyEl?.classList.toggle("is-active", isDaily);
+      skillSurvivorLbTabMonthlyEl?.classList.toggle("is-active", !isDaily);
+      skillSurvivorLbTabDailyEl?.setAttribute("aria-selected", isDaily ? "true" : "false");
+      skillSurvivorLbTabMonthlyEl?.setAttribute("aria-selected", !isDaily ? "true" : "false");
+      if (skillSurvivorLbRewardsTitleEl) {
+        skillSurvivorLbRewardsTitleEl.textContent =
+          skillSurvivorLbPeriod === "monthly"
+            ? t("skillSurvivor.lbMonthlyRewardsTitle")
+            : t("skillSurvivor.lbDailyRewardsTitle");
+      }
+    }
+
+    function startSkillSurvivorLbTimer() {
+      if (skillSurvivorLbTimerId) clearInterval(skillSurvivorLbTimerId);
+      renderSkillSurvivorLbReset();
+      skillSurvivorLbTimerId = setInterval(() => {
+        renderSkillSurvivorLbReset();
+        const board = getSkillSurvivorLeaderboardView();
+        if (board && board.resetsAt && Date.now() >= board.resetsAt) {
+          void refreshSkillSurvivor();
+        }
+      }, 1000);
+    }
+
+    function renderSkillSurvivorRewardTiers(tiers) {
+      return (tiers || [])
+        .map((tier) => {
+          const parts = (tier.rewards || []).map((r) => {
+            if (r.type === "kraps") return `+${formatNumber(r.amount)} KRAPS`;
+            if (r.type === "badge") return r.label || r.id;
+            return r.type;
+          });
+          const rankLabel =
+            tier.rankMin === tier.rankMax
+              ? `#${tier.rankMin}`
+              : `#${tier.rankMin}–${tier.rankMax}`;
+          return `<div class="skill-survivor-reward-tier"><span>${escapeHtml(rankLabel)}</span><strong>${escapeHtml(parts.join(" · "))}</strong></div>`;
+        })
+        .join("");
+    }
+
+    function renderSkillSurvivorRewards() {
+      const board = getSkillSurvivorLeaderboardView();
+      const cfg = skillSurvivorCache?.config;
+      if (!skillSurvivorLbRewardsEl) return;
+      const tiers =
+        board?.rewardTiers ||
+        (skillSurvivorLbPeriod === "monthly"
+          ? cfg?.monthlyLeaderboardRewardTiers
+          : cfg?.dailyLeaderboardRewardTiers) ||
+        [];
+      skillSurvivorLbRewardsEl.innerHTML = renderSkillSurvivorRewardTiers(tiers);
+    }
+
+    function renderSkillSurvivorUpgrades() {
+      if (!skillSurvivorUpgradesListEl || !skillSurvivorCache) return;
+      const catalog = getSkillSurvivorUpgradeCatalog();
+      const owned = skillSurvivorCache.upgrades || {};
+      const balance = skillSurvivorCache.balance || 0;
+      const signedIn = Boolean(skillSurvivorCache.signedIn && skillSurvivorCache.eligible);
+      const playing = Boolean(skillSurvivorGame?.running);
+
+      if (skillSurvivorUpgradesHintEl) {
+        skillSurvivorUpgradesHintEl.textContent = signedIn
+          ? t("skillSurvivor.upgradesHint")
+          : t("skillSurvivor.upgradesSignIn");
+      }
+
+      if (!catalog.length) {
+        skillSurvivorUpgradesListEl.innerHTML = "";
+        return;
+      }
+
+      skillSurvivorUpgradesListEl.innerHTML = catalog
+        .map((item) => {
+          const level = skillSurvivorUpgradeLevel(owned, item.id);
+          const baseCost = item.baseCostKraps ?? item.costKraps;
+          const nextCost = skillSurvivorUpgradeNextCost(baseCost, level);
+          const blockedPlaying = playing;
+          const blockedFunds = signedIn && !blockedPlaying && balance < nextCost;
+          const canBuy =
+            signedIn && !skillSurvivorBusy && !blockedPlaying && balance >= nextCost;
+          const levelBadge =
+            level > 0
+              ? `<span class="owned-badge">${escapeHtml(t("skillSurvivor.upgradeLevel", { level: formatNumber(level) }))}</span>`
+              : "";
+          const blockHint = blockedPlaying
+            ? `<span class="hint">${escapeHtml(t("skillSurvivor.upgradeBlockedPlaying"))}</span>`
+            : blockedFunds
+              ? `<span class="hint">${escapeHtml(
+                  t("skillSurvivor.upgradeNeedKraps", {
+                    cost: formatNumber(nextCost),
+                    balance: formatNumber(balance),
+                  }),
+                )}</span>`
+              : "";
+          return `<div class="skill-survivor-upgrade-item${level > 0 ? " is-owned" : ""}">
+            <strong>${escapeHtml(t(item.labelKey))}</strong>
+            <p>${escapeHtml(t(item.descKey))}</p>
+            <div class="skill-survivor-upgrade-actions">
+              ${levelBadge}
+              <button type="button" data-upgrade-id="${escapeHtml(item.id)}" ${
+                canBuy ? "" : "disabled"
+              }>${escapeHtml(t("skillSurvivor.upgradeBuy", { cost: formatNumber(nextCost) }))}</button>
+            </div>
+            ${blockHint}
+          </div>`;
+        })
+        .join("");
+
+      skillSurvivorUpgradesListEl.querySelectorAll("button[data-upgrade-id]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const upgradeId = btn.getAttribute("data-upgrade-id");
+          if (upgradeId) void buySkillSurvivorUpgradeUi(upgradeId);
+        });
+      });
+    }
+
+    async function buySkillSurvivorUpgradeUi(upgradeId) {
+      if (!API_ENABLED || skillSurvivorBusy || skillSurvivorGame?.running) return;
+      if (!requireSignedIn(t("skillSurvivor.upgradesTitle"))) return;
+      skillSurvivorBusy = true;
+      renderSkillSurvivorUi();
+      try {
+        const data = await apiRequest("/api/minigames/skill-survivor/buy-upgrade", {
+          method: "POST",
+          body: JSON.stringify({ upgradeId }),
+        });
+        skillSurvivorCache = {
+          ...skillSurvivorCache,
+          balance: data.balance,
+          upgrades: normalizeSkillSurvivorUpgradesClient(data.upgrades),
+          upgradeCatalog: data.upgradeCatalog || skillSurvivorCache.upgradeCatalog,
+        };
+        syncSkillSurvivorBalance(data.balance);
+        renderSkillSurvivorUi();
+        showPassiveHint(
+          t("skillSurvivor.upgradePurchasedLevel", {
+            level: formatNumber(data.level || 0),
+          }),
+        );
+      } catch (err) {
+        showPassiveHint(translateApiError(err.message) || err.message);
+      } finally {
+        skillSurvivorBusy = false;
+        renderSkillSurvivorUi();
+      }
+    }
+
+    function renderSkillSurvivorLeaderboard() {
+      if (!skillSurvivorLeaderboardBodyEl || !skillSurvivorCache) return;
+      syncSkillSurvivorLbTabs();
+      const board = getSkillSurvivorLeaderboardView();
+      const { entries = [], myRank } = board || {};
+      if (!entries.length) {
+        skillSurvivorLeaderboardBodyEl.innerHTML = `<tr><td colspan="4">${escapeHtml(t("skillSurvivor.leaderboardEmpty"))}</td></tr>`;
+      } else {
+        skillSurvivorLeaderboardBodyEl.innerHTML = entries
+          .map((row) => {
+            const me = currentUser && row.userId === currentUser.id ? " is-me" : "";
+            return `<tr class="${me}"><td>${row.rank}</td><td>${escapeHtml(row.username)}</td><td>${formatNumber(row.score)}</td><td>${formatSurvivorTime(row.durationMs)}</td></tr>`;
+          })
+          .join("");
+      }
+      if (skillSurvivorMyRankEl) {
+        skillSurvivorMyRankEl.textContent = myRank
+          ? t("skillSurvivor.myRank", {
+              rank: formatNumber(myRank.rank),
+              score: formatNumber(myRank.score),
+            })
+          : currentUser
+            ? t("skillSurvivor.myRankNone")
+            : t("skillSurvivor.signInRank");
+      }
+      renderSkillSurvivorLbReset();
+      renderSkillSurvivorRewards();
+    }
+
+    function renderSkillSurvivorUi() {
+      const s = skillSurvivorCache;
+      if (!s) return;
+      renderSkillSurvivorUpgrades();
+      renderSkillSurvivorLeaderboard();
+      renderSkillSurvivorRewards();
+
+      if (skillSurvivorGateEl) {
+        if (!s.signedIn) {
+          skillSurvivorGateEl.hidden = false;
+          skillSurvivorGateEl.classList.remove("is-hidden");
+          skillSurvivorGateEl.textContent = t("skillSurvivor.signInRequired");
+        } else if (!s.eligible) {
+          skillSurvivorGateEl.hidden = false;
+          skillSurvivorGateEl.classList.remove("is-hidden");
+          skillSurvivorGateEl.textContent = t("fakeSparks.linkRequired");
+        } else if (s.canResume && !skillSurvivorGame?.running) {
+          skillSurvivorGateEl.hidden = false;
+          skillSurvivorGateEl.classList.remove("is-hidden");
+          skillSurvivorGateEl.textContent = t("skillSurvivor.resumeHint");
+        } else {
+          skillSurvivorGateEl.hidden = true;
+          skillSurvivorGateEl.classList.add("is-hidden");
+        }
+      }
+
+      if (skillSurvivorCostHintEl) {
+        skillSurvivorCostHintEl.textContent = s.freeAvailable
+          ? t("skillSurvivor.freeAvailable")
+          : t("skillSurvivor.costPaid", {
+              cost: formatNumber(s.config?.lifeCostKraps || 1),
+              balance: formatNumber(s.balance || 0),
+            });
+      }
+
+      if (skillSurvivorStartBtnEl) {
+        const playing = Boolean(skillSurvivorGame?.running);
+        skillSurvivorStartBtnEl.disabled =
+          skillSurvivorBusy || playing || !s.canStart;
+        skillSurvivorStartBtnEl.textContent = playing
+          ? t("skillSurvivor.playing")
+          : s.canResume
+            ? t("skillSurvivor.resume")
+            : s.freeAvailable
+              ? t("skillSurvivor.startFree")
+              : t("skillSurvivor.startPaid", { cost: formatNumber(s.config?.lifeCostKraps || 1) });
+      }
+    }
+
+    async function refreshSkillSurvivor() {
+      if (!API_ENABLED) return;
+      try {
+        const data = await apiRequest("/api/minigames/skill-survivor");
+        skillSurvivorCache = {
+          ...data,
+          upgrades: normalizeSkillSurvivorUpgradesClient(data.upgrades),
+        };
+        renderSkillSurvivorUi();
+        startSkillSurvivorLbTimer();
+      } catch (err) {
+        if (skillSurvivorGateEl) {
+          skillSurvivorGateEl.hidden = false;
+          skillSurvivorGateEl.classList.remove("is-hidden");
+          skillSurvivorGateEl.textContent = translateApiError(err.message) || err.message;
+        }
+      }
+    }
+
+    function resetSkillSurvivorHud() {
+      if (skillSurvivorTimeEl) skillSurvivorTimeEl.textContent = "0:00";
+      if (skillSurvivorScoreEl) skillSurvivorScoreEl.textContent = "0";
+      if (skillSurvivorKillsEl) skillSurvivorKillsEl.textContent = "0";
+      if (skillSurvivorHpEl) skillSurvivorHpEl.textContent = "···";
+      if (skillSurvivorDiffEl) skillSurvivorDiffEl.textContent = "";
+    }
+
+    function showSkillSurvivorResult(html) {
+      if (!skillSurvivorResultEl) return;
+      skillSurvivorResultEl.hidden = false;
+      skillSurvivorResultEl.classList.remove("is-hidden");
+      skillSurvivorResultEl.innerHTML = html;
+    }
+
+    function hideSkillSurvivorResult() {
+      if (!skillSurvivorResultEl) return;
+      skillSurvivorResultEl.hidden = true;
+      skillSurvivorResultEl.classList.add("is-hidden");
+      skillSurvivorResultEl.innerHTML = "";
+    }
+
+    async function completeSkillSurvivorRun(payload) {
+      if (!skillSurvivorRun?.runId) return;
+      try {
+        const data = await apiRequest("/api/minigames/skill-survivor/complete", {
+          method: "POST",
+          body: JSON.stringify({
+            runId: skillSurvivorRun.runId,
+            durationMs: payload.durationMs,
+            kills: payload.kills,
+            pickupScore: payload.pickupScore || 0,
+            bossBonusScore: payload.bossBonusScore || 0,
+          }),
+        });
+        skillSurvivorRun = null;
+        syncSkillSurvivorBalance(data.balance);
+        skillSurvivorCache = {
+          ...skillSurvivorCache,
+          balance: data.balance,
+          myBest: data.myBest,
+          leaderboards: data.leaderboards,
+        };
+        renderSkillSurvivorUi();
+        const granted = (data.granted || [])
+          .map((g) => (g.type === "kraps" ? `+${formatNumber(g.amount)} KRAPS` : g.label || g.id))
+          .join(" · ");
+        showSkillSurvivorResult(
+          `<strong>${escapeHtml(t("skillSurvivor.gameOver"))}</strong><br/>` +
+            `${escapeHtml(t("skillSurvivor.finalScore", { score: formatNumber(data.score), time: formatSurvivorTime(data.durationMs), kills: formatNumber(data.kills) }))}` +
+            (data.personalBest ? `<br/>${escapeHtml(t("skillSurvivor.personalBest"))}` : "") +
+            (granted ? `<br/>${escapeHtml(t("skillSurvivor.runReward", { reward: granted }))}` : ""),
+        );
+        await refreshFakeSparks();
+        await refreshSkillSurvivor();
+      } catch (err) {
+        showSkillSurvivorResult(escapeHtml(translateApiError(err.message) || err.message));
+      } finally {
+        skillSurvivorBusy = false;
+        renderSkillSurvivorUi();
+      }
+    }
+
+    async function launchSkillSurvivorGame({ runId, seed, livesPurchased, buyFirstLife = false }) {
+      let lifeCount = Math.max(0, Math.floor(Number(livesPurchased) || 0));
+      skillSurvivorRun = { runId, seed };
+      if (buyFirstLife || lifeCount < 1) {
+        try {
+          const lifeData = await buySkillSurvivorLifeApi();
+          lifeCount = lifeData.livesPurchased;
+          syncSkillSurvivorBalance(lifeData.balance, lifeData.freeAvailable);
+        } catch (err) {
+          if (buyFirstLife) {
+            try {
+              await apiRequest("/api/minigames/skill-survivor/complete", {
+                method: "POST",
+                body: JSON.stringify({ runId, durationMs: 0, kills: 0 }),
+              });
+            } catch (_) {
+              /* abandon empty run */
+            }
+          }
+          skillSurvivorRun = null;
+          throw err;
+        }
+      }
+
+      if (skillSurvivorGame) skillSurvivorGame.destroy();
+      skillSurvivorGame = window.SkillSurvivor.create(skillSurvivorCanvasEl, {
+        seed,
+        maxLives: skillSurvivorCache?.config?.maxLives || 3,
+        playerSkillId: "shuriken",
+        upgrades: normalizeSkillSurvivorUpgradesClient(skillSurvivorCache?.upgrades),
+        pngUrlFor: survivorPngUrl,
+        pngUrlListFor: (type, id) => pngUrlCandidates(type, id),
+        onState: (st) => {
+          if (skillSurvivorTimeEl) skillSurvivorTimeEl.textContent = formatSurvivorTime(st.elapsedMs);
+          if (skillSurvivorScoreEl) skillSurvivorScoreEl.textContent = formatNumber(st.score);
+          if (skillSurvivorKillsEl) skillSurvivorKillsEl.textContent = formatNumber(st.kills);
+          if (skillSurvivorHpEl) skillSurvivorHpEl.textContent = formatSurvivorHp(st);
+          if (skillSurvivorDiffEl) {
+            skillSurvivorDiffEl.textContent = t("skillSurvivor.difficulty", {
+              n: st.difficulty.toFixed(1),
+            });
+          }
+        },
+        onFatalHit: async (payload) => {
+          try {
+            const nextLife = await promptSkillSurvivorLifePurchase(payload.livesPurchased);
+            if (!nextLife) return { continue: false };
+            return { continue: true, livesPurchased: nextLife.livesPurchased };
+          } catch (err) {
+            showPassiveHint(translateApiError(err.message) || err.message);
+            return { continue: false };
+          }
+        },
+          onGameOver: (payload) => {
+            hideSkillSurvivorContinue();
+            skillSurvivorGame?.stop();
+            skillSurvivorBusy = true;
+            renderSkillSurvivorUi();
+            void completeSkillSurvivorRun(payload);
+          },
+      });
+      resetSkillSurvivorHud();
+      skillSurvivorGame.start({ livesPurchased: lifeCount, hp: 1 });
+      skillSurvivorCache = { ...skillSurvivorCache, canStart: false, canResume: false };
+      renderSkillSurvivorUi();
+    }
+
+    async function startSkillSurvivorRunUi() {
+      if (!API_ENABLED || skillSurvivorBusy || skillSurvivorGame?.running) return;
+      if (!requireSignedIn(t("skillSurvivor.title"))) return;
+      hideSkillSurvivorResult();
+      hideSkillSurvivorContinue();
+      skillSurvivorBusy = true;
+      renderSkillSurvivorUi();
+      try {
+        await refreshSkillSurvivor();
+        const resume = skillSurvivorCache?.canResume && skillSurvivorCache?.activeRun;
+        if (resume) {
+          await launchSkillSurvivorGame({
+            runId: resume.runId,
+            seed: resume.seed,
+            livesPurchased: resume.livesPurchased,
+            buyFirstLife: (resume.livesPurchased || 0) < 1,
+          });
+          return;
+        }
+
+        const data = await apiRequest("/api/minigames/skill-survivor/start", { method: "POST" });
+        skillSurvivorCache = {
+          ...skillSurvivorCache,
+          balance: data.balance,
+          freeAvailable: data.freeAvailable,
+          canStart: false,
+          canResume: false,
+          config: data.config || skillSurvivorCache?.config,
+          upgradeCatalog:
+            data.config?.upgradeCatalog ||
+            skillSurvivorCache?.upgradeCatalog ||
+            getSkillSurvivorUpgradeCatalog(),
+        };
+        await launchSkillSurvivorGame({
+          runId: data.runId,
+          seed: data.seed,
+          livesPurchased: 0,
+          buyFirstLife: true,
+        });
+      } catch (err) {
+        showPassiveHint(translateApiError(err.message) || err.message);
+      } finally {
+        if (!skillSurvivorGame?.running) {
+          skillSurvivorBusy = false;
+          await refreshSkillSurvivor();
+        }
+      }
+    }
+
+    function syncSkillSurvivorPlayback() {
+      const game = skillSurvivorGame;
+      if (!game?.sessionActive) return;
+      const miniGamesVisible = Boolean(panelMiniGames && !panelMiniGames.hidden);
+      const shouldPlay = miniGamesVisible && !document.hidden;
+      if (shouldPlay) {
+        if (game.paused) game.resume();
+      } else {
+        game.pause();
+      }
+    }
+
+    function bindSkillSurvivor() {
+      syncAudioSettingsUi();
+      skillSurvivorSoundToggleEl?.addEventListener("change", () => {
+        BuilderAudioSettings.setSound(skillSurvivorSoundToggleEl.checked);
+        skillSurvivorGame?._syncSfxEnabled?.();
+      });
+      skillSurvivorMusicToggleEl?.addEventListener("change", () => {
+        BuilderAudioSettings.setMusic(skillSurvivorMusicToggleEl.checked);
+      });
+      BuilderAudioSettings?.onChange((prefs) => {
+        if (skillSurvivorSoundToggleEl) skillSurvivorSoundToggleEl.checked = prefs.sound;
+        if (skillSurvivorMusicToggleEl) skillSurvivorMusicToggleEl.checked = prefs.music;
+        skillSurvivorGame?._syncSfxEnabled?.();
+      });
+      skillSurvivorStartBtnEl?.addEventListener("click", () => void startSkillSurvivorRunUi());
+      skillSurvivorLbTabDailyEl?.addEventListener("click", () => {
+        skillSurvivorLbPeriod = "daily";
+        renderSkillSurvivorLeaderboard();
+      });
+      skillSurvivorLbTabMonthlyEl?.addEventListener("click", () => {
+        skillSurvivorLbPeriod = "monthly";
+        renderSkillSurvivorLeaderboard();
+      });
+      startSkillSurvivorLbTimer();
+      document.addEventListener("visibilitychange", syncSkillSurvivorPlayback);
+    }
+
     function bindFakeSparks() {
       renderFakeSparksWheel();
       headerFakeSparksDailyBtnEl?.addEventListener("click", () => void claimFakeSparksDaily());
@@ -10374,11 +11484,13 @@
         if (e.target === inviteCopiedToastEl) hideInviteCopiedToast();
       });
       fakeSparksWheelBtnEl?.addEventListener("click", () => void spinFakeSparksWheel());
+      document.getElementById("fakeSparksMiniGameBtn")?.addEventListener("click", () => setAppTab("mini-games"));
       fakeSparksDisclaimerOkEl?.addEventListener("click", () => void acknowledgeFakeSparksDisclaimer());
     }
 
     function bindCommunityBuilds() {
       bindFakeSparks();
+      bindSkillSurvivor();
       bindBuildMiniOverlay();
       builderCommunityStrategyNotesEl?.addEventListener("input", syncBuilderStrategyNotesCounter);
       syncBuilderStrategyNotesCounter();

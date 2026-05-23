@@ -11,6 +11,24 @@ import {
   linkProviderAccount,
   publicUserLinks,
 } from "../../lib/auth-accounts.cjs";
+import { normalizeReferrals } from "../../lib/fake-sparks-referrals.cjs";
+import {
+  normalizeFakeSparksUsers,
+  getFakeSparksState,
+  claimDaily,
+  spinWheel,
+  acknowledgeDisclaimer,
+  registerReferralPending,
+  applyReferralAfterAuth,
+} from "../../lib/fake-sparks.cjs";
+import {
+  normalizeSkillSurvivorDb,
+  getSkillSurvivorState,
+  startSkillSurvivorRun,
+  buySkillSurvivorLife,
+  buySkillSurvivorUpgrade,
+  completeSkillSurvivorRun,
+} from "../../lib/skill-survivor.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -438,6 +456,9 @@ async function readDb(store) {
     buildRequests: Array.isArray(db.buildRequests) ? db.buildRequests : [],
     users: normalizeUsers(db.users),
     chatMessages: Array.isArray(db.chatMessages) ? db.chatMessages.slice(-CHAT_RETENTION_LIMIT) : [],
+    fakeSparksUsers: normalizeFakeSparksUsers(db.fakeSparksUsers),
+    referrals: normalizeReferrals(db.referrals),
+    skillSurvivor: normalizeSkillSurvivorDb(db.skillSurvivor),
   };
 }
 
@@ -519,9 +540,14 @@ export async function handler(event) {
               const primary = db.users[statePayload.uid];
               if (!primary) throw new Error("Link session expired. Sign in again.");
               linkProviderAccount(db, primary, profile);
+              applyReferralAfterAuth(db, primary);
               return primary;
             })()
-          : resolveAuthUser(db, profile, upsertUser);
+          : (() => {
+              const u = resolveAuthUser(db, profile, upsertUser);
+              applyReferralAfterAuth(db, u);
+              return u;
+            })();
       await writeDb(store, db);
       const session = signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, process.env.SESSION_SECRET);
       const linkQuery = statePayload.mode === "link" ? "?linked=discord" : "";
@@ -544,6 +570,7 @@ export async function handler(event) {
       const profile = validateTelegramPayload(body);
       const db = await readDb(store);
       const user = resolveAuthUser(db, profile, upsertUser);
+      applyReferralAfterAuth(db, user);
       await writeDb(store, db);
       const session = signEnvelope({ uid: user.id, exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000 }, process.env.SESSION_SECRET);
       return json(200, { user: publicUser(user) }, { "set-cookie": cookieHeader(SESSION_COOKIE, session, event) });
@@ -805,6 +832,109 @@ export async function handler(event) {
       db.builds = db.builds.filter((b) => b.id !== id);
       await writeDb(store, db);
       return json(200, { ok: true });
+    }
+
+    if (path === "/api/fake-sparks" && event.httpMethod === "GET") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      return json(200, getFakeSparksState(db, user));
+    }
+
+    if (path === "/api/fake-sparks/daily" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const result = claimDaily(db, user);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
+    }
+
+    if (path === "/api/fake-sparks/wheel" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const result = spinWheel(db, user);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
+    }
+
+    if (path === "/api/fake-sparks/disclaimer" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const result = acknowledgeDisclaimer(db, user);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
+    }
+
+    if (path === "/api/fake-sparks/referral/pending" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const body = await readBody(event);
+      const result = registerReferralPending(db, user, body.referrerId);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, {
+        ok: true,
+        referrals: result.referrals,
+        validation: result.validation,
+        ...getFakeSparksState(db, user),
+      });
+    }
+
+    if (path === "/api/minigames/skill-survivor" && event.httpMethod === "GET") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      const payload = getSkillSurvivorState(db, user);
+      await writeDb(store, db);
+      return json(200, payload);
+    }
+
+    if (path === "/api/minigames/skill-survivor/start" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const result = startSkillSurvivorRun(db, user);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
+    }
+
+    if (path === "/api/minigames/skill-survivor/buy-life" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const body = await readBody(event);
+      const result = buySkillSurvivorLife(db, user, body);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
+    }
+
+    if (path === "/api/minigames/skill-survivor/buy-upgrade" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const body = await readBody(event);
+      const result = buySkillSurvivorUpgrade(db, user, body);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
+    }
+
+    if (path === "/api/minigames/skill-survivor/complete" && event.httpMethod === "POST") {
+      const db = await readDb(store);
+      const user = sessionUser(event, db);
+      if (!user) return json(401, { error: "Sign in required." });
+      const body = await readBody(event);
+      const result = completeSkillSurvivorRun(db, user, body);
+      if (result.error) return json(result.status, { error: result.error });
+      await writeDb(store, db);
+      return json(200, result);
     }
 
     return json(404, { error: "Not found" });
