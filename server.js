@@ -60,6 +60,7 @@ const {
   buySkillSurvivorLife,
   buySkillSurvivorUpgrade,
   completeSkillSurvivorRun,
+  mergePersistedSkillSurvivorWrite,
 } = require("./lib/skill-survivor.cjs");
 const {
   localDevEnabled,
@@ -129,6 +130,12 @@ function readDb() {
 function writeDb(db) {
   ensureDb();
   fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+}
+
+function persistSkillSurvivorWrite(db) {
+  const latest = readDb();
+  mergePersistedSkillSurvivorWrite(latest, db);
+  writeDb(latest);
 }
 
 function defaultTestProgress() {
@@ -1152,9 +1159,7 @@ async function handleApi(req, res, url) {
   if (url.pathname === "/api/minigames/skill-survivor" && req.method === "GET") {
     const db = readDb();
     const user = sessionUser(req, db);
-    const payload = getSkillSurvivorState(db, user);
-    writeDb(db);
-    return sendJson(res, 200, payload);
+    return sendJson(res, 200, getSkillSurvivorState(db, user));
   }
 
   if (url.pathname === "/api/minigames/skill-survivor/start" && req.method === "POST") {
@@ -1163,7 +1168,7 @@ async function handleApi(req, res, url) {
     if (!user) return;
     const result = startSkillSurvivorRun(db, user);
     if (result.error) return sendJson(res, result.status, { error: result.error });
-    writeDb(db);
+    persistSkillSurvivorWrite(db);
     return sendJson(res, 200, result);
   }
 
@@ -1174,7 +1179,7 @@ async function handleApi(req, res, url) {
     const body = await readBody(req);
     const result = buySkillSurvivorLife(db, user, body);
     if (result.error) return sendJson(res, result.status, { error: result.error });
-    writeDb(db);
+    persistSkillSurvivorWrite(db);
     return sendJson(res, 200, result);
   }
 
@@ -1185,7 +1190,7 @@ async function handleApi(req, res, url) {
     const body = await readBody(req);
     const result = buySkillSurvivorUpgrade(db, user, body);
     if (result.error) return sendJson(res, result.status, { error: result.error });
-    writeDb(db);
+    persistSkillSurvivorWrite(db);
     return sendJson(res, 200, result);
   }
 
@@ -1196,7 +1201,7 @@ async function handleApi(req, res, url) {
     const body = await readBody(req);
     const result = completeSkillSurvivorRun(db, user, body);
     if (result.error) return sendJson(res, result.status, { error: result.error });
-    writeDb(db);
+    persistSkillSurvivorWrite(db);
     return sendJson(res, 200, result);
   }
 

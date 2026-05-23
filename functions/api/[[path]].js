@@ -33,6 +33,7 @@ import {
   buySkillSurvivorLife,
   buySkillSurvivorUpgrade,
   completeSkillSurvivorRun,
+  mergePersistedSkillSurvivorWrite,
 } from "../../lib/skill-survivor.cjs";
 
 const DB_KEY = "db";
@@ -487,6 +488,12 @@ async function writeDb(env, db) {
   await env.BUILDER_KV.put(DB_KEY, JSON.stringify(db));
 }
 
+async function persistSkillSurvivorWrite(env, db) {
+  const latest = await readDb(env);
+  mergePersistedSkillSurvivorWrite(latest, db);
+  await writeDb(env, latest);
+}
+
 function randomId() {
   const suffix =
     typeof crypto.randomUUID === "function"
@@ -922,9 +929,7 @@ export async function onRequest(context) {
     if (path === "/api/minigames/skill-survivor" && method === "GET") {
       const db = await readDb(env);
       const user = await sessionUser(request, env, db);
-      const payload = getSkillSurvivorState(db, user);
-      await writeDb(env, db);
-      return json(payload);
+      return json(getSkillSurvivorState(db, user));
     }
 
     if (path === "/api/minigames/skill-survivor/start" && method === "POST") {
@@ -933,7 +938,7 @@ export async function onRequest(context) {
       if (!user) return json({ error: "Sign in required." }, 401);
       const result = startSkillSurvivorRun(db, user);
       if (result.error) return json({ error: result.error }, result.status);
-      await writeDb(env, db);
+      await persistSkillSurvivorWrite(env, db);
       return json(result);
     }
 
@@ -944,7 +949,7 @@ export async function onRequest(context) {
       const body = await readBody(request);
       const result = buySkillSurvivorLife(db, user, body);
       if (result.error) return json({ error: result.error }, result.status);
-      await writeDb(env, db);
+      await persistSkillSurvivorWrite(env, db);
       return json(result);
     }
 
@@ -955,7 +960,7 @@ export async function onRequest(context) {
       const body = await readBody(request);
       const result = buySkillSurvivorUpgrade(db, user, body);
       if (result.error) return json({ error: result.error }, result.status);
-      await writeDb(env, db);
+      await persistSkillSurvivorWrite(env, db);
       return json(result);
     }
 
@@ -966,7 +971,7 @@ export async function onRequest(context) {
       const body = await readBody(request);
       const result = completeSkillSurvivorRun(db, user, body);
       if (result.error) return json({ error: result.error }, result.status);
-      await writeDb(env, db);
+      await persistSkillSurvivorWrite(env, db);
       return json(result);
     }
 

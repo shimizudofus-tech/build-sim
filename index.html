@@ -5944,7 +5944,7 @@
       if (isBook && !bookRendered) renderBook();
       if (isCommunity) refreshCommunityBuildsFromServer();
       if (isAirdrop) refreshFakeSparks();
-      if (isMiniGames) refreshSkillSurvivor();
+      if (isMiniGames && !skillSurvivorGame?.running) refreshSkillSurvivor();
       syncSkillSurvivorPlayback();
     }
 
