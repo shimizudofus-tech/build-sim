@@ -1410,6 +1410,10 @@
       font-weight: 650;
       white-space: nowrap;
     }
+    .player-progress,
+    .player-progress--preview {
+      display: none !important;
+    }
     .mini-games-progress {
       max-width: 28rem;
       margin-bottom: 1.25rem;
@@ -4467,6 +4471,13 @@
   </style>
 </head>
 <body>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".player-progress").forEach(function (el) {
+        el.remove();
+      });
+    });
+  </script>
   <!-- Sprite inline : obligatoire pour file:// (un SVG externe + &lt;use&gt; est bloqué par le navigateur) -->
   <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
     <defs>

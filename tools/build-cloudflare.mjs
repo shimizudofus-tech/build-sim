@@ -25,4 +25,10 @@ for (const file of ["robots.txt", "sitemap.xml"]) {
   } catch {}
 }
 
+await fs.writeFile(
+  path.join(dist, "_headers"),
+  ["/index.html", "  Cache-Control: no-cache, must-revalidate", ""].join("\n"),
+  "utf8",
+);
+
 console.log("Cloudflare Pages build ready in dist/");
