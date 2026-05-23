@@ -11493,7 +11493,7 @@
       skillSurvivorMusicVolumeEl?.addEventListener("input", () => {
         const vol = Math.max(0, Math.min(100, Number(skillSurvivorMusicVolumeEl.value) || 0)) / 100;
         BuilderAudioSettings.setMusicVolume(vol);
-        skillSurvivorGame?._syncBgmVolume?.();
+        skillSurvivorGame?.bgm?.setVolume(vol);
       });
       BuilderAudioSettings?.onChange((prefs) => {
         if (skillSurvivorSoundToggleEl) skillSurvivorSoundToggleEl.checked = prefs.sound;

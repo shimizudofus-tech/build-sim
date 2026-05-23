@@ -263,7 +263,10 @@
         typeof options.volume === "number"
           ? Math.max(0, Math.min(1, options.volume))
           : global.BuilderAudioSettings?.getMusicVolume?.() ?? 0.55;
+      this.ctx = null;
       this.audio = null;
+      this.fileGain = null;
+      this.fileSource = null;
       this.mode = null;
       this.playing = false;
       this.fileReady = null;
@@ -281,10 +284,23 @@
       return this.volume;
     }
 
+    _ensureCtx() {
+      const Ctx = global.AudioContext || global.webkitAudioContext;
+      if (!Ctx) return null;
+      if (!this.ctx) this.ctx = new Ctx();
+      if (this.ctx.state === "suspended") this.ctx.resume().catch(() => {});
+      return this.ctx;
+    }
+
+    _applyVolume() {
+      const v = this.volume;
+      if (this.fileGain) this.fileGain.gain.value = v;
+      if (this.proc?.master) this.proc.master.gain.value = v;
+    }
+
     setVolume(value) {
       this.volume = Math.max(0, Math.min(1, Number(value) || 0));
-      if (this.audio) this.audio.volume = this.volume;
-      if (this.proc?.master) this.proc.master.gain.value = this.volume * 0.55;
+      this._applyVolume();
     }
 
     async _ensureFile() {
@@ -293,7 +309,7 @@
         const audio = new Audio(this.src);
         audio.loop = true;
         audio.preload = "auto";
-        audio.volume = this.volume;
+        audio.volume = 1;
         const finish = (ok) => resolve(ok ? audio : null);
         audio.addEventListener("canplaythrough", () => finish(true), { once: true });
         audio.addEventListener("error", () => finish(null), { once: true });
@@ -302,21 +318,49 @@
       return this.fileReady;
     }
 
-    _ensureProcCtx() {
-      const Ctx = global.AudioContext || global.webkitAudioContext;
-      if (!Ctx) return null;
-      if (!this.proc?.ctx) this.proc = { ctx: new Ctx(), pad: null, timer: null, master: null };
-      const ctx = this.proc.ctx;
-      if (ctx.state === "suspended") ctx.resume().catch(() => {});
-      return ctx;
+    _wireFileGraph(file) {
+      const ctx = this._ensureCtx();
+      if (!ctx) return false;
+      if (this.fileSource?.mediaElement === file) {
+        this._applyVolume();
+        return true;
+      }
+      try {
+        this._teardownFileGraph();
+        const source = ctx.createMediaElementSource(file);
+        const gain = ctx.createGain();
+        gain.gain.value = this.volume;
+        source.connect(gain).connect(ctx.destination);
+        this.fileSource = source;
+        this.fileGain = gain;
+        file.volume = 1;
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    _teardownFileGraph() {
+      try {
+        this.fileSource?.disconnect();
+      } catch {
+        /* ignore */
+      }
+      try {
+        this.fileGain?.disconnect();
+      } catch {
+        /* ignore */
+      }
+      this.fileSource = null;
+      this.fileGain = null;
     }
 
     _startProcedural() {
       this._stopProcedural();
-      const ctx = this._ensureProcCtx();
+      const ctx = this._ensureCtx();
       if (!ctx) return;
       const master = ctx.createGain();
-      master.gain.value = this.volume * 0.55;
+      master.gain.value = this.volume;
       master.connect(ctx.destination);
       const pad = ctx.createOscillator();
       pad.type = "sawtooth";
@@ -340,7 +384,7 @@
         idx += 1;
         const g = ctx.createGain();
         g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.1 * this.volume), t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.02);
         g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
         osc.connect(g).connect(master);
         osc.start(t0);
@@ -348,9 +392,7 @@
       };
       tick();
       const timer = setInterval(tick, 380);
-      this.proc.master = master;
-      this.proc.pad = pad;
-      this.proc.timer = timer;
+      this.proc = { ctx, master, pad, timer };
       this.mode = "procedural";
       this.playing = true;
     }
@@ -363,24 +405,25 @@
       } catch {
         /* already stopped */
       }
-      this.proc.timer = null;
-      this.proc.pad = null;
+      this.proc = null;
     }
 
     async start() {
       if (!this._musicAllowed()) return;
       if (this.playing) return;
+      this.setVolume(this._readVolume());
       const file = await this._ensureFile();
       if (file) {
         this.audio = file;
-        this.mode = "file";
-        file.volume = this.volume;
-        try {
-          await file.play();
-          this.playing = true;
-          return;
-        } catch {
-          /* autoplay blocked or decode error — fallback */
+        if (this._wireFileGraph(file)) {
+          this.mode = "file";
+          try {
+            await file.play();
+            this.playing = true;
+            return;
+          } catch {
+            this._teardownFileGraph();
+          }
         }
       }
       this._startProcedural();
@@ -389,13 +432,13 @@
     pause() {
       if (!this.playing) return;
       if (this.mode === "file" && this.audio) this.audio.pause();
-      if (this.mode === "procedural" && this.proc?.ctx) this.proc.ctx.suspend().catch(() => {});
+      if (this.mode === "procedural" && this.ctx) this.ctx.suspend().catch(() => {});
     }
 
     resume() {
       if (!this.playing || !this._musicAllowed()) return;
+      if (this.ctx?.state === "suspended") this.ctx.resume().catch(() => {});
       if (this.mode === "file" && this.audio) this.audio.play().catch(() => {});
-      if (this.mode === "procedural" && this.proc?.ctx) this.proc.ctx.resume().catch(() => {});
     }
 
     stop() {
@@ -405,7 +448,7 @@
         this.audio.currentTime = 0;
       }
       this._stopProcedural();
-      if (this.proc?.ctx) this.proc.ctx.suspend().catch(() => {});
+      if (this.ctx?.state === "running") this.ctx.suspend().catch(() => {});
     }
 
     setEnabled(on) {
@@ -418,8 +461,9 @@
 
     destroy() {
       this.stop();
-      if (this.proc?.ctx) this.proc.ctx.close().catch(() => {});
-      this.proc = null;
+      this._teardownFileGraph();
+      if (this.ctx) this.ctx.close().catch(() => {});
+      this.ctx = null;
       this.audio = null;
       this.mode = null;
       this.fileReady = null;
@@ -491,11 +535,17 @@
         this.bgm.stop();
         return;
       }
+      this._syncBgmVolume();
       if (this.running && !this.paused) {
         void this.bgm.start();
       } else if (this.paused) {
         this.bgm.pause();
       }
+    }
+
+    _syncBgmVolume() {
+      const vol = global.BuilderAudioSettings?.getMusicVolume?.() ?? this.bgm.volume;
+      this.bgm.setVolume(vol);
     }
 
     _bindInput() {
