@@ -1,4 +1,4 @@
-﻿{
+{
   "api.alreadyVoted": "Você já votou neste build.",
   "api.apiDisabled": "API desativada",
   "api.avatarSize": "O avatar deve ter 1 MB ou menos.",
@@ -347,7 +347,7 @@
   "nav.communityMain": "Comunidade",
   "nav.communitySub": "Rankings",
   "nav.miniGamesMain": "Mini games",
-  "nav.miniGamesSub": "Em breve",
+  "nav.miniGamesSub": "Survivor",
   "nav.siteTitle": "Spekter Agency Builder",
   "nav.visits": "Visitas: {count}",
   "nav.visitsAria": "Contador de visitas do site",

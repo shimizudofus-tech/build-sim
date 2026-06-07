@@ -35,6 +35,7 @@ import {
   completeSkillSurvivorRun,
   mergePersistedSkillSurvivorWrite,
 } from "../../lib/skill-survivor.cjs";
+import { LIVE_CHAT_ENABLED } from "../../lib/live-chat.cjs";
 
 const DB_KEY = "db";
 const SESSION_COOKIE = "builder_session";
@@ -44,6 +45,9 @@ const AVATAR_MAX_BYTES = 1024 * 1024;
 const GETGEMS_COLLECTION_ADDRESS = "EQCT_uQvCCD4AZNtSLY0VwwPrDvw48bOiixCaWJ7czA0sgFk";
 const GETGEMS_PUBLIC_API_BASE = "https://api.getgems.io/public-api";
 const GETGEMS_TIMEOUT_MS = 6500;
+const GETGEMS_CACHE_MS = 15 * 60 * 1000;
+/** @type {{ at: number, payload: object | null }} */
+let getgemsMarketCache = { at: 0, payload: null };
 const COMMUNITY_STRATEGY_NOTES_MAX = 1200;
 const COMMUNITY_DIFFICULTIES = new Set(["", "very_easy", "easy", "medium", "hard", "very_hard"]);
 const CHAT_MESSAGE_MAX = 240;
@@ -715,7 +719,17 @@ export async function onRequest(context) {
     }
 
     if (path === "/api/market/getgems-collection" && method === "GET") {
-      return json(await getGetgemsCollectionMarket(url.searchParams.get("address")));
+      const now = Date.now();
+      if (getgemsMarketCache.payload && now - getgemsMarketCache.at < GETGEMS_CACHE_MS) {
+        return json(getgemsMarketCache.payload, 200, {
+          "cache-control": "public, max-age=300, stale-while-revalidate=600",
+        });
+      }
+      const payload = await getGetgemsCollectionMarket(url.searchParams.get("address"));
+      getgemsMarketCache = { at: now, payload };
+      return json(payload, 200, {
+        "cache-control": "public, max-age=300, stale-while-revalidate=600",
+      });
     }
 
     if (path === "/api/visits" && method === "GET") {
@@ -751,6 +765,10 @@ export async function onRequest(context) {
     if (path === "/api/support/stats" && method === "GET") {
       const db = await readDb(env);
       return json(publicSupportStats(db));
+    }
+
+    if (path === "/api/chat/messages" && (method === "GET" || method === "POST")) {
+      if (!LIVE_CHAT_ENABLED) return json({ error: "Chat disabled.", messages: [] }, 503);
     }
 
     if (path === "/api/chat/messages" && method === "GET") {

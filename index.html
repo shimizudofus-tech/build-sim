@@ -2871,6 +2871,13 @@
     .planner-mythic.is-flexible {
       opacity: 0.92;
     }
+    .planner-mythic.is-blocked {
+      opacity: 0.72;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    }
+    .planner-mythic.is-alternative {
+      box-shadow: inset 0 0 0 1px rgba(255, 224, 138, 0.28);
+    }
     .planner-reason {
       display: none;
     }
@@ -4588,6 +4595,7 @@
     <symbol id="mythic-storm_shuriken" viewBox="0 0 32 32"><path fill="#ffe566" d="M16 4l3 10 10 2-10 2-3 10-3-10-10-2 10-2z"/><path fill="url(#g-blue)" d="M16 10l2 6 6 1-6 1-2 6-2-6-6-1 6-1z"/></symbol>
     <symbol id="mythic-drip_coronet" viewBox="0 0 32 32"><path fill="url(#g-gold)" d="M8 18l4-10 4 6 4-8 4 6 4-10 4 18H8z"/><path fill="url(#g-teal)" d="M14 22h4v6h-4zM18 20h4v8h-4z"/></symbol>
     <symbol id="mythic-blood_swarm" viewBox="0 0 32 32"><circle cx="12" cy="14" r="5" fill="url(#g-red)"/><circle cx="20" cy="18" r="6" fill="#ff7eb3"/></symbol>
+    <symbol id="mythic-boom-frog-razor-red" viewBox="0 0 32 32"><circle cx="14" cy="20" r="8" fill="#ff7eb3"/><path fill="url(#g-red)" d="M20 8l2 6h6l-5 4 2 7-5-4-5 4 2-7-5-4h6z"/></symbol>
     <symbol id="mythic-chronos_blue" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-blue)"/><path fill="url(#g-blue)" d="M16 4c4 6 2 10-2 14 4-2 6 2 2 8-4-4-6-10 0-22z"/></symbol>
     <symbol id="mythic-buldak-red" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="none" stroke="#ffe566" stroke-width="2"/><path fill="#9b7bd6" d="M10 10h12v12H10z" opacity=".7"/></symbol>
     <symbol id="mythic-prism_shell" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="url(#g-red)"/><path fill="#dff6ff" stroke="#7ecbff" d="M16 8l4 8h8l-6 5 2 9-8-5-8 5 2-9-6-5h8z"/></symbol>
@@ -4753,7 +4761,7 @@
       <div id="functionRarityModalGrid" class="function-rarity-modal-grid"></div>
     </div>
   </div>
-  <aside id="liveChat" class="live-chat" data-i18n-aria-label="chat.aria" tabindex="0">
+  <aside id="liveChat" class="live-chat" data-i18n-aria-label="chat.aria" tabindex="0" hidden aria-hidden="true">
     <div class="live-chat-shell">
       <div class="live-chat-collapsed" aria-hidden="true">
         <span class="live-chat-badge" data-i18n="chat.badge">CHAT</span>
@@ -5659,8 +5667,25 @@
       }
       updateCollectionMarket();
       updateAstarMarket();
-      setInterval(updateCollectionMarket, 5 * 60 * 1000);
-      setInterval(updateAstarMarket, 2 * 60 * 1000);
+      startMarketPollers();
+    }
+
+    function stopMarketPollers() {
+      if (marketCollectionPollTimer) {
+        clearInterval(marketCollectionPollTimer);
+        marketCollectionPollTimer = 0;
+      }
+      if (marketAstarPollTimer) {
+        clearInterval(marketAstarPollTimer);
+        marketAstarPollTimer = 0;
+      }
+    }
+
+    function startMarketPollers() {
+      stopMarketPollers();
+      if (document.hidden) return;
+      marketCollectionPollTimer = window.setInterval(updateCollectionMarket, MARKET_COLLECTION_POLL_MS);
+      marketAstarPollTimer = window.setInterval(updateAstarMarket, MARKET_ASTAR_POLL_MS);
     }
 
     function iconeBareFile(id) {
@@ -6170,8 +6195,13 @@
     let builderPublishMode = "publish";
     let buildRequestCache = null;
     let buildRequestFetchInFlight = null;
-    const CHAT_POLL_MS = 12000;
-    const PRESENCE_PING_MS = 120000;
+    const LIVE_CHAT_ENABLED = false;
+    const CHAT_POLL_MS = 60000;
+    const PRESENCE_PING_MS = 300000;
+    const MARKET_COLLECTION_POLL_MS = 15 * 60 * 1000;
+    const MARKET_ASTAR_POLL_MS = 10 * 60 * 1000;
+    /** PNG jeu absents du dépôt — sprite SVG uniquement (évite des dizaines de requêtes 404). */
+    const ICON_USE_GAME_PNG = false;
     const VISIT_COUNT_SESSION_KEY = "builder_visit_counted:v1";
     const VISITOR_ID_KEY = "builder_visitor_id:v1";
     const CHAT_MESSAGE_MAX = 240;
@@ -6250,6 +6280,8 @@
     let chatFetchInFlight = null;
     let chatPollTimer = 0;
     let presencePollTimer = 0;
+    let marketCollectionPollTimer = 0;
+    let marketAstarPollTimer = 0;
     let chatUnreadCount = 0;
     let chatLastSeenId = "";
     let communityStats = { online: 0, membersTotal: 0 };
@@ -7038,7 +7070,7 @@
     }
 
     async function refreshLiveChatMessages({ silent = false } = {}) {
-      if (!API_ENABLED || chatFetchInFlight) return chatFetchInFlight;
+      if (!LIVE_CHAT_ENABLED || !API_ENABLED || chatFetchInFlight) return chatFetchInFlight;
       if (!silent && liveChatStatusEl) liveChatStatusEl.textContent = t("chat.loadingMessages");
       chatFetchInFlight = apiRequest("/api/chat/messages")
         .then((data) => {
@@ -7068,6 +7100,7 @@
     }
 
     async function sendLiveChatMessage() {
+      if (!LIVE_CHAT_ENABLED) return;
       if (!requireSignedIn("write in live chat")) return;
       const text = String(liveChatInputEl?.value || "")
         .replace(/[\u0000-\u001f\u007f]/g, " ")
@@ -7101,7 +7134,17 @@
     }
 
     function bindLiveChat() {
+      if (!LIVE_CHAT_ENABLED) {
+        if (liveChatEl) {
+          liveChatEl.hidden = true;
+          liveChatEl.setAttribute("aria-hidden", "true");
+        }
+        startBackgroundPollers();
+        return;
+      }
       if (!liveChatEl) return;
+      liveChatEl.hidden = false;
+      liveChatEl.removeAttribute("aria-hidden");
       liveChatFormEl?.addEventListener("submit", (ev) => {
         ev.preventDefault();
         sendLiveChatMessage();
@@ -7115,8 +7158,26 @@
       liveChatEl.addEventListener("focusin", resetLiveChatUnread);
       renderLiveChatComposer();
       refreshLiveChatMessages({ silent: true });
-      pingPresence();
-      chatPollTimer = window.setInterval(() => refreshLiveChatMessages({ silent: true }), CHAT_POLL_MS);
+      startBackgroundPollers();
+    }
+
+    function stopBackgroundPollers() {
+      if (chatPollTimer) {
+        clearInterval(chatPollTimer);
+        chatPollTimer = 0;
+      }
+      if (presencePollTimer) {
+        clearInterval(presencePollTimer);
+        presencePollTimer = 0;
+      }
+    }
+
+    function startBackgroundPollers() {
+      stopBackgroundPollers();
+      if (document.hidden) return;
+      if (LIVE_CHAT_ENABLED) {
+        chatPollTimer = window.setInterval(() => refreshLiveChatMessages({ silent: true }), CHAT_POLL_MS);
+      }
       presencePollTimer = window.setInterval(() => pingPresence(), PRESENCE_PING_MS);
     }
 
@@ -7350,10 +7411,13 @@
         return `<span class="ico-wrap ico-wrap--empty" style="width:${size}px;height:${size}px">${iconPlaceholderSvg(size)}</span>`;
       }
       const t = escapeHtml(label || id);
+      const sprite = iconSpriteSvg(type, id, size, label);
+      if (!ICON_USE_GAME_PNG) {
+        return `<span class="ico-wrap ico-wrap--${escapeHtml(type)}" style="width:${size}px;height:${size}px">${sprite}</span>`;
+      }
       const urls = pngUrlCandidates(type, id);
       const src = urls[0] || "";
       const fallbacks = escapeHtml(JSON.stringify(urls.slice(1)));
-      const sprite = iconSpriteSvg(type, id, size, label);
       return `<span class="ico-wrap ico-wrap--${escapeHtml(type)}" style="width:${size}px;height:${size}px">
         ${sprite}
         <img class="ico-img is-hidden" src="${escapeHtml(src)}" data-fallbacks="${fallbacks}" alt="${t}" width="${size}" height="${size}" decoding="async"
@@ -11876,8 +11940,96 @@
       return count;
     }
 
-    function rankPlannerChoice(plan, selectedPlans, ch) {
+    function mythicPairKeyFromEvos(evoA, evoB) {
+      return [evoA, evoB].sort().join("+");
+    }
+
+    function mythicPairKey(plan) {
+      if (plan?.type !== "mythic") return "";
+      const evos = plannerPlanEvoIds(plan);
+      return evos.length === 2 ? mythicPairKeyFromEvos(evos[0], evos[1]) : "";
+    }
+
+    function plannerSelectedEvoIds() {
+      const ids = new Set();
+      for (const key of plannerSelectedChoices) {
+        if (key.startsWith("evo:")) ids.add(key.slice(4));
+      }
+      return ids;
+    }
+
+    function plannerActiveEvoIds() {
+      return new Set(activeEvos().map((evo) => evo.evoId));
+    }
+
+    function plannerMythicPairReady(plan) {
+      if (plan?.type !== "mythic") return false;
+      const [leftEvo, rightEvo] = plannerPlanEvoIds(plan);
+      if (!leftEvo || !rightEvo) return false;
+      const selectedEvos = plannerSelectedEvoIds();
+      const liveEvos = plannerActiveEvoIds();
+      const has = (evoId) => selectedEvos.has(evoId) || liveEvos.has(evoId);
+      return has(leftEvo) && has(rightEvo);
+    }
+
+    function plannerShowMythicChoice(plan, constraints, selectedPlans, ch) {
+      if (!plannerPlanSkillIds(plan).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
+        return false;
+      }
+      if (plannerSelectedChoices.has(plan.key)) return true;
+      if (canUseSelectablePlannerPlan(plan, [...constraints, ...selectedPlans], ch)) return true;
+      if (plan.type !== "mythic") return false;
+      if (plannerMythicPairReady(plan)) return true;
+      const pairKey = mythicPairKey(plan);
+      if (!pairKey) return false;
+      return mythicPlanOptions().some(
+        (sibling) =>
+          sibling.key !== plan.key &&
+          mythicPairKey(sibling) === pairKey &&
+          plannerSelectedChoices.has(sibling.key)
+      );
+    }
+
+    function rankPlannerChoice(plan, selectedPlans, ch, constraints = []) {
       const comparisonPlans = selectedPlans.filter((selectedPlan) => selectedPlan.key !== plan.key);
+      const contextPlans = [...constraints, ...comparisonPlans];
+      if (
+        plan.type === "mythic" &&
+        !plannerSelectedChoices.has(plan.key) &&
+        !canUseSelectablePlannerPlan(plan, contextPlans, ch)
+      ) {
+        if (plannerMythicPairReady(plan)) {
+          return {
+            badge: "Alternative",
+            className: "is-alternative is-blocked",
+            reason: "EVO pair ready — conflicts with current picks",
+            score: 40,
+          };
+        }
+        const pairKey = mythicPairKey(plan);
+        if (
+          pairKey &&
+          mythicPlanOptions().some(
+            (sibling) =>
+              sibling.key !== plan.key &&
+              mythicPairKey(sibling) === pairKey &&
+              plannerSelectedChoices.has(sibling.key)
+          )
+        ) {
+          return {
+            badge: "Alternative",
+            className: "is-alternative is-blocked",
+            reason: "same EVO pair — pick one fusion",
+            score: 35,
+          };
+        }
+        return {
+          badge: "Blocked",
+          className: "is-blocked",
+          reason: "conflicts with current picks",
+          score: 0,
+        };
+      }
       const selectedEvos = new Set(comparisonPlans.flatMap(plannerPlanEvoIds));
       const theoreticalSlots = currentTheoreticalBuildSlots(ch, modeEl.value);
       const theoreticalKeys = new Set(theoreticalSlots.map(buildSlotKey));
@@ -12012,14 +12164,8 @@
       const optionHtml = (title, type, emptyMessage) => {
         const buttons = options
           .filter((plan) => plan.type === type)
-          .filter((plan) => {
-            if (!plannerPlanSkillIds(plan).every((skill) => skillOwnedByCharacter(skill, ch.id))) {
-              return false;
-            }
-            if (plannerSelectedChoices.has(plan.key)) return true;
-            return canUseSelectablePlannerPlan(plan, [...constraints, ...selectedPlans], ch);
-          })
-          .map((plan) => ({ plan, rank: rankPlannerChoice(plan, selectedPlans, ch) }))
+          .filter((plan) => plannerShowMythicChoice(plan, constraints, selectedPlans, ch))
+          .map((plan) => ({ plan, rank: rankPlannerChoice(plan, selectedPlans, ch, constraints) }))
           .sort(
             (a, b) =>
               b.rank.score - a.rank.score ||
@@ -12424,6 +12570,14 @@
         frogRazor: {
           id: "boom-frog-razor-red",
           label: "Boom frog razor red",
+          components: [
+            { evo: "boom-frog-pruple", skill: "boom-frog", passive: "size" },
+            { evo: "razor-purple", skill: "razor", passive: "haste" },
+          ],
+        },
+        bloodSwarm: {
+          id: "blood_swarm",
+          label: "Blood swarm",
           components: [
             { evo: "boom-frog-pruple", skill: "boom-frog", passive: "size" },
             { evo: "razor-purple", skill: "razor", passive: "haste" },
@@ -13144,6 +13298,17 @@
           bindSupportCopy();
           bindProfileMenu();
           bindLiveChat();
+          document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+              stopBackgroundPollers();
+              stopMarketPollers();
+              return;
+            }
+            if (LIVE_CHAT_ENABLED) refreshLiveChatMessages({ silent: true });
+            pingPresence();
+            startBackgroundPollers();
+            startMarketPollers();
+          });
           bindRecentBuildsRail();
           bindCommunityBuilds();
           renderRecentBuildsRail();

@@ -56,6 +56,8 @@
     skill_survivor_max_lives: "api.skillSurvivorMaxLives",
     skill_survivor_upgrade_owned: "api.skillSurvivorUpgradeOwned",
     skill_survivor_upgrade_unknown: "api.skillSurvivorUpgradeUnknown",
+    mini_survivor_run_not_found: "api.miniSurvivorRunNotFound",
+    mini_survivor_invalid_stats: "api.miniSurvivorInvalidStats",
     sign_in_required: "api.signInRequired",
   };
 
@@ -95,7 +97,7 @@
 
   async function loadMessages(code) {
     const url = localePath(code);
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(url);
     if (!res.ok) throw new Error(`Locale ${code} failed (${res.status})`);
     return res.json();
   }

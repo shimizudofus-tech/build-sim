@@ -27,7 +27,17 @@ for (const file of ["robots.txt", "sitemap.xml"]) {
 
 await fs.writeFile(
   path.join(dist, "_headers"),
-  ["/index.html", "  Cache-Control: no-cache, must-revalidate", ""].join("\n"),
+  [
+    "/index.html",
+    "  Cache-Control: no-cache, must-revalidate",
+    "",
+    "/assets/*",
+    "  Cache-Control: public, max-age=86400, stale-while-revalidate=604800",
+    "",
+    "/locales/*",
+    "  Cache-Control: public, max-age=86400, stale-while-revalidate=604800",
+    "",
+  ].join("\n"),
   "utf8",
 );
 

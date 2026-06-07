@@ -1,4 +1,4 @@
-﻿{
+{
   "api.alreadyVoted": "Anda sudah memilih build ini.",
   "api.apiDisabled": "API dinonaktifkan",
   "api.avatarSize": "Avatar harus 1 MB atau lebih kecil.",
@@ -347,7 +347,7 @@
   "nav.communityMain": "Komunitas",
   "nav.communitySub": "Peringkat",
   "nav.miniGamesMain": "Mini game",
-  "nav.miniGamesSub": "Segera",
+  "nav.miniGamesSub": "Survivor",
   "nav.siteTitle": "Spekter Agency Builder",
   "nav.visits": "Kunjungan: {count}",
   "nav.visitsAria": "Penghitung kunjungan situs",

@@ -43,6 +43,7 @@ const {
 } = require("./lib/presence-stats.cjs");
 const { normalizeReferrals } = require("./lib/fake-sparks-referrals.cjs");
 const { readSupportFields, publicSupportStats } = require("./lib/support-stats.cjs");
+const { LIVE_CHAT_ENABLED } = require("./lib/live-chat.cjs");
 const {
   normalizeFakeSparksUsers,
   getFakeSparksState,
@@ -962,6 +963,10 @@ async function handleApi(req, res, url) {
   if (url.pathname === "/api/support/stats" && req.method === "GET") {
     const db = readDb();
     return sendJson(res, 200, publicSupportStats(db));
+  }
+
+  if (url.pathname === "/api/chat/messages" && (req.method === "GET" || req.method === "POST")) {
+    if (!LIVE_CHAT_ENABLED) return sendJson(res, 503, { error: "Chat disabled.", messages: [] });
   }
 
   if (url.pathname === "/api/chat/messages" && req.method === "GET") {

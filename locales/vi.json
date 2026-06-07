@@ -1,4 +1,4 @@
-﻿{
+{
   "api.alreadyVoted": "Bạn đã bình chọn build này.",
   "api.apiDisabled": "API đã tắt",
   "api.avatarSize": "Ảnh đại diện phải từ 1 MB trở xuống.",
@@ -347,7 +347,7 @@
   "nav.communityMain": "Cộng đồng",
   "nav.communitySub": "Xếp hạng",
   "nav.miniGamesMain": "Mini game",
-  "nav.miniGamesSub": "Sắp ra",
+  "nav.miniGamesSub": "Survivor",
   "nav.siteTitle": "Spekter Agency Builder",
   "nav.visits": "Lượt truy cập: {count}",
   "nav.visitsAria": "Bộ đếm lượt truy cập",
